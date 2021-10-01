@@ -8,16 +8,13 @@ Created on Mon Sep 20 22:05:54 2021
 import numpy as np
 import pandas as pd
 from numpy.linalg import multi_dot
-
+from util import add_dimension
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
 
 # Import optimization module from scipy
 import scipy.optimize as sco
-
-def flatten_data(data):
-    return data.to_numpy()[:,np.newaxis]
 
 class plan_params():
     
@@ -63,7 +60,7 @@ class plan_params():
             DESCRIPTION.
 
         """
-        return self.policy_wgts.T @ flatten_data(self.ret)
+        return self.policy_wgts.T @ add_dimension(self.ret)
     
     def compute_cov(self):
         """
@@ -250,7 +247,7 @@ class plan_params():
             weights = np.insert(weights,0,-1)[:,np.newaxis]
             
             # Portfolio statistics
-            rets.append(weights.T @ flatten_data(self.ret))        
+            rets.append(weights.T @ add_dimension(self.ret))        
             vols.append(np.sqrt(multi_dot([weights.T, self.cov, weights])))
             wts.append(weights.flatten())
         

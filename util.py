@@ -13,17 +13,17 @@ from inputs_for_mv import get_summarized_output
 import warnings
 warnings.filterwarnings('ignore')
 
-def flatten_data(data):
+def add_dimension(data):
     return data.to_numpy()[:,np.newaxis]
 
 def get_data(filename):
     dataset = get_summarized_output(filename)
     
-    policy_wts = flatten_data(dataset['FS AdjWeights'])
+    policy_wts = add_dimension(dataset['FS AdjWeights'])
     
     ret = dataset['Return']
 
-    vol = flatten_data(dataset['Vol'])
+    vol = add_dimension(dataset['Vol'])
     
     corr = dataset.iloc[:,3:21].to_numpy()
     
