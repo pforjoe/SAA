@@ -25,12 +25,24 @@ def get_data(filename):
 
     vol = add_dimension(dataset['Vol'])
     
-    corr = dataset.iloc[:,3:21].to_numpy()
+    corr = dataset.iloc[:,3:].to_numpy()
     
     symbols =  list(dataset.index.values)
     
     return {'policy_weights': policy_wts,'ret':ret, 'vol':vol, 'corr':corr,'symbols':symbols}
 
+def get_data_dict(dataset):
+    policy_wts = add_dimension(dataset['FS AdjWeights'])
+    
+    ret = dataset['Return']
+
+    vol = add_dimension(dataset['Vol'])
+    
+    corr = dataset.iloc[:,3:].to_numpy()
+    
+    symbols =  list(dataset.index.values)
+    
+    return {'policy_weights': policy_wts,'ret':ret, 'vol':vol, 'corr':corr,'symbols':symbols}
 
 
 def get_max_sharpe_port(sim_ports_df):
