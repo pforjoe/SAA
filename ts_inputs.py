@@ -162,13 +162,13 @@ def get_summarized_output(filename,decay_factor=0.98, t=1):
     output_df = pd.merge(weights_df,output_df,left_index=True, right_index=True, how='outer')
     return output_df
 
-def clean_data(filename, year= '2010'):
-    ret_data = pd.read_excel(data_fp+'return_data.xlsx', sheet_name=year, index_col=0)
+def clean_data(filename, year= '2011'):
+    ret_data = pd.read_excel(data_fp+ filename, sheet_name=year, index_col=0)
     
     returns_df = ret_data.copy()
     
     returns_df['Credit'] = 0.5*returns_df['CS LL'] + 0.5*returns_df['BOA HY']
     returns_df['Liquid Alternatives'] = 0.4*returns_df['HF MACRO'] + 0.3*returns_df['HFRI MACRO'] + 0.1*returns_df['TREND'] + 0.2*returns_df['ALT RISK']
-    returns_df = returns_df[['Liability', '15+ STRIPS', 'Long Corps', 'Total EQ Unhedged','Liquid Alternatives','Total Private Equity','Credit', 'Total Real Estate', 'Total UPS Cash', ]]
-    returns_df.columns = ['Liability', '15+ STRIPS', 'Long Corporate', 'Equity','Liquid Alternatives','Private Equity','Credit', 'Real Estate', 'Cash']
+    returns_df = returns_df[['Liability', '15+ STRIPS', 'Long Corps', 'Total EQ Unhedged','Liquid Alternatives','Total Private Equity','Credit', 'Total Real Estate', 'Total UPS Cash','ULTRA 30Y FUTURES','Equity Hedges' ]]
+    returns_df.columns = ['Liability', '15+ STRIPS', 'Long Corporate','Equity','Liquid Alternatives','Private Equity','Credit', 'Real Estate','Cash' , 'Ultra 30-Year UST Futures','Equity Hedges']
     return returns_df
