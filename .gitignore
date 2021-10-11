@@ -1,6 +1,12 @@
 ### UPS_MV###
+###Ignore###
 reports/*.xlsx
+scripts/*.py
 desktop.ini
+
+# DO-NOT ignore specific files
+data/output/bounds.xlsx
+data/output/output.xlsx
 
 ### JupyterNotebooks ###
 .ipynb_checkpoints
