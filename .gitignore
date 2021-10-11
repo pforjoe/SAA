@@ -1,6 +1,11 @@
-### EquityHedging ###
+###Ignore###
 reports/*.xlsx
+scripts/*.py
 desktop.ini
+
+# DO-NOT ignore specific file
+data/output/bounds.xlsx
+data/output/output.xlsx
 
 ### JupyterNotebooks ###
 .ipynb_checkpoints
