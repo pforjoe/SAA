@@ -6,21 +6,18 @@ Created on Fri Oct  1 17:05:16 2021
 """
 
 import pandas as pd
-import os
 import numpy as np
-
+import datamanger as dm
 #set filepath
-cwd = os.getcwd()
-data_fp = cwd + '\\data\\'
 
 
-def compute_ewcov(df, x, y, decay_factor=.98,t=1):
+def compute_ewcov(returns_df, x, y, decay_factor=.98,t=1):
     """
     return the sample exponential-weighted covariance between x & y at time t
 
     Parameters
     ----------
-    df : Dataframe
+    returns_df : Dataframe
         returns dataframe.
     x : string
         column in dataframe.
@@ -38,17 +35,17 @@ def compute_ewcov(df, x, y, decay_factor=.98,t=1):
 
     """
     if t <= 0:
-        return decay_factor * (df.cov()[x][y]) + (1 - decay_factor) * (df[x][-1:][0]*df[y][-1:][0])
+        return decay_factor * (returns_df.cov()[x][y]) + (1 - decay_factor) * (returns_df[x][-1:][0]*returns_df[y][-1:][0])
     else:
-        return decay_factor * (df[:-t].cov()[x][y]) + (1 - decay_factor) * (df[x][-(t+1):-t][0] * df[y][-(t+1):-t][0])
+        return decay_factor * (returns_df[:-t].cov()[x][y]) + (1 - decay_factor) * (returns_df[x][-(t+1):-t][0] * returns_df[y][-(t+1):-t][0])
 
-def compute_ewcorr(df, x, y, decay_factor=.98,t=1):
+def compute_ewcorr(returns_df, x, y, decay_factor=.98,t=1):
     """
     return the sample exponential-weighted correlation between x & y at time t
 
     Parameters
     ----------
-    df : Dataframe
+    returns_df : Dataframe
         returns dataframe.
     x : string
         column in dataframe.
@@ -66,14 +63,14 @@ def compute_ewcorr(df, x, y, decay_factor=.98,t=1):
 
     """
     #compute sample ew cov between x and y at t
-    temp_ewcov = compute_ewcov(df, x, y, decay_factor, t)
+    temp_ewcov = compute_ewcov(returns_df, x, y, decay_factor, t)
     #compute sample ew var of x and y at t
-    temp_ewvar_x = compute_ewcov(df, x, x, decay_factor, t)
-    temp_ewvar_y = compute_ewcov(df, y, y, decay_factor, t)
+    temp_ewvar_x = compute_ewcov(returns_df, x, x, decay_factor, t)
+    temp_ewvar_y = compute_ewcov(returns_df, y, y, decay_factor, t)
     #update dataframe with ew corr value
     return temp_ewcov / np.sqrt(temp_ewvar_x * temp_ewvar_y)
 
-def compute_ewcorr_matrix(df, decay_factor=.98, t=1):
+def compute_ewcorr_matrix(returns_df, decay_factor=.98, t=1):
     """
     return the sample exponential-weighted pairwise correlation of columnsin df at time t
 
@@ -93,12 +90,12 @@ def compute_ewcorr_matrix(df, decay_factor=.98, t=1):
 
     """
     #create correlation matrix
-    ewcorr_df = df.corr()
+    ewcorr_df = returns_df.corr()
     
     # loop through values in correlation matrix to update values to ewcorr values
     for col in ewcorr_df.columns:
         for index in ewcorr_df.index:
-            ewcorr_df[col][index] = compute_ewcorr(df, col, index, decay_factor, t)
+            ewcorr_df[col][index] = compute_ewcorr(returns_df, col, index, decay_factor, t)
     return ewcorr_df
 
 def get_ann_return(return_series):
@@ -139,6 +136,20 @@ def get_ann_vol(return_series):
     return np.std(return_series, ddof=1)*np.sqrt(12)
 
 def get_ret_vol_df(returns_df):
+    """
+    Get a dataframe containig annualized return and volatility analytics of returns
+
+    Parameters
+    ----------
+    returns_df : Dataframe
+        returns dataframe.
+
+    Returns
+    -------
+    ret_vol_df : Dataframe
+        Dataframe of ret and vol for each column in returns_df.
+
+    """
     ret_vol_dict = {}
     for col in returns_df.columns:
         ann_ret = get_ann_return(returns_df[col])
@@ -148,27 +159,27 @@ def get_ret_vol_df(returns_df):
     return ret_vol_df
 
 def get_weights(filename = 'weights.xlsx'):
-    weights_df = pd.read_excel(data_fp+ filename, sheet_name='weights',index_col=0)
+    weights_df = pd.read_excel(dm.DATA_FP+ filename, sheet_name='weights',index_col=0)
     weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['Factor Loadings']
     weights_df = weights_df[['FS AdjWeights']]
     return weights_df
 
-def get_summarized_output(filename,decay_factor=0.98, t=1):
-    returns_df = clean_data(filename)
+def get_summarized_output(returns_df,decay_factor=0.98, t=1):
+    # returns_df = clean_data(filename)
     ret_vol_df = get_ret_vol_df(returns_df)
     corr_df = compute_ewcorr_matrix(returns_df,decay_factor, t)
-    weights_df = get_weights()
+    # weights_df = get_weights()
     output_df = pd.merge(ret_vol_df, corr_df,left_index=True, right_index=True, how='outer')
-    output_df = pd.merge(weights_df,output_df,left_index=True, right_index=True, how='outer')
+    # output_df = pd.merge(weights_df,output_df,left_index=True, right_index=True, how='outer')
     return output_df
 
 def clean_data(filename, year= '2011'):
-    ret_data = pd.read_excel(data_fp+ filename, sheet_name=year, index_col=0)
+    ret_data = pd.read_excel(dm.DATA_FP+ filename, sheet_name=year, index_col=0)
     
     returns_df = ret_data.copy()
     
     returns_df['Credit'] = 0.5*returns_df['CS LL'] + 0.5*returns_df['BOA HY']
     returns_df['Liquid Alternatives'] = 0.4*returns_df['HF MACRO'] + 0.3*returns_df['HFRI MACRO'] + 0.1*returns_df['TREND'] + 0.2*returns_df['ALT RISK']
-    returns_df = returns_df[['Liability', '15+ STRIPS', 'Long Corps', 'Total EQ Unhedged','Liquid Alternatives','Total Private Equity','Credit', 'Total Real Estate', 'Total UPS Cash','ULTRA 30Y FUTURES','Equity Hedges' ]]
+    returns_df = returns_df[['Liability', '15+ STRIPS', 'Long Corps', 'Total EQ Unhedged','Liquid Alternatives','Total Private Equity','Credit', 'Total Real Estate', 'Total UPS Cash','ULTRA 30Y FUTURES','Equity Hedges']]
     returns_df.columns = ['Liability', '15+ STRIPS', 'Long Corporate','Equity','Liquid Alternatives','Private Equity','Credit', 'Real Estate','Cash' , 'Ultra 30-Year UST Futures','Equity Hedges']
     return returns_df
