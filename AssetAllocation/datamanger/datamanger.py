@@ -134,7 +134,7 @@ def get_returns_df(filename, year='2011'):
     """
     returns_df = pd.read_excel(filename,
                              sheet_name=year, index_col=0)
-    returns_df['Credit'] = 0.5*returns_df['CS LL'] + 0.5*returns_df['BOA HY']
+    returns_df['Credit'] = 0.2*returns_df['CS LL'] + 0.3*returns_df['BOA HY'] + 0.5*returns_df['CDLI']
     returns_df['Liquid Alternatives'] = 0.33*returns_df['HF MACRO'] + 0.33*returns_df['HFRI MACRO'] + 0.34*returns_df['TREND']
     returns_df = returns_df[['Liability', '15+ STRIPS', 'Long Corps', 'ULTRA 30Y FUTURES', 'Total EQ Unhedged', 'Liquid Alternatives',
                              'Total Private Equity', 'Credit', 'Total Real Estate', 'Total UPS Cash', 'Equity Hedges']]
