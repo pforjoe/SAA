@@ -7,6 +7,7 @@ Created on Sat Oct  9 21:41:41 2021
 
 import pandas as pd
 from .import formats
+from .import plots
 
 def set_return_sheet(writer,df_returns,sheet_name='Daily Historical Returns'):
     """
@@ -141,7 +142,7 @@ def set_wgts_sheet(writer,wgts_df,sheet_name='weights'):
                                   'format':pct_fmt})
     return 0
 
-def set_ef_port_sheet(writer,ports_df,sheet_name='weights'):
+def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     """
     Create excel sheet for historical returns
     
@@ -177,4 +178,11 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='weights'):
                                   'format':digits_fmt})
     worksheet.conditional_format(row+1,col+4, row_dim, col_dim,{'type':'no_blanks',
                                   'format':wgts_fmt})
+    
+    aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df*100))
+    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
+    
+    worksheet.insert_image(2, col_dim+2, 'plotly.png', {'image_data': aa_image_data})
+    worksheet.insert_image(30, col_dim+2, 'plotly.png', {'image_data': ef_image_data})
+
     return 0
