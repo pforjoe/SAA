@@ -140,6 +140,7 @@ def get_returns_df(filename, year='2011'):
                              'Total Private Equity', 'Total Credit', 'Total Real Estate', 'Cash', 'Equity Hedges']]
     returns_df.columns = ['Liability', '15+ STRIPS', 'Long Corporate','Ultra 30-Year UST Futures', 'Equity', 'Liquid Alternatives',
                           'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Equity Hedges']
+    returns_df.dropna(inplace=True)
     return returns_df
 
 def get_weights(filename = 'weights.xlsx'):
