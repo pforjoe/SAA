@@ -85,7 +85,7 @@ def get_output_report(reportname, output_dict):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_ef_portfolios_report(reportname, ports_df):
+def get_ef_portfolios_report(reportname, ports_df, pp_inputs):
     """
     Generates output report
 
@@ -106,6 +106,9 @@ def get_ef_portfolios_report(reportname, ports_df):
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
     
+    sheets.set_ret_vol_sheet(writer, pp_inputs['ret_vol'])
+    sheets.set_corr_sheet(writer, pp_inputs['corr'])
+    sheets.set_wgts_sheet(writer, pp_inputs['weights'])
     sheets.set_ef_port_sheet(writer, ports_df)
     #save file
     print_report_info(reportname, filepath)
