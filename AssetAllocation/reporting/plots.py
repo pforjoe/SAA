@@ -76,13 +76,14 @@ def plot_risk_ret(targetrets,targetvols,plan,opt_sharpe, opt_var):
 
 def get_aa_fig(ports_df, color_dict = COLOR_DICT):
     
-    #Asset Allocation Plot
+    df = format_df(ports_df)
     
+    #Asset Allocation Plot
     aa_fig = go.Figure()
     
     for key in color_dict:
         aa_fig.add_trace(go.Scatter(
-         x= ports_df['Return'], y = ports_df[key],
+         x= df['Return'], y = df[key],
          name = key,
          mode = 'lines',
          line=dict(width=0.5, color=color_dict[key]),
@@ -103,8 +104,15 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
     
     return aa_fig
 
+def format_df(ports_df):
+    df = ports_df.copy()
+    df = 100*np.around(df,6)
+    df['Sharpe'] = df['Return']/df['Volatility']
+    return df
+
 def get_ef_fig(ports_df):
-    ef_fig = px.scatter(ports_df, x="Volatility", y="Return",color='Sharpe')
+    df = format_df(ports_df)
+    ef_fig = px.scatter(df, x="Volatility", y="Return",color='Sharpe')
     ef_fig.update_layout(
         title={
                 'text': "<b>Mean Variance Efficient Frontier</b>",

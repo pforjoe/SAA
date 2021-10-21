@@ -184,8 +184,8 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     worksheet.conditional_format(row+1,col+4, row_dim, col_dim,{'type':'no_blanks',
                                   'format':pct_fmt})
     
-    aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df*100))
-    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df*100))
+    aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df))
+    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
     
     worksheet.insert_image(2, col_dim+2, 'plotly.png', {'image_data': aa_image_data})
     worksheet.insert_image(30, col_dim+2, 'plotly.png', {'image_data': ef_image_data})
