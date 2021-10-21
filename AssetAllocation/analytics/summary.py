@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+  # -*- coding: utf-8 -*-
 """
 Created on Sun Oct 10 12:27:19 2021
 
@@ -34,6 +34,25 @@ def get_ts_output(ts_dict,decay_factor=0.98, t=1):
             'corr':corr_df,
             'weights':ts_dict['weights']}
 
+def get_pp_inputs(mv_inputs, ts_dict, mkt='Equity'):
+    #compute analytics using historical data
+    pp_inputs = get_ts_output(ts_dict)
+    
+    #change cash correlations to 0
+    for asset in pp_inputs['corr'].columns:
+        if asset != 'Cash':
+            pp_inputs['corr'][asset]['Cash'] = 0
+            pp_inputs['corr']['Cash'][asset] = 0
+    
+    #compute returns using buiild up approach
+    ret_df = mv_inputs.compute_plan_return('Equity')
+    
+    #add return to pp_inputs
+    for asset in ret_df.index:
+        pp_inputs['ret_vol']['Return'][asset] = ret_df['Return'][asset]
+    
+    return pp_inputs
+
 def get_data_dict(dataset):
     policy_wgts = add_dimension(dataset['FS AdjWeights'])
 
@@ -59,3 +78,11 @@ def get_plan_params(output_dict):
 
     symbols = list(ret.index.values)
     return pp(policy_wgts, ret, vol, corr, symbols)
+
+def get_pp_dict(plan):
+    return {'Policy Weights':dm.pd.DataFrame(plan.policy_wgts, index=plan.symbols, columns=['Weights']),
+            'Asset/Liability Returns':dm.pd.DataFrame(plan.ret),
+            'Asset/Liability Vol':dm.pd.DataFrame(plan.vol, index=plan.symbols, columns=['Volatility']),
+            'Corr':dm.pd.DataFrame(plan.corr, index=plan.symbols, columns=plan.symbols),
+            'Cov':dm.pd.DataFrame(plan.cov, index=plan.symbols, columns=plan.symbols),
+        } 
