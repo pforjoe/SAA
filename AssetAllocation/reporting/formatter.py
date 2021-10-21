@@ -24,6 +24,23 @@ def highlight_max(s):
     is_max = s == s.max()
     return ['background-color: yellow' if v else '' for v in is_max]
 
+def highlight_min(s):
+    """
+    Highlight the maximum in a Series yellow
+
+    Parameters
+    ----------
+    s : series
+
+    Returns
+    -------
+    list
+
+    """
+    
+    is_min = s == s.min()
+    return ['background-color: yellow' if v else '' for v in is_min]
+
 def get_port_styler(port_df):
     """
     Returns styler for historical selloffs dataframe
@@ -39,8 +56,8 @@ def get_port_styler(port_df):
     
     #define formatter
     col_list = list(port_df.columns)
-    col_list.remove('Sharpe')
-    col_list_1 = list(port_df.columns)[0:3]
+    max_list = ['Return', 'Sharpe']
+    min_list = ['Volatility']
     
     formatter = {}
     for col in col_list:
@@ -51,16 +68,20 @@ def get_port_styler(port_df):
     
     #return styler
     return port_df.style.\
-        apply(highlight_max,subset = pd.IndexSlice[:,col_list_1]).\
+        apply(highlight_max,subset = pd.IndexSlice[:,max_list]).\
+        apply(highlight_min,subset = pd.IndexSlice[:,min_list]).\
         format(formatter)
 
-def get_percent_styler(df):
+def get_ret_vol_styler(df):
     
     #define formatter
     col_list = list(df.columns)
     formatter = {}
-    for strat in col_list:
-        formatter[strat] = "{:.2%}"
+    for col in col_list:
+        if col == 'Sharpe':
+            formatter[col] = "{:.4f}"
+        else:
+            formatter[col] = "{:.2%}"
     
     #return styler
     return df.style.\

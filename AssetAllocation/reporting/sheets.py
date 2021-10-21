@@ -97,12 +97,18 @@ def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='ret_vol'):
     #percent format
     pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
         
+    #digits format
+    digits_fmt = formats.set_number_format(workbook,num_format='0.0000')
+    
     row_dim = row + ret_vol_df.shape[0]
     col_dim = col + ret_vol_df.shape[1]
     
     ret_vol_df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+    worksheet.conditional_format(row+1,col+1, row_dim, col+2,{'type':'no_blanks',
                                   'format':pct_fmt})
+    worksheet.conditional_format(row+1,col+3, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':digits_fmt})
+    
     return 0
 
 def set_wgts_sheet(writer,wgts_df,sheet_name='weights'):
@@ -162,8 +168,7 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     col = 0
     
     #percent format
-    ret_vol_fmt = formats.set_number_format(workbook,num_format='0.00%')
-    wgts_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
     
     #digits format
     digits_fmt = formats.set_number_format(workbook,num_format='0.0000')
@@ -173,14 +178,14 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     
     ports_df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
     worksheet.conditional_format(row+1,col+1, row_dim, col+2,{'type':'no_blanks',
-                                  'format':ret_vol_fmt})
+                                  'format':pct_fmt})
     worksheet.conditional_format(row+1,col+3, row_dim, col+3,{'type':'no_blanks',
                                   'format':digits_fmt})
     worksheet.conditional_format(row+1,col+4, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':wgts_fmt})
+                                  'format':pct_fmt})
     
     aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df*100))
-    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
+    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df*100))
     
     worksheet.insert_image(2, col_dim+2, 'plotly.png', {'image_data': aa_image_data})
     worksheet.insert_image(30, col_dim+2, 'plotly.png', {'image_data': ef_image_data})

@@ -155,5 +155,6 @@ def get_ret_vol_df(returns_df):
         ann_vol = get_ann_vol(returns_df[col])
         ret_vol_dict[col] = [ann_ret, ann_vol]
     ret_vol_df = pd.DataFrame(ret_vol_dict, index = ['Return', 'Vol']).transpose()
+    ret_vol_df['Sharpe'] = ret_vol_df['Return']/ret_vol_df['Vol']
     return ret_vol_df
 

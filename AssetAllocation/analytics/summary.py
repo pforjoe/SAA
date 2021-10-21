@@ -23,6 +23,7 @@ def get_mv_inputs(mv_inputs_dict):
 def get_mv_output(mv_inputs, mkt='Equity'):
     output_dict = mv_inputs.get_output(mkt)
     ret_vol_df = dm.merge_dfs(output_dict['Return'], output_dict['Vol'])
+    ret_vol_df['Sharpe'] = ret_vol_df['Return']/ret_vol_df['Vol']
     return {'ret_vol': ret_vol_df, 
             'corr': output_dict['corr'],
             'weights': output_dict['weights']}
@@ -51,6 +52,7 @@ def get_pp_inputs(mv_inputs, ts_dict, mkt='Equity'):
     for asset in ret_df.index:
         pp_inputs['ret_vol']['Return'][asset] = ret_df['Return'][asset]
     
+    pp_inputs['ret_vol']['Sharpe'] = pp_inputs['ret_vol']['Return']/pp_inputs['ret_vol']['Vol']
     return pp_inputs
 
 def get_data_dict(dataset):
