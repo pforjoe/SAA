@@ -6,7 +6,7 @@ Created on Mon Sep 20 22:05:54 2021
 """
 
 import numpy as np
-import pandas as pd
+# import pandas as pd
 from numpy.linalg import multi_dot
 from util import add_dimension
 # Ignore warnings
@@ -257,7 +257,7 @@ class plan_params():
         port_wts = np.array(wts)
         
         # Create a dataframe for analysis
-        return pd.DataFrame({'returns': port_rets,
-                          'volatility': port_vols,
-                          'sharpe_ratio': port_rets/port_vols,
-                          'weights': list(port_wts)})
+        return {'returns': port_rets,
+                'volatility': port_vols,
+                'sharpe_ratio': port_rets/port_vols,
+                'weights': list(port_wts)}

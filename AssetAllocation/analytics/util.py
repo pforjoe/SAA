@@ -8,30 +8,12 @@ Created on Fri Sep 17 16:22:39 2021
 # Import pandas
 # import pandas as pd
 import numpy as np
-from inputs_for_mv import get_summarized_output
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
 
 def add_dimension(data):
     return data.to_numpy()[:,np.newaxis]
-
-def get_data(filename):
-    dataset = get_summarized_output(filename)
-    
-    policy_wts = add_dimension(dataset['FS AdjWeights'])
-    
-    ret = dataset['Return']
-
-    vol = add_dimension(dataset['Vol'])
-    
-    corr = dataset.iloc[:,3:21].to_numpy()
-    
-    symbols =  list(dataset.index.values)
-    
-    return {'policy_weights': policy_wts,'ret':ret, 'vol':vol, 'corr':corr,'symbols':symbols}
-
-
 
 def get_max_sharpe_port(sim_ports_df):
     
