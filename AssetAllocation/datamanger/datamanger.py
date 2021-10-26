@@ -81,8 +81,8 @@ def get_mv_inputs_data(filename, plan='IBT'):
     rv_data = get_rv_data(filepath)
 
     # Get weights
-    weights = get_weights(plan=plan)
-
+    weights = format_weights_index(get_weights(plan=plan), list(mkt_factor_prem.keys()))
+    
     # get vol definitions
     vol_defs = pd.read_excel(filepath, sheet_name='vol_defs')
 
@@ -93,17 +93,27 @@ def get_mv_inputs_data(filename, plan='IBT'):
             'vol_defs': vol_defs, 'weights': weights, 'corr_data': corr_data,
             'ret_assump': ret_assump, 'mkt_factor_prem': mkt_factor_prem}
 
+def format_weights_index(weights_df, index_list):
+    weights_df_t = weights_df.transpose()
+    weights_df_t = weights_df_t[index_list]
+    new_weights_df = weights_df_t.transpose()
+    return new_weights_df
+    
 def get_ret_assump(filename):
     ret_assump = pd.read_excel(filename, sheet_name='ret_assump', index_col=0)
     return ret_assump['Return'].to_dict()
 
 def get_mkt_factor_premiums(filename):
     mkt_factor_prem = pd.read_excel(filename, sheet_name='mkt_factor_prem', index_col=0)
-    mkt_factor_prem.dropna(inplace=True)
+    mkt_factor_prem.fillna(0,inplace=True)
+    # mkt_factor_prem.dropna(inplace=True)
     return mkt_factor_prem['Market Factor Premium'].to_dict()
 
 def merge_dfs(main_df, new_df):
-    return pd.merge(main_df, new_df,left_index=True, right_index=True, how='outer')
+    merged_df = pd.merge(main_df, new_df,left_index=True, right_index=True, how='outer')
+    merged_df = merged_df.dropna()
+    return merged_df
+    
 
 def get_plan_data(filename):
     
