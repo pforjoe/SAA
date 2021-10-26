@@ -2,16 +2,13 @@
 """
 Created on Sat Oct  9 21:51:38 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 import pandas as pd
-from ..analytics import summary
-# from ...analytics import summary
-# from ...analytics import util
-# from ...analytics.corr_stats import get_corr_rank_data
-# from ...analytics.historical_selloffs import get_hist_sim_table
 from  ..datamanger import datamanger as dm
+from ..analytics import summary
+from ..analytics.util import add_sharpe_col
 from .import sheets
 import os
 
@@ -85,7 +82,7 @@ def get_output_report(reportname, output_dict):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_ef_portfolios_report(reportname, ports_df):
+def get_ef_portfolios_report(reportname, plan):
     """
     Generates output report
 
@@ -105,8 +102,22 @@ def get_ef_portfolios_report(reportname, ports_df):
     filepath = get_reportpath(reportname)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
+    pp_dict = summary.get_pp_dict(plan)
+    ret_vol_df = dm.merge_dfs(pp_dict['Asset/Liability Returns'], pp_dict[ 'Asset/Liability Vol'])
     
-    sheets.set_ef_port_sheet(writer, ports_df)
+    sheets.set_ret_vol_sheet(writer, add_sharpe_col(ret_vol_df))
+    sheets.set_corr_sheet(writer, pp_dict['Corr'])
+    sheets.set_wgts_sheet(writer, pp_dict['Policy Weights'])
+    
+    try:
+        ports_df = dm.get_ports_df(plan.eff_frontier_trets,
+                               plan.eff_frontier_tvols,
+                               plan.eff_frontier_tweights,
+                               plan.symbols)
+        sheets.set_ef_port_sheet(writer, ports_df)
+        
+    except TypeError:
+        print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')    
     #save file
     print_report_info(reportname, filepath)
     writer.save()
