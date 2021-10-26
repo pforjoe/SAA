@@ -2,13 +2,13 @@
 """
 Created on Sun Oct 10 12:27:19 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 from .mv_inputs import mv_inputs
 from .plan_params import plan_params as pp
 from  ..datamanger import datamanger as dm
 from .import ts_analytics as ts
-from .util import add_dimension
+from .import util
 
 def get_mv_inputs(mv_inputs_dict):
     return mv_inputs(mv_inputs_dict['ret_assump'], 
@@ -22,8 +22,8 @@ def get_mv_inputs(mv_inputs_dict):
 
 def get_mv_output(mv_inputs, mkt='Equity'):
     output_dict = mv_inputs.get_output(mkt)
-    ret_vol_df = dm.merge_dfs(output_dict['Return'], output_dict['Vol'])
-    ret_vol_df['Sharpe'] = ret_vol_df['Return']/ret_vol_df['Vol']
+    ret_vol_df = dm.merge_dfs(output_dict['Return'], output_dict['Volatility'])
+    ret_vol_df = util.add_sharpe_col(ret_vol_df)
     return {'ret_vol': ret_vol_df, 
             'corr': output_dict['corr'],
             'weights': output_dict['weights']}
@@ -52,15 +52,15 @@ def get_pp_inputs(mv_inputs, ts_dict, mkt='Equity'):
     for asset in ret_df.index:
         pp_inputs['ret_vol']['Return'][asset] = ret_df['Return'][asset]
     
-    pp_inputs['ret_vol']['Sharpe'] = pp_inputs['ret_vol']['Return']/pp_inputs['ret_vol']['Vol']
+    pp_inputs['ret_vol']=util.add_sharpe_col(pp_inputs['ret_vol'])
     return pp_inputs
 
 def get_data_dict(dataset):
-    policy_wgts = add_dimension(dataset['FS AdjWeights'])
+    policy_wgts = util.add_dimension(dataset['FS AdjWeights'])
 
     ret = dataset['Return']
 
-    vol = add_dimension(dataset['Vol'])
+    vol = util.add_dimension(dataset['Volatility'])
 
     corr = dataset.iloc[:, 3:].to_numpy()
 
@@ -70,11 +70,11 @@ def get_data_dict(dataset):
 
 def get_plan_params(output_dict):
     
-    policy_wgts = add_dimension(output_dict['weights']['FS AdjWeights'])
+    policy_wgts = util.add_dimension(output_dict['weights']['FS AdjWeights'])
 
     ret = output_dict['ret_vol']['Return']
 
-    vol = add_dimension(output_dict['ret_vol']['Vol'])
+    vol = util.add_dimension(output_dict['ret_vol']['Volatility'])
 
     corr = output_dict['corr'].to_numpy()
 
