@@ -234,7 +234,7 @@ class plan_params():
         return sco.minimize(fun, self.policy_wgts, method=method, bounds=bnds, constraints=cons)
 
 
-    def compute_eff_frontier(self, bnds, cons):
+    def compute_eff_frontier(self, bnds, cons,num_ports=100):
         #initial minimimum and maximum returns to define the bounds of the efficient frontier
         opt_var = self.optimize(self.min_variance, bnds, cons)
         min_ret = self.portfolio_stats(opt_var['x'])[0]
@@ -242,7 +242,7 @@ class plan_params():
         max_ret = np.around(self.portfolio_stats(opt_ret['x']), 4)[0]
 
         #Getting data for efficient frontier portfolios
-        self.eff_frontier_trets = np.linspace(min_ret, max_ret, 100)
+        self.eff_frontier_trets = np.linspace(min_ret, max_ret, num_ports)
         t_vols = []
         t_weights = []
 

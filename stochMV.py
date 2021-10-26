@@ -40,13 +40,13 @@ class stochMV():
             df = pd.concat([df, returns.to_frame().T], ignore_index=True)
         self.returns_df = df
 
-    def generate_efficient_frontiers(self, bnds, cons):
+    def generate_efficient_frontiers(self, bnds, cons, num_ports=20):
 
-        self.init_plan.compute_eff_frontier(bnds, cons)
+        self.init_plan.compute_eff_frontier(bnds, cons, num_ports)
         #average the weights across all the simulated plans
         avg_weights = np.zeros((len(self.init_plan.eff_frontier_tweights), len(self.init_plan)))
         for plan in self.simulated_plans:
-            plan.compute_eff_frontier(bnds, cons)
+            plan.compute_eff_frontier(bnds, cons,num_ports)
             avg_weights = avg_weights + plan.eff_frontier_tweights
         self.avg_weights = avg_weights/self.iter
 
@@ -60,4 +60,4 @@ class stochMV():
             i = i+1
 
         self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,
-                                            self.init_plan.symbols, raw=False)
+                                            self.init_plan.symbols, raw=True)
