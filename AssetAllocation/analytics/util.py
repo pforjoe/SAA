@@ -15,6 +15,10 @@ warnings.filterwarnings('ignore')
 def add_dimension(data):
     return data.to_numpy()[:,np.newaxis]
 
+def add_sharpe_col(ret_vol_df):
+    ret_vol_df['Sharpe'] = ret_vol_df['Return']/ret_vol_df['Volatility']
+    return ret_vol_df
+
 def get_max_sharpe_port(sim_ports_df):
     
     # Maximum Sharpe Ratio
