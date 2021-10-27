@@ -147,7 +147,7 @@ def get_returns_df(plan='IBT', year='2011'):
     returns_df = merge_dfs(liab_ret_df, asset_ret_df)
     return returns_df
 
-def get_asset_returns(filename='return_data.xlsx', year='2010'):
+def get_asset_returns(filename='return_data.xlsx', year='2011'):
     """
 
 
@@ -173,13 +173,12 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
                              'Total Private Equity', 'Total Credit', 'Total Real Estate', 'Cash', 'Equity Hedges']]
     asset_ret_df.columns = ['15+ STRIPS', 'Long Corporate','Ultra 30-Year UST Futures', 'Equity', 'Liquid Alternatives',
                           'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Equity Hedges']
-    asset_ret_df = asset_ret_df.dropna()
+    asset_ret_df.dropna(inplace=True)
     return asset_ret_df
 
 def get_liab_returns(filename='liability_return_data.xlsx', plan='IBT'):
     filepath = TS_FP+filename
     liab_ret_df = pd.read_excel(filepath, sheet_name=plan, usecols=[0,1], index_col=0)
-    liab_ret_df.columns = [plan+' Liability']
     return liab_ret_df
     
 def get_weights(filename = 'weights.xlsx', plan='IBT'):
@@ -189,7 +188,7 @@ def get_weights(filename = 'weights.xlsx', plan='IBT'):
     # weights_df = weights_df[['FS AdjWeights']]
     return weights_df
 
-def get_ts_data(plan='IBT', year='2010'):
+def get_ts_data(plan='IBT', year='2011'):
     returns_df = get_returns_df(plan=plan, year=year)
     weights_df = get_weights(plan=plan)
     return {'returns': returns_df,
