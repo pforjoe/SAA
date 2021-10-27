@@ -34,7 +34,7 @@ def get_reportpath(reportname):
     filename = reportname +'.xlsx'
     return cwd + reports_fp + filename
 
-def get_outputpath(outputname):
+def get_plan_inputpath(inputname):
     """
     Gets the file path where the output report will be stored
 
@@ -50,8 +50,8 @@ def get_outputpath(outputname):
 
     """
     
-    filename = outputname +'.xlsx'
-    return dm.OUTPUTS_FP + filename
+    filename = inputname +'.xlsx'
+    return dm.PLAN_INPUTS_FP + filename
 
     
 def get_output_report(reportname, output_dict):
@@ -71,7 +71,7 @@ def get_output_report(reportname, output_dict):
 
     """
     #get file path and create excel writer
-    filepath = get_outputpath(reportname)
+    filepath = get_reportpath(reportname)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
     
