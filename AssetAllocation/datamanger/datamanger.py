@@ -171,15 +171,15 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
     # returns_df['Liquid Alternatives'] = 0.33*returns_df['HF MACRO'] + 0.33*returns_df['HFRI MACRO'] + 0.34*returns_df['TREND']
     asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total EQ Unhedged', 'Total Liquid Alts',
                              'Total Private Equity', 'Total Credit', 'Total Real Estate', 'Cash', 'Equity Hedges']]
-    asset_ret_df.columns = ['15+ STRIPS', 'Long Corporate','Ultra 30-Year UST Futures', 'Equity', 'Liquid Alternatives',
-                          'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Equity Hedges']
+    asset_ret_df.columns = ['15+ STRIPS', 'Long Corporate','Ultra 30Y Futures', 'Equity', 'Liquid Alternatives',
+                          'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Hedges']
     asset_ret_df = asset_ret_df.dropna()
     return asset_ret_df
 
 def get_liab_returns(filename='liability_return_data.xlsx', plan='IBT'):
     filepath = TS_FP+filename
     liab_ret_df = pd.read_excel(filepath, sheet_name=plan, usecols=[0,1], index_col=0)
-    liab_ret_df.columns = [plan+' Liability']
+    liab_ret_df.columns = ['Liability']
     return liab_ret_df
     
 def get_weights(filename = 'weights.xlsx', plan='IBT'):
