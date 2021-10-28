@@ -16,9 +16,9 @@ class stochMV():
         self.avg_weights = None
         self.opt_ports_df = None
 
-    def generate_plans(self):
+    def generate_plans(self,nb_period = 5):
 
-        nb_period = 5
+        
         np.random.seed(0)
         df = pd.DataFrame(columns=self.init_plan.symbols)
 
