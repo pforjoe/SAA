@@ -8,7 +8,7 @@ Created on Fri Oct  8 14:18:54 2021
 import numpy as np
 import pandas as pd
 from numpy.linalg import multi_dot
-from util import add_dimension
+from .util import add_dimension
 
 # Ignore warnings
 import warnings

@@ -20,10 +20,10 @@ sns.set(color_codes=True, font_scale=1.2)
 
 CMAP_DEFAULT = sns.diverging_palette(20, 220, as_cmap=True)
 
-COLOR_DICT = {'15+ STRIPS':'forestgreen','Long Corporate':'lightgreen','Ultra 30-Year UST Futures':'greenyellow',
+COLOR_DICT = {'15+ STRIPS':'forestgreen','Long Corporate':'lightgreen','Ultra 30Y Futures':'greenyellow',
               'Equity':'deeppink','Liquid Alternatives':'blue',
               'Private Equity':'darkred','Credit':'yellow','Real Estate':'orange',
-              'Equity Hedges':'blueviolet','Cash':'khaki'}
+              'Hedges':'blueviolet','Cash':'khaki'}
 def get_image_data(fig, width=950):
     return BytesIO(fig.to_image(format="png", width=width))
 

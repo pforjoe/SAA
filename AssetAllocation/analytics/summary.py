@@ -33,7 +33,8 @@ def get_ts_output(ts_dict,decay_factor=0.98, t=1):
     corr_df = ts.compute_ewcorr_matrix(ts_dict['returns'],decay_factor, t)
     return {'ret_vol':ret_vol_df, 
             'corr':corr_df,
-            'weights':ts_dict['weights']}
+            'weights':ts_dict['weights'],
+            'returns':ts_dict['returns']}
 
 def get_pp_inputs(mv_inputs, ts_dict, mkt='Equity'):
     #compute analytics using historical data
@@ -79,7 +80,11 @@ def get_plan_params(output_dict):
     corr = output_dict['corr'].to_numpy()
 
     symbols = list(ret.index.values)
-    return pp(policy_wgts, ret, vol, corr, symbols)
+    try:
+        ret_df = output_dict['returns']
+    except KeyError:
+        ret_df=None
+    return pp(policy_wgts, ret, vol, corr, symbols, ret_df)
 
 def get_pp_dict(plan):
     return {'Policy Weights':dm.pd.DataFrame(plan.policy_wgts, index=plan.symbols, columns=['Weights']),
