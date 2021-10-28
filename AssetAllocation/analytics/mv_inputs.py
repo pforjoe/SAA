@@ -2,14 +2,13 @@
 """
 Created on Fri Oct  8 14:18:54 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 import numpy as np
 import pandas as pd
 from numpy.linalg import multi_dot
 from util import add_dimension
-from ..datamanger import datamanger as dm
 
 # Ignore warnings
 import warnings
@@ -207,7 +206,7 @@ class mv_inputs():
             x = add_dimension(self.factor_wgts[asset])
             asset_vol = np.sqrt(multi_dot([x.T,self.cov,x]))
             vol_list.append(asset_vol[0][0])
-        return pd.DataFrame(vol_list, index=self.symbols, columns=['Vol'])
+        return pd.DataFrame(vol_list, index=self.symbols, columns=['Volatility'])
     
     def compute_plan_corr(self):
         """
@@ -219,7 +218,7 @@ class mv_inputs():
             DESCRIPTION.
 
         """
-        vol_array = add_dimension(self.plan_vols['Vol'])
+        vol_array = add_dimension(self.plan_vols['Volatility'])
         comp_weights = self.factor_wgts.iloc[:,3:].to_numpy()
         corr_array = multi_dot([comp_weights.T,self.cov,comp_weights]) / (vol_array*vol_array.T)
         return pd.DataFrame(corr_array, columns=self.symbols, index=self.symbols)
@@ -294,7 +293,7 @@ class mv_inputs():
             DESCRIPTION.
 
         """
-        return (self.plan_vols['Vol'][asset]/self.plan_vols['Vol'][mkt]) * self.plan_corr[mkt][asset]
+        return (self.plan_vols['Volatility'][asset]/self.plan_vols['Volatility'][mkt]) * self.plan_corr[mkt][asset]
     
     def compute_plan_return(self, mkt='S&P 500'):
         """
@@ -340,6 +339,6 @@ class mv_inputs():
 
         """
         return {'Return':self.compute_plan_return(mkt),
-                'Vol':self.plan_vols,
+                'Volatility':self.plan_vols,
                 'weights': self.compute_plan_wgts(),
                 'corr':self.plan_corr}
