@@ -9,7 +9,7 @@ import pandas as pd
 from .import formats
 from .import plots
 
-def set_return_sheet(writer,df_returns,sheet_name='Daily Historical Returns'):
+def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
     """
     Create excel sheet for historical returns
     

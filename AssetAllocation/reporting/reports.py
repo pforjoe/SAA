@@ -78,6 +78,10 @@ def get_output_report(reportname, output_dict):
     sheets.set_ret_vol_sheet(writer, output_dict['ret_vol'])
     sheets.set_corr_sheet(writer, output_dict['corr'])
     sheets.set_wgts_sheet(writer, output_dict['weights'])
+    try:
+        sheets.set_return_sheet(writer, output_dict['returns'])
+    except KeyError:
+        pass
     #save file
     print_report_info(reportname, filepath)
     writer.save()
@@ -102,13 +106,10 @@ def get_ef_portfolios_report(reportname, plan):
     filepath = get_reportpath(reportname)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
-    pp_dict = summary.get_pp_dict(plan)
-    ret_vol_df = dm.merge_dfs(pp_dict['Asset/Liability Returns'], pp_dict[ 'Asset/Liability Vol'])
+    pp_dict = plan.get_pp_dict()
     
-    sheets.set_ret_vol_sheet(writer, add_sharpe_col(ret_vol_df))
+    sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
-    sheets.set_wgts_sheet(writer, pp_dict['Policy Weights'])
-    
     try:
         ports_df = dm.get_ports_df(plan.eff_frontier_trets,
                                plan.eff_frontier_tvols,
@@ -118,6 +119,12 @@ def get_ef_portfolios_report(reportname, plan):
         
     except TypeError:
         print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')    
+    
+    try:
+        sheets.set_return_sheet(writer, pp_dict['Historical Returns'])
+    except AttributeError:
+        pass
+    
     #save file
     print_report_info(reportname, filepath)
     writer.save()
