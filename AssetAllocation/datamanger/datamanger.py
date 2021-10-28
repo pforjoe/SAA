@@ -179,7 +179,7 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
 def get_liab_returns(filename='liability_return_data.xlsx', plan='IBT'):
     filepath = TS_FP+filename
     liab_ret_df = pd.read_excel(filepath, sheet_name=plan, usecols=[0,1], index_col=0)
-    liab_ret_df.columns = [plan+' Liability']
+    liab_ret_df.columns = ['Liability']
     return liab_ret_df
     
 def get_weights(filename = 'weights.xlsx', plan='IBT'):
