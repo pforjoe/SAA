@@ -6,9 +6,10 @@ Created on Mon Sep 20 22:05:54 2021
 """
 
 import numpy as np
-# import pandas as pd
+#import pandas as pd
 from numpy.linalg import multi_dot
-from util import add_dimension
+from .import util
+from ..datamanger import datamanger as dm
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -18,7 +19,7 @@ import scipy.optimize as sco
 
 class plan_params():
     
-    def __init__(self, policy_wgts,ret,vol,corr,symbols):
+    def __init__(self, policy_wgts,ret,vol,corr,symbols,ret_df=None):
         """
         
 
@@ -45,10 +46,26 @@ class plan_params():
         self.vol = vol
         self.corr = corr
         self.symbols = symbols
+        self.ret_df = ret_df
         self.policy_rets = self.compute_policy_return()
         self.cov = self.compute_cov()
         self.var = self.compute_var()
         self.fsv = self.compute_fsv()
+        self.eff_frontier_tvols = None
+        self.eff_frontier_trets = None
+        self.eff_frontier_tweights = None
+        self.ports_df = None
+    
+    def get_pp_dict(self):
+        vol_df = dm.pd.DataFrame(self.vol, index=self.symbols, columns=['Volatility'])
+        ret_vol_df = dm.merge_dfs(dm.pd.DataFrame(self.ret), vol_df)
+        
+        return {'Policy Weights':dm.pd.DataFrame(self.policy_wgts, index=self.symbols, columns=['Weights']),
+                'Asset/Liability Returns/Vol': util.add_sharpe_col(ret_vol_df),
+                'Corr':dm.pd.DataFrame(self.corr, index=self.symbols, columns=self.symbols),
+                'Cov':dm.pd.DataFrame(self.cov, index=self.symbols, columns=self.symbols),
+                'Historical Returns': self.ret_df
+            }
     
     def compute_policy_return(self):
         """
@@ -60,7 +77,7 @@ class plan_params():
             DESCRIPTION.
 
         """
-        return self.policy_wgts.T @ add_dimension(self.ret)
+        return self.policy_wgts.T @ util.add_dimension(self.ret)
     
     def compute_cov(self):
         """
@@ -227,7 +244,40 @@ class plan_params():
 
         """
         return sco.minimize(fun, self.policy_wgts, method=method, bounds=bnds, constraints=cons)
-        
+
+
+    def compute_eff_frontier(self, bnds, cons,num_ports=100):
+        #initial minimimum and maximum returns to define the bounds of the efficient frontier
+        opt_var = self.optimize(self.min_variance, bnds, cons)
+        min_ret = self.portfolio_stats(opt_var['x'])[0]
+        opt_ret = self.optimize(self.min_ret, bnds, cons)
+        max_ret = np.around(self.portfolio_stats(opt_ret['x']), 4)[0]
+
+        #Getting data for efficient frontier portfolios
+        self.eff_frontier_trets = np.linspace(min_ret, max_ret, num_ports)
+        t_vols = []
+        t_weights = []
+
+        for tr in self.eff_frontier_trets:
+
+            #adding return constraints to optimizer constraints
+            ef_cons = ()
+            ef_cons = ef_cons + cons
+            ef_cons = ef_cons + ({'type': 'eq', 'fun': lambda x: self.portfolio_stats(x)[0] - tr},)
+            #run optimization
+            opt_ef = self.optimize(self.min_volatility, bnds, ef_cons)
+            #store result
+            t_vols.append(opt_ef['fun'])
+            t_weights.append(opt_ef['x'])
+
+        self.eff_frontier_tvols = np.array(t_vols)
+        self.eff_frontier_tweights = np.array(t_weights)
+        self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_tweights,
+                                        self.symbols, raw=False)
+        return None
+
+
+
     def run_mc_simulation(self, num_ports=5000):
         # Initialize the lists
         rets = []; vols = []; wts = []
@@ -247,7 +297,7 @@ class plan_params():
             weights = np.insert(weights,0,-1)[:,np.newaxis]
             
             # Portfolio statistics
-            rets.append(weights.T @ add_dimension(self.ret))        
+            rets.append(weights.T @ util.add_dimension(self.ret))        
             vols.append(np.sqrt(multi_dot([weights.T, self.cov, weights])))
             wts.append(weights.flatten())
         
@@ -261,3 +311,6 @@ class plan_params():
                 'volatility': port_vols,
                 'sharpe_ratio': port_rets/port_vols,
                 'weights': list(port_wts)}
+
+
+

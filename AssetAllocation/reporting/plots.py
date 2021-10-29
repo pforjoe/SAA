@@ -20,10 +20,10 @@ sns.set(color_codes=True, font_scale=1.2)
 
 CMAP_DEFAULT = sns.diverging_palette(20, 220, as_cmap=True)
 
-COLOR_DICT = {'15+ STRIPS':'forestgreen','Long Corporate':'lightgreen','Ultra 30-Year UST Futures':'greenyellow',
+COLOR_DICT = {'15+ STRIPS':'forestgreen','Long Corporate':'lightgreen','Ultra 30Y Futures':'greenyellow',
               'Equity':'deeppink','Liquid Alternatives':'blue',
               'Private Equity':'darkred','Credit':'yellow','Real Estate':'orange',
-              'Equity Hedges':'blueviolet','Cash':'khaki'}
+              'Hedges':'blueviolet','Cash':'khaki'}
 def get_image_data(fig, width=950):
     return BytesIO(fig.to_image(format="png", width=width))
 
@@ -99,16 +99,27 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
         )
     aa_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Returns</b>",
         title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
-    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Weights</b>",range=(0,162),title_font = {"size": 20},
+    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Weights</b>",range=(0,get_max_range(df)),title_font = {"size": 20},
         showline=True,linewidth=2,linecolor='black',mirror=False)
     
     return aa_fig
 
 def format_df(ports_df):
     df = ports_df.copy()
-    df = 100*np.around(df,6)
-    df['Sharpe'] = df['Return']/df['Volatility']
+    df = 100*np.round(df,6)
+    df['Sharpe'] = np.round(df['Return']/df['Volatility'],4)
     return df
+
+def get_max_range(ports_df):
+    df = ports_df.copy()
+    df['Weights'] = df[df.columns[4]]
+    col_list = df.columns
+    
+    for col in col_list[5:len(col_list)-1]:
+        df['Weights'] += df[col]
+    
+    return np.round(df['Weights'].max(),0)
+        
 
 def get_ef_fig(ports_df):
     df = format_df(ports_df)

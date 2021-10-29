@@ -2,14 +2,14 @@
 """
 Created on Sat Oct  9 21:41:41 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 import pandas as pd
 from .import formats
 from .import plots
 
-def set_return_sheet(writer,df_returns,sheet_name='Daily Historical Returns'):
+def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
     """
     Create excel sheet for historical returns
     
@@ -43,7 +43,7 @@ def set_return_sheet(writer,df_returns,sheet_name='Daily Historical Returns'):
                                   'format':date_fmt})
     return 0
 
-def set_corr_sheet(writer,corr_df,sheet_name='corr', color=False):
+def set_corr_sheet(writer,corr_df,sheet_name='corr', color=True):
     """
     Create excel sheet for historical returns
     
@@ -72,7 +72,7 @@ def set_corr_sheet(writer,corr_df,sheet_name='corr', color=False):
     worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'duplicate',
                                   'format':digits_fmt})
     if color:
-        worksheet.conditional_format(row,col, row_dim, col,{'type':'3_color_scale'})
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'3_color_scale'})
     return 0
 
 def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='ret_vol'):
