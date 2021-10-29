@@ -2,7 +2,7 @@
 """
 Created on Wed Oct 20 21:26:55 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 import pandas as pd
@@ -72,8 +72,31 @@ def get_port_styler(port_df):
         apply(highlight_min,subset = pd.IndexSlice[:,min_list]).\
         format(formatter)
 
-def get_ret_vol_styler(df):
+def color_neg_red(val):
+    """
+    Takes a scalar and returns a string with
+    the css property `'color: red'` for negative
+    strings, black otherwise.
+
+    Parameters
+    ----------
+    val : float
+
+    Returns
+    -------
+    string
+
+    """
+    color = 'red' if val < 0 else 'black'
+    return 'color: %s' % color
+
+def get_plan_styler(df):
     
+    
+    try:
+        df.index = pd.to_datetime(df.index, format = '%m/%d/%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        pass
     #define formatter
     col_list = list(df.columns)
     formatter = {}
@@ -85,4 +108,5 @@ def get_ret_vol_styler(df):
     
     #return styler
     return df.style.\
+        applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
         format(formatter)

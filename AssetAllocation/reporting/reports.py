@@ -2,16 +2,13 @@
 """
 Created on Sat Oct  9 21:51:38 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 import pandas as pd
-from ..analytics import summary
-# from ...analytics import summary
-# from ...analytics import util
-# from ...analytics.corr_stats import get_corr_rank_data
-# from ...analytics.historical_selloffs import get_hist_sim_table
 from  ..datamanger import datamanger as dm
+from ..analytics import summary
+from ..analytics.util import add_sharpe_col
 from .import sheets
 import os
 
@@ -37,7 +34,7 @@ def get_reportpath(reportname):
     filename = reportname +'.xlsx'
     return cwd + reports_fp + filename
 
-def get_outputpath(outputname):
+def get_plan_inputpath(inputname):
     """
     Gets the file path where the output report will be stored
 
@@ -53,39 +50,11 @@ def get_outputpath(outputname):
 
     """
     
-    filename = outputname +'.xlsx'
-    return dm.OUTPUTS_FP + filename
+    filename = inputname +'.xlsx'
+    return dm.PLAN_INPUTS_FP + filename
 
     
 def get_output_report(reportname, output_dict):
-    """
-    Generates output report
-
-    Parameters
-    ----------
-    reportname : string
-        Name of report.
-    output_dict : dict
-        dictionary containing ret_vol, weights and corr analytics.
-    
-    Returns
-    -------
-    None. An excel report called [reportname].xlsx is created 
-
-    """
-    #get file path and create excel writer
-    filepath = get_outputpath(reportname)
-    writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
-    
-    
-    sheets.set_ret_vol_sheet(writer, output_dict['ret_vol'])
-    sheets.set_corr_sheet(writer, output_dict['corr'])
-    sheets.set_wgts_sheet(writer, output_dict['weights'])
-    #save file
-    print_report_info(reportname, filepath)
-    writer.save()
-
-def get_ef_portfolios_report(reportname, ports_df, pp_inputs):
     """
     Generates output report
 
@@ -106,10 +75,56 @@ def get_ef_portfolios_report(reportname, ports_df, pp_inputs):
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
     
-    sheets.set_ret_vol_sheet(writer, pp_inputs['ret_vol'])
-    sheets.set_corr_sheet(writer, pp_inputs['corr'])
-    sheets.set_wgts_sheet(writer, pp_inputs['weights'])
-    sheets.set_ef_port_sheet(writer, ports_df)
+    sheets.set_ret_vol_sheet(writer, output_dict['ret_vol'])
+    sheets.set_corr_sheet(writer, output_dict['corr'])
+    sheets.set_wgts_sheet(writer, output_dict['weights'])
+    try:
+        sheets.set_return_sheet(writer, output_dict['returns'])
+    except KeyError:
+        pass
+    #save file
+    print_report_info(reportname, filepath)
+    writer.save()
+
+def get_ef_portfolios_report(reportname, plan):
+    """
+    Generates output report
+
+    Parameters
+    ----------
+    reportname : string
+        Name of report.
+    output_dict : dict
+        dictionary containing ret_vol, weights and corr analytics.
+    
+    Returns
+    -------
+    None. An excel report called [reportname].xlsx is created 
+
+    """
+    #get file path and create excel writer
+    filepath = get_reportpath(reportname)
+    writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+    
+    pp_dict = plan.get_pp_dict()
+    
+    sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
+    sheets.set_corr_sheet(writer, pp_dict['Corr'])
+    try:
+        ports_df = dm.get_ports_df(plan.eff_frontier_trets,
+                               plan.eff_frontier_tvols,
+                               plan.eff_frontier_tweights,
+                               plan.symbols)
+        sheets.set_ef_port_sheet(writer, ports_df)
+        
+    except TypeError:
+        print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')    
+    
+    try:
+        sheets.set_return_sheet(writer, pp_dict['Historical Returns'])
+    except AttributeError:
+        pass
+    
     #save file
     print_report_info(reportname, filepath)
     writer.save()
