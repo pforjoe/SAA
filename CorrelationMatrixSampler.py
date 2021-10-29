@@ -1,4 +1,4 @@
-import random
+import numpy as np
 import pandas as pd
 from AssetAllocation.analytics import ts_analytics
 
@@ -14,7 +14,7 @@ class CorrelationMatrixSampler:
         self._returnTimeSeries = return_ts
         self._seed = seed
         self._resetSeedAtEachRun = reset_seed_at_each_run
-        self._isFirstRun = True
+        self._rng = np.random.RandomState(self._seed)
 
     # Summary: Computes the base correlation.
     def base_correlation(self):
@@ -29,7 +29,7 @@ class CorrelationMatrixSampler:
         correlation_matrices = []
 
         for return_set in random_returns:
-            correlation_matrices.append(ts_analytics.compute_ewcorr_matrix(return_set).copy())
+            correlation_matrices.append(ts_analytics.compute_ewcorr_matrix(return_set))
 
         return correlation_matrices
 
@@ -38,37 +38,12 @@ class CorrelationMatrixSampler:
     #   number_of_samples:  The number of samples to draw.
     # Returns: An array of arrays containing the indices to sample.
     def _sample_returns(self, number_of_samples: int) -> []:
-        random_indices = self._generate_random_indices(number_of_samples)
+        if self._resetSeedAtEachRun:
+            self._rng = np.random.RandomState(self._seed)
 
         random_returns = []
-        for index_set in random_indices:
-            count = 0
-            df = self._returnTimeSeries.iloc[0:0, :].copy()
-            for index in index_set:
-                row = self._returnTimeSeries.iloc[index].copy()
-                date = self._returnTimeSeries.index[count]
-                row.name = date
-                df = df.append(row.copy())
-                count = count + 1
-
-            random_returns.append(df.copy())
+        for x in range(0, number_of_samples):
+            random_returns.append(self._returnTimeSeries.sample(frac=1, replace=True, random_state=self._rng))
 
         return random_returns
 
-    # Summary: Randomly generates a series of indices to use in sampling returns
-    # Params:
-    #   number_of_samples:  The number of samples to draw.
-    # Returns: An array of arrays containing the indices to sample.
-    def _generate_random_indices(self, number_of_samples: int) -> []:
-
-        if self._isFirstRun or self._resetSeedAtEachRun:
-            random.seed(self._seed)
-
-        result_matrix = []
-
-        for x in range(0, number_of_samples):
-            random_numbers = random.choices(range(0, len(self._returnTimeSeries.index)), k=len(self._returnTimeSeries.index))
-            result_matrix.append(random_numbers)
-
-        self._isFirstRun = False
-        return result_matrix
