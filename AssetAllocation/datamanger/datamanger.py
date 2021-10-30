@@ -206,3 +206,16 @@ def get_ports_df(rets, vols, weights, symbols, raw=True):
     else:
         return pd.DataFrame(np.column_stack([100*np.around(rets,6), 100*np.around(vols,6), np.around(rets/vols,6),100*np.around(weights,6)]),
                         columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
+    
+def format_ports_df(ports_df, ret_df):
+    #rename Return column to Excess Return        
+    ports_df.columns = [col.replace('Return', 'Excess Return') for col in ports_df.columns]
+    
+    col_list = list(ports_df.columns)
+    col_list.remove('Liability')
+    
+    #create Asset Return column
+    ports_df['Asset Return'] = ret_df['Liability'] + ports_df['Excess Return']
+    
+    return ports_df[['Asset Return']+col_list]
+    # return ports_df

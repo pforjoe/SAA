@@ -59,5 +59,5 @@ class stochMV():
             vol = np.append(vol, self.init_plan.portfolio_stats(self.avg_weights[i, :])[1])
             i = i+1
 
-        self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,
-                                            self.init_plan.symbols, raw=True)
+        self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,self.init_plan.symbols)
+        self.opt_ports_df = dm.format_ports_df(self.opt_ports_df,self.init_plan.ret)
