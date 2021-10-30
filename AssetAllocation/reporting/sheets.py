@@ -28,19 +28,26 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
     row = 0
     col = 0
     
-    #percent format
-    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #neg value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
         
     row_dim = row + df_returns.shape[0]
     col_dim = col + df_returns.shape[1]
-    #    worksheet.write(row-1, 1, sheet_name, title_format)
+    
     df_returns.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':pct_fmt})
     worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':pct_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
+                                                               'criteria': 'less than',
+                                                               'value': 0,
+                                                               'format': neg_value_fmt})
+  
     return 0
 
 def set_corr_sheet(writer,corr_df,sheet_name='corr', color=True):
@@ -96,7 +103,6 @@ def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='ret_vol'):
     
     #percent format
     pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
-        
     #digits format
     digits_fmt = formats.set_number_format(workbook,num_format='0.0000')
     
@@ -169,21 +175,33 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     
     #percent format
     pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
-    
     #digits format
     digits_fmt = formats.set_number_format(workbook,num_format='0.0000')
+    #neg value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
         
     row_dim = row + ports_df.shape[0]
     col_dim = col + ports_df.shape[1]
     
+    #add df to sheet
     ports_df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
-    worksheet.conditional_format(row+1,col+1, row_dim, col+2,{'type':'no_blanks',
-                                  'format':pct_fmt})
-    worksheet.conditional_format(row+1,col+3, row_dim, col+3,{'type':'no_blanks',
-                                  'format':digits_fmt})
-    worksheet.conditional_format(row+1,col+4, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':pct_fmt})
     
+    #ret_vol format
+    worksheet.conditional_format(row+1,col+1, row_dim, col+3,{'type':'no_blanks',
+                                  'format':pct_fmt})
+    #sharpe format
+    worksheet.conditional_format(row+1,col+4, row_dim, col+4,{'type':'no_blanks',
+                                  'format':digits_fmt})
+    #weights format
+    worksheet.conditional_format(row+1,col+5, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':pct_fmt})
+    #neg value format
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
+                                                               'criteria': 'less than',
+                                                               'value': 0,
+                                                               'format': neg_value_fmt})
+    
+    #get asset alloc and eff front images
     aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df))
     ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
     
