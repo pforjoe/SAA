@@ -273,7 +273,8 @@ class plan_params():
         self.eff_frontier_tvols = np.array(t_vols)
         self.eff_frontier_tweights = np.array(t_weights)
         self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_tweights,
-                                        self.symbols, raw=False)
+                                        self.symbols)
+        self.format_ports_df()
         return None
 
 
@@ -312,5 +313,16 @@ class plan_params():
                 'sharpe_ratio': port_rets/port_vols,
                 'weights': list(port_wts)}
 
-
-
+    def format_ports_df(self):
+        #rename Return column to Excess Return        
+        self.ports_df.columns = [col.replace('Return', 'Excess Return') for col in self.ports_df.columns]
+        
+        col_list = list(self.ports_df.columns)
+        col_list.remove('Liability')
+        
+        #create Asset Return column
+        self.ports_df['Asset Return'] = self.ret['Liability'] + self.ports_df['Excess Return']
+        
+        self.ports_df = self.ports_df[['Asset Return']+col_list]
+        return None
+        
