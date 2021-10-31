@@ -15,7 +15,8 @@ class stochMV():
         self.returns_df = None
         self.avg_weights = None
         self.opt_ports_df = None
-
+        self.resamp_corr_dict = {}
+        
     def generate_plans(self, nb_period=5):
 
         #Sample the covariance matrices
@@ -73,3 +74,21 @@ class stochMV():
 
         self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,self.init_plan.symbols)
         self.opt_ports_df = dm.format_ports_df(self.opt_ports_df,self.init_plan.ret)
+        
+    def generate_resamp_corr_dict(self):
+        
+        asset_liab_list = list(self.init_plan.symbols)
+        asset_liab_list.remove('Cash')
+        
+        for asset_liab in asset_liab_list:
+            col_list = list(asset_liab_list)
+            col_list.remove(asset_liab)
+            
+            resamp_corr_df = pd.DataFrame(columns=col_list, index=list(range(0,self.iter)))
+            
+            
+            for col in col_list:
+                for ind in resamp_corr_df.index:
+                    resamp_corr_df[col][ind] = self.simulated_plans[ind].corr[asset_liab][col]
+            
+            self.resamp_corr_dict[asset_liab] = resamp_corr_df

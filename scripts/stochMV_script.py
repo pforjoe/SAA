@@ -39,10 +39,10 @@ pp_dict = plan.get_pp_dict()
 # INITIALIZE STOCHMV                                                          #
 ###############################################################################
 #initialize the stochastic mean variance
-s = stMV.stochMV(plan, 120)
+s = stMV.stochMV(plan, 1000)
 #generate the random returns Aand sample corr
 s.generate_plans()
-
+s.generate_resamp_corr_dict()
 ###############################################################################
 # VIEW CORRELATIONS                                                           #
 ###############################################################################

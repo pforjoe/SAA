@@ -154,7 +154,27 @@ def get_ef_fig(ports_df):
                      showline=True,linewidth=2,linecolor='black',mirror=False)
     return ef_fig
 
-   
+def get_resamp_corr_fig(corr_df, asset_liab):
+    corr_fig = go.Figure()
+    for col in corr_df.columns:
+        corr_fig.add_trace(go.Scatter(x=corr_df.index, y=corr_df[col],
+                            mode='lines+markers',
+                            name=asset_liab+'/'+col))
+    corr_fig.update_layout(
+            title = {'text':"<b>Resampled Correlations</b>",'y':0.95,'x':0.5,'xanchor': 'center','yanchor': 'top'},
+            title_font_family = "Calibri",
+            titlefont = {"size":20},
+            legend_title="<b>Correlations</b>",
+            plot_bgcolor='White'
+        )
+    corr_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Sample</b>",
+                        # range=(0,get_max_range(df)['x_axis']),
+        title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
+    corr_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Correlation</b>",
+                        # range=(0,get_max_range(df)['y_axis']),
+                        title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
+    return corr_fig
+
 def draw_heatmap(corr_df, half=True):
     """
     """
