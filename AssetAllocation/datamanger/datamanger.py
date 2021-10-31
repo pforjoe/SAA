@@ -219,3 +219,38 @@ def format_ports_df(ports_df, ret_df):
     
     return ports_df[['Asset Return']+col_list]
     # return ports_df
+    
+def monthize_data(df):
+    #set start date and end date
+    start_date = df.index.min() - pd.DateOffset(day=0)
+    end_date = df.index.max() + pd.DateOffset(day=31)
+
+    #create new dataframe monthly index
+    dates = pd.date_range(start_date, end_date, freq='M')
+    dates.name = 'Date'
+
+    #reindex yearly dataframe to monthly dataframe
+    df = df.reindex(dates, method='ffill')
+
+    return df
+
+def get_prices_df(df_returns):
+    """"
+    Converts returns dataframe to index level dataframe
+    
+    Parameters:
+    df_returns -- returns dataframe
+    
+    Returns:
+    index price level - dataframe
+    """
+    
+    df_prices = df_returns.copy()
+    
+    for col in df_returns.columns:
+        df_prices[col][0] = df_returns[col][0] + 1
+    
+    for i in range(1, len(df_returns)):
+        for col in df_returns.columns:
+            df_prices[col][i] = (df_returns[col][i] + 1) * df_prices[col][i-1]
+    return df_prices
