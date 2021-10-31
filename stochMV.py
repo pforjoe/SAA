@@ -1,7 +1,7 @@
 import math
 from AssetAllocation.analytics import plan_params as pp
 from AssetAllocation.datamanger import datamanger as dm
-from pandas import Series as se
+import CorrelationMatrixSampler as cs
 import numpy as np
 import pandas as pd
 
@@ -16,15 +16,23 @@ class stochMV():
         self.avg_weights = None
         self.opt_ports_df = None
 
-    def generate_plans(self,nb_period = 5):
+    def generate_plans(self, nb_period=5):
 
-        
+        #Sample the covariance matrices
+        correl = cs.CorrelationMatrixSampler(self.init_plan.ret_df, 0)
+        sample_corr = correl.randomly_sample_correlation_matrices(self.iter)
+
+        #Convert the correlation matrices to covariance matrices
+        sample_cov=[]
+        for corr in sample_corr:
+            sample_cov.append((self.init_plan.vol @ self.init_plan.vol.T)*corr.to_numpy())
+
+        #Sample the returns based on the mean return, volatilities, and sampled correlation matrix
         np.random.seed(0)
         df = pd.DataFrame(columns=self.init_plan.symbols)
-
         for i in range(0, self.iter):
             #draw nb_period multivariate gaussian sample
-            rd = np.random.multivariate_normal(self.init_plan.ret.to_numpy(), self.init_plan.cov, nb_period)
+            rd = np.random.multivariate_normal(self.init_plan.ret.to_numpy(), sample_cov[i], nb_period)
 
             #compound returns over the number of period
             nav = np.ones(len(self.init_plan))
@@ -33,7 +41,7 @@ class stochMV():
             returns = pd.Series(np.power(nav, 1/nb_period) - 1, index=self.init_plan.symbols)
 
             plan = pp.plan_params(self.init_plan.policy_wgts, returns, self.init_plan.vol,
-                                  self.init_plan.corr, self.init_plan.symbols)
+                                  sample_corr[i], self.init_plan.symbols)
 
             #add the simulated plan to the list of plans and add the return vector to the return dataframe
             self.simulated_plans.append(plan)
@@ -42,12 +50,16 @@ class stochMV():
 
     def generate_efficient_frontiers(self, bnds, cons, num_ports=20):
 
+        #Compute the efficient frontier on the initial plan
         self.init_plan.compute_eff_frontier(bnds, cons, num_ports)
-        #average the weights across all the simulated plans
+
         avg_weights = np.zeros((len(self.init_plan.eff_frontier_tweights), len(self.init_plan)))
+        #For each simulated plan compute the efficient frontier
         for plan in self.simulated_plans:
             plan.compute_eff_frontier(bnds, cons,num_ports)
             avg_weights = avg_weights + plan.eff_frontier_tweights
+
+        #Average of the weights across the simulated plans
         self.avg_weights = avg_weights/self.iter
 
         #create the dataframe that contains the averaged efficient frontier data
