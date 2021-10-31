@@ -111,14 +111,12 @@ def get_ef_portfolios_report(reportname, plan):
     sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
     try:
-        ports_df = dm.get_ports_df(plan.eff_frontier_trets,
-                               plan.eff_frontier_tvols,
-                               plan.eff_frontier_tweights,
-                               plan.symbols)
+        ports_df = plan.ports_df
         sheets.set_ef_port_sheet(writer, ports_df)
         
     except TypeError:
-        print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')    
+        print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')
+        pass
     
     try:
         sheets.set_return_sheet(writer, pp_dict['Historical Returns'])

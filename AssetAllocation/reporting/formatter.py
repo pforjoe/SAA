@@ -56,7 +56,7 @@ def get_port_styler(port_df):
     
     #define formatter
     col_list = list(port_df.columns)
-    max_list = ['Return', 'Sharpe']
+    max_list = ['Asset Return','Excess Return', 'Sharpe']
     min_list = ['Volatility']
     
     formatter = {}
@@ -68,6 +68,7 @@ def get_port_styler(port_df):
     
     #return styler
     return port_df.style.\
+        applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
         apply(highlight_max,subset = pd.IndexSlice[:,max_list]).\
         apply(highlight_min,subset = pd.IndexSlice[:,min_list]).\
         format(formatter)

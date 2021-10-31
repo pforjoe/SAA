@@ -169,7 +169,7 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
                              sheet_name=year, index_col=0)
     # returns_df['Credit'] = 0.2*returns_df['CS LL'] + 0.3*returns_df['BOA HY'] + 0.5*returns_df['CDLI']
     # returns_df['Liquid Alternatives'] = 0.33*returns_df['HF MACRO'] + 0.33*returns_df['HFRI MACRO'] + 0.34*returns_df['TREND']
-    asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total EQ Unhedged', 'Total Liquid Alts',
+    asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total Dom Eq w/o Derivatives', 'Total Liquid Alts',
                              'Total Private Equity', 'Total Credit', 'Total Real Estate', 'Cash', 'Equity Hedges']]
     asset_ret_df.columns = ['15+ STRIPS', 'Long Corporate','Ultra 30Y Futures', 'Equity', 'Liquid Alternatives',
                           'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Hedges']
@@ -206,3 +206,51 @@ def get_ports_df(rets, vols, weights, symbols, raw=True):
     else:
         return pd.DataFrame(np.column_stack([100*np.around(rets,6), 100*np.around(vols,6), np.around(rets/vols,6),100*np.around(weights,6)]),
                         columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
+    
+def format_ports_df(ports_df, ret_df):
+    #rename Return column to Excess Return        
+    ports_df.columns = [col.replace('Return', 'Excess Return') for col in ports_df.columns]
+    
+    col_list = list(ports_df.columns)
+    col_list.remove('Liability')
+    
+    #create Asset Return column
+    ports_df['Asset Return'] = ret_df['Liability'] + ports_df['Excess Return']
+    
+    return ports_df[['Asset Return']+col_list]
+    # return ports_df
+    
+def monthize_data(df):
+    #set start date and end date
+    start_date = df.index.min() - pd.DateOffset(day=0)
+    end_date = df.index.max() + pd.DateOffset(day=31)
+
+    #create new dataframe monthly index
+    dates = pd.date_range(start_date, end_date, freq='M')
+    dates.name = 'Date'
+
+    #reindex yearly dataframe to monthly dataframe
+    df = df.reindex(dates, method='ffill')
+
+    return df
+
+def get_prices_df(df_returns):
+    """"
+    Converts returns dataframe to index level dataframe
+    
+    Parameters:
+    df_returns -- returns dataframe
+    
+    Returns:
+    index price level - dataframe
+    """
+    
+    df_prices = df_returns.copy()
+    
+    for col in df_returns.columns:
+        df_prices[col][0] = df_returns[col][0] + 1
+    
+    for i in range(1, len(df_returns)):
+        for col in df_returns.columns:
+            df_prices[col][i] = (df_returns[col][i] + 1) * df_prices[col][i-1]
+    return df_prices

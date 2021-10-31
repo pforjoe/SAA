@@ -273,7 +273,8 @@ class plan_params():
         self.eff_frontier_tvols = np.array(t_vols)
         self.eff_frontier_tweights = np.array(t_weights)
         self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_tweights,
-                                        self.symbols, raw=False)
+                                        self.symbols)
+        self.ports_df = dm.format_ports_df(self.ports_df,self.ret)
         return None
 
 
@@ -311,6 +312,3 @@ class plan_params():
                 'volatility': port_vols,
                 'sharpe_ratio': port_rets/port_vols,
                 'weights': list(port_wts)}
-
-
-

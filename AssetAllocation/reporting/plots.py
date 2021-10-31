@@ -24,6 +24,7 @@ COLOR_DICT = {'15+ STRIPS':'forestgreen','Long Corporate':'lightgreen','Ultra 30
               'Equity':'deeppink','Liquid Alternatives':'blue',
               'Private Equity':'darkred','Credit':'yellow','Real Estate':'orange',
               'Hedges':'blueviolet','Cash':'khaki'}
+
 def get_image_data(fig, width=950):
     return BytesIO(fig.to_image(format="png", width=width))
 
@@ -83,7 +84,7 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
     
     for key in color_dict:
         aa_fig.add_trace(go.Scatter(
-         x= df['Return'], y = df[key],
+         x= df['Excess Return'], y = df[key],
          name = key,
          mode = 'lines',
          line=dict(width=0.5, color=color_dict[key]),
@@ -97,33 +98,41 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
             legend_title="<b>Assets</b>",
             plot_bgcolor='White'
         )
-    aa_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Returns</b>",
+    aa_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Excess Return</b>",
+                        # range=(0,get_max_range(df)['x_axis']),
         title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
-    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Weights</b>",range=(0,get_max_range(df)),title_font = {"size": 20},
-        showline=True,linewidth=2,linecolor='black',mirror=False)
+    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Weights</b>",
+                        # range=(0,get_max_range(df)['y_axis']),
+                        title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
     
     return aa_fig
 
 def format_df(ports_df):
     df = ports_df.copy()
     df = 100*np.round(df,6)
-    df['Sharpe'] = np.round(df['Return']/df['Volatility'],4)
+    df['Sharpe'] = np.round(df['Excess Return']/df['Volatility'],4)
     return df
 
-def get_max_range(ports_df):
-    df = ports_df.copy()
-    df['Weights'] = df[df.columns[4]]
-    col_list = df.columns
+# def get_max_range(ports_df):
+#     df = ports_df.copy()
     
-    for col in col_list[5:len(col_list)-1]:
-        df['Weights'] += df[col]
+#     #separate columns into assets and non asset lists
+#     non_asset_list = ["Asset Return","Volatility", "Excess Return","Sharpe"]
+#     asset_list = [col for col in df.columns if col not in non_asset_list]
     
-    return np.round(df['Weights'].max(),0)
+#     #compute total asset weight per portfolio
+#     df['Weights'] = 0
+#     for col in asset_list:
+#         df['Weights'] += df[col]
+    
+#     return {'x_axis':np.round(df['Excess Return'].max(),0),
+#             'y_axis': np.round(df['Weights'].max(),0),
+#             }
         
 
 def get_ef_fig(ports_df):
     df = format_df(ports_df)
-    ef_fig = px.scatter(df, x="Volatility", y="Return",color='Sharpe')
+    ef_fig = px.scatter(df, x="Volatility", y="Excess Return",color='Sharpe')
     ef_fig.update_layout(
         title={
                 'text': "<b>Mean Variance Efficient Frontier</b>",
@@ -138,14 +147,34 @@ def get_ef_fig(ports_df):
         showlegend=True,
         plot_bgcolor='White'
                      )
-    ef_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Expected Volatility</b>",title_font = {"size": 20},
+    ef_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Volatility</b>",title_font = {"size": 20},
                         showline=True,linewidth=2,linecolor='black',mirror=False)
     
-    ef_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Expected Return</b>",title_font = {"size": 20},
+    ef_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Excess Return</b>",title_font = {"size": 20},
                      showline=True,linewidth=2,linecolor='black',mirror=False)
     return ef_fig
 
-   
+def get_resamp_corr_fig(corr_df, asset_liab):
+    corr_fig = go.Figure()
+    for col in corr_df.columns:
+        corr_fig.add_trace(go.Scatter(x=corr_df.index, y=corr_df[col],
+                            mode='lines+markers',
+                            name=asset_liab+'/'+col))
+    corr_fig.update_layout(
+            title = {'text':"<b>Resampled Correlations</b>",'y':0.95,'x':0.5,'xanchor': 'center','yanchor': 'top'},
+            title_font_family = "Calibri",
+            titlefont = {"size":20},
+            legend_title="<b>Correlations</b>",
+            plot_bgcolor='White'
+        )
+    corr_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Sample</b>",
+                        # range=(0,get_max_range(df)['x_axis']),
+        title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
+    corr_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Correlation</b>",
+                        # range=(0,get_max_range(df)['y_axis']),
+                        title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
+    return corr_fig
+
 def draw_heatmap(corr_df, half=True):
     """
     """
