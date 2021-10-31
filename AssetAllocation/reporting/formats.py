@@ -33,3 +33,6 @@ def set_number_format(workbook,num_format, bold=False):
 
     num_format = workbook.add_format({'num_format': num_format, 'bold':bold})
     return num_format
+
+def set_neg_value_format(workbook):
+    return workbook.add_format({'font_color':'#9C0006'})

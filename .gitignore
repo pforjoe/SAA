@@ -1,7 +1,7 @@
 ### UPS_MV###
 ###Ignore###
 reports/*.xlsx
-scripts/*.py
+#scripts/*.py
 data/outputs/*.xlsx
 desktop.ini
 
