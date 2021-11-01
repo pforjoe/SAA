@@ -184,8 +184,9 @@ def get_liab_returns(filename='liability_return_data.xlsx', plan='IBT'):
     
 def get_weights(filename = 'weights.xlsx', plan='IBT'):
     filepath = PLAN_INPUTS_FP+filename
-    weights_df = pd.read_excel(filepath, sheet_name=plan,index_col=0)
-    weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['Factor Loadings']
+    weights_df = add_fs_load_col(pd.read_excel(filepath, sheet_name=plan,index_col=0),
+                                 plan)
+    weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
     # weights_df = weights_df[['FS AdjWeights']]
     return weights_df
 
@@ -208,8 +209,9 @@ def get_ports_df(rets, vols, weights, symbols, raw=True):
                         columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
     
 def format_ports_df(ports_df, ret_df):
-    #rename Return column to Excess Return        
+    #rename Return & Volatility column to Excess Return & Surplus Volatility
     ports_df.columns = [col.replace('Return', 'Excess Return') for col in ports_df.columns]
+    ports_df.columns = [col.replace('Volatility', 'Surplus Volatility') for col in ports_df.columns]
     
     col_list = list(ports_df.columns)
     col_list.remove('Liability')
@@ -254,3 +256,19 @@ def get_prices_df(df_returns):
         for col in df_returns.columns:
             df_prices[col][i] = (df_returns[col][i] + 1) * df_prices[col][i-1]
     return df_prices
+
+def compute_fs(plan='IBT'):
+    liab_pv = pd.read_excel(TS_FP+'liability_return_data.xlsx', sheet_name=plan,index_col=0,usecols=[0,2])
+    asset_mv = pd.read_excel(TS_FP+'plan_mkt_value_data.xlsx', sheet_name=plan, index_col=0)
+    fs_df = merge_dfs(asset_mv, liab_pv)
+    return fs_df.iloc[-1:]['Market Value'][0]/fs_df.iloc[-1:]['Present Value'][0]
+
+def add_fs_load_col(weights_df, plan='IBT'):
+    fs = compute_fs(plan)
+    weights_df['FS Loadings'] = np.nan
+    for ind in weights_df.index:
+        if ind == 'Liability':
+            weights_df['FS Loadings'][ind] = 1
+        else:
+            weights_df['FS Loadings'][ind] = fs
+    return weights_df

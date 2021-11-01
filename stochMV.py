@@ -42,7 +42,7 @@ class stochMV():
             returns = pd.Series(np.power(nav, 1/nb_period) - 1, index=self.init_plan.symbols)
 
             plan = pp.plan_params(self.init_plan.policy_wgts, returns, self.init_plan.vol,
-                                  sample_corr[i], self.init_plan.symbols)
+                                  sample_corr[i], self.init_plan.symbols, self.init_plan.funded_status)
 
             #add the simulated plan to the list of plans and add the return vector to the return dataframe
             self.simulated_plans.append(plan)

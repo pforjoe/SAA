@@ -57,7 +57,7 @@ def get_port_styler(port_df):
     #define formatter
     col_list = list(port_df.columns)
     max_list = ['Asset Return','Excess Return', 'Sharpe']
-    min_list = ['Volatility']
+    min_list = ['Surplus Volatility']
     
     formatter = {}
     for col in col_list:
