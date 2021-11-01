@@ -71,8 +71,8 @@ def plot_risk_ret(targetrets,targetvols,plan,opt_sharpe, opt_var):
     # Policy Portfolio
     ax.plot(plan.fsv,plan.policy_rets, 'k*', markersize =15.0)
     
-    ax.set_xlabel('Expected Volatility')
-    ax.set_ylabel('Expected Return')
+    ax.set_xlabel('Surplus Volatility')
+    ax.set_ylabel('Excess Return')
     ax.grid(True)
 
 def get_aa_fig(ports_df, color_dict = COLOR_DICT):
@@ -110,7 +110,7 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
 def format_df(ports_df):
     df = ports_df.copy()
     df = 100*np.round(df,6)
-    df['Sharpe'] = np.round(df['Excess Return']/df['Volatility'],4)
+    df['Sharpe'] = np.round(df['Excess Return']/df['Surplus Volatility'],4)
     return df
 
 # def get_max_range(ports_df):
@@ -132,7 +132,7 @@ def format_df(ports_df):
 
 def get_ef_fig(ports_df):
     df = format_df(ports_df)
-    ef_fig = px.scatter(df, x="Volatility", y="Excess Return",color='Sharpe')
+    ef_fig = px.scatter(df, x="Surplus Volatility", y="Excess Return",color='Sharpe')
     ef_fig.update_layout(
         title={
                 'text': "<b>Mean Variance Efficient Frontier</b>",
@@ -147,7 +147,7 @@ def get_ef_fig(ports_df):
         showlegend=True,
         plot_bgcolor='White'
                      )
-    ef_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Volatility</b>",title_font = {"size": 20},
+    ef_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Surplus Volatility</b>",title_font = {"size": 20},
                         showline=True,linewidth=2,linecolor='black',mirror=False)
     
     ef_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Excess Return</b>",title_font = {"size": 20},
