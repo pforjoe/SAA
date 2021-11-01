@@ -8,11 +8,10 @@ Created on Sat Oct 30 11:38:48 2021
 ###############################################################################
 # IMPORT LIBRARIES                                                            #
 ###############################################################################
-import pandas as pd
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
-from AssetAllocation.reporting import reports as rp, plots
-import matplotlib.pyplot as plt
+from AssetAllocation.reporting import plots
+# import matplotlib.pyplot as plt
 import numpy as np
 import stochMV as stMV
 import seaborn as sns
@@ -39,39 +38,17 @@ pp_dict = plan.get_pp_dict()
 # INITIALIZE STOCHMV                                                          #
 ###############################################################################
 #initialize the stochastic mean variance
-s = stMV.stochMV(plan, 1000)
+s = stMV.stochMV(plan, 5)
 #generate the random returns Aand sample corr
 s.generate_plans()
 s.generate_resamp_corr_dict()
 ###############################################################################
 # VIEW CORRELATIONS                                                           #
 ###############################################################################
-corr1 = pd.Series()
-a1 = 'Liability'
-a2 = '15+ STRIPS'
-a3 = 'Equity'
-a4 = 'Hedges'
-a5 = 'Liquid Alternatives'
-a6 = 'Private Equity'
-
-corr2 = pd.Series()
-corr3 = pd.Series()
-count = 0
-for plan in s.simulated_plans:
-    corr1._set_value(count, plan.corr[a1][a2])
-    corr2._set_value(count, plan.corr[a3][a4])
-    corr3._set_value(count, plan.corr[a5][a6])
-    count = count +1
-
-plt.plot(corr1, label=a1+'/'+a2)
-plt.plot(corr2, label=a3+'/'+a4)
-plt.plot(corr3, label=a5+'/'+a6)
-plt.xlabel('sample')
-plt.ylabel('sample correlations')
-plt.legend(bbox_to_anchor=(0, 1.02,1, 0.2), loc='lower left')
-plt.show()
-
-
+for key in s.resamp_corr_dict:
+    resamp_corr_fig = plots.get_resamp_corr_fig(s.resamp_corr_dict[key], key)
+    resamp_corr_fig.show()
+    
 ###############################################################################
 # VIEW  RETURNS                                                               #
 ###############################################################################

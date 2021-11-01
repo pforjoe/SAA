@@ -19,7 +19,7 @@ import scipy.optimize as sco
 
 class plan_params():
     
-    def __init__(self, policy_wgts,ret,vol,corr,symbols,ret_df=None):
+    def __init__(self, policy_wgts,ret,vol,corr,symbols,funded_status,ret_df=None,):
         """
         
 
@@ -47,6 +47,7 @@ class plan_params():
         self.corr = corr
         self.symbols = symbols
         self.ret_df = ret_df
+        self.funded_status = funded_status
         self.policy_rets = self.compute_policy_return()
         self.cov = self.compute_cov()
         self.var = self.compute_var()

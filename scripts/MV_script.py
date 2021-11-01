@@ -46,7 +46,7 @@ cons = (
     # sum of Fixed Income Assets >= 50%
     {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.5},
     #sum of all plan assets (excluding Futures and Hedges) = 2%    
-    {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(plan)-1]) - x[3] - .02},
+    {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(plan)-1]) - x[3] - (1-plan.funded_status)},
     # Hedges <= 50% of Equity & PE
     {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(plan)-1]},
     # STRIPS*4 >= sum(Futures and Hedges)
@@ -57,6 +57,7 @@ cons = (
 # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
 ###############################################################################
 #Get data for MV efficient frontier portfolios
+#TODO:change volatility to Surplus Volatility
 plan.compute_eff_frontier(bnds,cons,num_ports=100)
 
 ###############################################################################

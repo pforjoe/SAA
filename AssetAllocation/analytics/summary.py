@@ -80,11 +80,13 @@ def get_plan_params(output_dict):
     corr = output_dict['corr'].to_numpy()
 
     symbols = list(ret.index.values)
+    
+    funded_status = output_dict['weights']['FS Loadings'][1]
     try:
         ret_df = output_dict['returns']
     except KeyError:
         ret_df=None
-    return pp(policy_wgts, ret, vol, corr, symbols, ret_df)
+    return pp(policy_wgts, ret, vol, corr, symbols, funded_status, ret_df)
 
 def get_pp_dict(plan):
     return {'Policy Weights':dm.pd.DataFrame(plan.policy_wgts, index=plan.symbols, columns=['Weights']),
