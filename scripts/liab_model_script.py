@@ -35,7 +35,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # IBT or Pension or Retirement
-PLAN = 'IBT'
+PLAN = 'Pension'
 
 UPS_Contr_Pctg = 0
 
@@ -115,7 +115,8 @@ liab_ret_df.to_excel(writer, sheet_name=PLAN)
 writer.save()
 
 ############################################################################################################################################################
-df_SC = pd.read_excel("2021_PBO_CF.xlsx",sheet_name = "Service Cost Cashflows Summary", skiprows = [0,1,2], usecols=[0,1,2,3], na_values=[""],index_col=0)
+df_SC = pd.read_excel("2021_PBO_CF.xlsx",sheet_name = "Service Cost Cashflows Summary",
+                      skiprows = [0,1,2], usecols=[0,1,2,3], na_values=[""],index_col=0)
 df_SC = df_SC.divide(12)
 df_SC = dm.monthize_data(df_SC)
 df_SC_add = pd.read_excel("2021 Liability Cash Flows.xlsx",sheet_name = "SC", usecols=[0,1,2,3,4], na_values=[""],index_col=0)
@@ -154,7 +155,9 @@ writer.save()
 
 
 ############################################################################################################################################################
-df_DR_M = pd.read_excel("UPS Pension - Historical Liability Data - 9.30.21.xlsx",sheet_name = PLAN ,skiprows = [0,1,2,3],usecols=[1,2], na_values=[""],index_col=0)
+df_DR_M = pd.read_excel("UPS Pension - Historical Liability Data - 9.30.21.xlsx",
+                        sheet_name = PLAN ,skiprows = [0,1,2,3],usecols=[1,2],
+                        na_values=[""],index_col=0)
 
 Plan_PV_DR = np.zeros(len(df_DR_M))
 for j in range (len(df_DR_M)):
