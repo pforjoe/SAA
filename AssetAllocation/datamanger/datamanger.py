@@ -20,7 +20,7 @@ DATA_FP = CWD + '\\data\\'
 MV_INPUTS_FP = DATA_FP + 'mv_inputs\\'
 TS_FP = DATA_FP + 'time_series\\'
 PLAN_INPUTS_FP = DATA_FP + 'plan_inputs\\'
-
+UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
 
 def get_fi_data(filename):
     """
@@ -199,8 +199,14 @@ def get_ts_data(plan='IBT', year='2010'):
 def get_bounds(filename='bounds.xlsx', plan='IBT'):
     filepath=PLAN_INPUTS_FP+filename
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
+    update_bnds_with_fs(bnds,plan)
     return tuple(zip(bnds.Lower, bnds.Upper))
 
+def update_bnds_with_fs(bnds, plan='IBT'):
+    for ind in bnds.index:
+        if ind in UPPER_BND_LIST:
+            bnds['Upper'][ind] = compute_fs(plan)
+    return None
 def get_ports_df(rets, vols, weights, symbols, raw=True):
     if raw:
         return pd.DataFrame(np.column_stack([rets, vols, rets/vols,weights]),columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
@@ -222,7 +228,7 @@ def format_ports_df(ports_df, ret_df):
     return ports_df[['Asset Return']+col_list]
     # return ports_df
     
-def monthize_data(df):
+def reindex_to_monthly_data(df):
     #set start date and end date
     start_date = df.index.min() - pd.DateOffset(day=0)
     end_date = df.index.max() + pd.DateOffset(day=31)
@@ -231,11 +237,11 @@ def monthize_data(df):
     dates = pd.date_range(start_date, end_date, freq='M')
     dates.name = 'Date'
 
-    #reindex yearly dataframe to monthly dataframe
+    #reindex dataframe to monthly dataframe
     df = df.reindex(dates, method='ffill')
 
     return df
-
+    
 def get_prices_df(df_returns):
     """"
     Converts returns dataframe to index level dataframe
@@ -256,6 +262,26 @@ def get_prices_df(df_returns):
         for col in df_returns.columns:
             df_prices[col][i] = (df_returns[col][i] + 1) * df_prices[col][i-1]
     return df_prices
+
+def format_data(df_index, freq="1M"):
+    """
+    Format dataframe, by freq, to return dataframe
+    
+    Parameters:
+    df_index -- dataframe
+    freq -- string ('1M', '1W', '1D')
+    
+    Returns:
+    dataframe
+    """
+    data = df_index.copy()
+    data.index = pd.to_datetime(data.index)
+    if not(freq == '1D'):
+       data = data.resample(freq).ffill()
+    data = data.pct_change(1)
+    data = data.dropna()
+    data = data.loc[(data!=0).any(1)]
+    return data
 
 def compute_fs(plan='IBT'):
     liab_pv = pd.read_excel(TS_FP+'liability_return_data.xlsx', sheet_name=plan,index_col=0,usecols=[0,2])
