@@ -46,7 +46,7 @@ df_CF = pd.read_excel("2021_PBO_CF.xlsx",sheet_name = "PBO Cashflows Summary",
                       skiprows = [0,1,2], usecols=[0,1,2,3,4], na_values=[""],
                       index_col=0)
 df_CF = df_CF.divide(12)
-df_CF = dm.monthize_data(df_CF)
+df_CF = dm.reindex_to_monthly_data(df_CF)
 df_CF_add = pd.read_excel("2021 Liability Cash Flows.xlsx",sheet_name = "CF", 
                           usecols=[0,1,2,3,4], na_values=[""],index_col=0)
 df_CF  = df_CF_add.append(df_CF)
@@ -118,7 +118,7 @@ writer.save()
 df_SC = pd.read_excel("2021_PBO_CF.xlsx",sheet_name = "Service Cost Cashflows Summary",
                       skiprows = [0,1,2], usecols=[0,1,2,3], na_values=[""],index_col=0)
 df_SC = df_SC.divide(12)
-df_SC = dm.monthize_data(df_SC)
+df_SC = dm.reindex_to_monthly_data(df_SC)
 df_SC_add = pd.read_excel("2021 Liability Cash Flows.xlsx",sheet_name = "SC", usecols=[0,1,2,3,4], na_values=[""],index_col=0)
 df_SC  = df_SC_add.append(df_SC)
 
