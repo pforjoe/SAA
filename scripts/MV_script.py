@@ -36,9 +36,6 @@ pp_dict = plan.get_pp_dict()
 ###############################################################################
 bnds = dm.get_bounds(plan=PLAN)
 
-#View bounds
-df_bnds = dm.pd.DataFrame(bnds, index=plan.symbols, columns=['Lower', 'Upper'])
-
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
 ###############################################################################

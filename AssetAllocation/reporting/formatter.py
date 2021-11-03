@@ -6,6 +6,7 @@ Created on Wed Oct 20 21:26:55 2021
 """
 
 import pandas as pd
+from  ..datamanger import datamanger as dm
 
 def highlight_max(s):
     """
@@ -111,3 +112,31 @@ def get_plan_styler(df):
     return df.style.\
         applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
         format(formatter)
+
+def reset_bnds(df_bnds, plan):
+    new_bnds = dm.get_bounds(plan='IBT')
+    
+    for asset in df_bnds.index:
+        df_bnds['Lower'][asset] = new_bnds['Lower'][asset]
+        df_bnds['Upper'][asset] = new_bnds['Upper'][asset]
+    return None
+
+def reset_asset_bnds(df_bnds, asset, plan):
+    new_bnds = dm.get_bounds(plan='IBT')
+    #View bounds
+    df_bnds['Lower'][asset] = new_bnds['Lower'][asset]
+    df_bnds['Upper'][asset] = new_bnds['Upper'][asset]
+    return None
+
+
+def update_upper_bnds(df_bnds, asset, upper, plan):
+    if float(upper)/100 > plan.funded_status:
+            df_bnds['Upper'][asset] = plan.funded_status
+    else:
+        df_bnds['Upper'][asset] = float(upper)/100
+    return None
+
+def update_lower_bnds(df_bnds, asset, lower, plan):
+    if float(lower)/100 + 0.01 < df_bnds['Upper'][asset]:
+        df_bnds['Lower'][asset] = float(lower)/100
+    return None

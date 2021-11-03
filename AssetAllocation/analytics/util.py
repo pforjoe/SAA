@@ -31,3 +31,5 @@ def get_max_sharpe_weights(sim_ports_df):
     return sim_ports_df['weights'][sim_ports_df['sharpe_ratio'].idxmax()]
     
     
+def ceil(number, bound=5):
+    return bound *np.ceil(number/bound)

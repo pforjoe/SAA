@@ -38,7 +38,7 @@ pp_dict = plan.get_pp_dict()
 # INITIALIZE STOCHMV                                                          #
 ###############################################################################
 #initialize the stochastic mean variance
-s = stMV.stochMV(plan, 5)
+s = stMV.stochMV(plan, 120)
 #generate the random returns Aand sample corr
 s.generate_plans()
 s.generate_resamp_corr_dict()
@@ -61,28 +61,26 @@ sns.pairplot(s.returns_df, corner=True)
 ###############################################################################
 bnds = dm.get_bounds(plan=PLAN)
 
-#View bounds
-df_bnds = dm.pd.DataFrame(bnds, index=plan.symbols, columns=['Lower', 'Upper'])
-
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
 ###############################################################################
 cons = (
-    # sum of Fixed Income Assets >= 50%
-    {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.5},
-    #sum of all plan assets (excluding Futures and Hedges) = 2%    
-    {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(plan)-1]) - x[3] - .02},
-    # Hedges <= 50% of Equity & PE
-    {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(plan)-1]},
-    # STRIPS*4 >= sum(Futures and Hedges)
-    {'type': 'ineq', 'fun': lambda x: x[1]*4 - (x[3]+x[len(plan)-1])}
-)
+        # 45% <= sum of Fixed Income Assets <= 55%
+        {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.45},
+        {'type': 'ineq', 'fun': lambda x: .55 - np.sum(x[1:3])},
+        #sum of all plan assets (excluding Futures and Hedges) = Funded Status Difference    
+        {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(s.init_plan)-1]) - x[3] - (1-s.init_plan.funded_status)},
+        # 50% of Equity and PE >= Hedges
+        {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(s.init_plan)-1]},
+        # STRIPS >= sum(50% of Futures and 25% of Hedges)
+        {'type': 'ineq', 'fun': lambda x: x[1] - (x[3]/2+x[len(plan)-1]/4)}
+        )
 
 ###############################################################################
 # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
 ###############################################################################
 #Get data for MV efficient frontier portfolios
-s.generate_efficient_frontiers(bnds, cons,num_ports=25)
+s.generate_efficient_frontiers(bnds, cons,num_ports=100)
 
 ###############################################################################
 # DISPLAY MV ASSET ALLOCATION                                                 #
