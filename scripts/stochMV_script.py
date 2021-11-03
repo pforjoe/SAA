@@ -10,7 +10,7 @@ Created on Sat Oct 30 11:38:48 2021
 ###############################################################################
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
-from AssetAllocation.reporting import plots
+from AssetAllocation.reporting import plots, reports as rp
 # import matplotlib.pyplot as plt
 import numpy as np
 import stochMV as stMV
@@ -95,3 +95,9 @@ aa_fig.show()
 #Plotly version of the Efficient Frontier plot
 ef_fig = plots.get_ef_fig(s.opt_ports_df)
 ef_fig.show()
+
+###############################################################################
+# EXPORT DATA TO EXCEL                                                        #
+###############################################################################
+#Export Efficient Frontier portfoio data to excel
+rp.get_stochmv_ef_portfolios_report(PLAN+' stochmv_ef_report', s)

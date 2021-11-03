@@ -4,6 +4,7 @@ reports/*.xlsx
 #scripts/*.py
 data/outputs/*.xlsx
 desktop.ini
+simulated_returns.png
 
 # DO-NOT ignore specific files
 data/outputs/bounds.xlsx

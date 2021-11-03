@@ -47,6 +47,7 @@ class stochMV():
             #add the simulated plan to the list of plans and add the return vector to the return dataframe
             self.simulated_plans.append(plan)
             df = pd.concat([df, returns.to_frame().T], ignore_index=True)
+            df.index.name = 'Sample'
         self.returns_df = df
 
     def generate_efficient_frontiers(self, bnds, cons, num_ports=20):
@@ -85,6 +86,7 @@ class stochMV():
             col_list.remove(asset_liab)
             
             resamp_corr_df = pd.DataFrame(columns=col_list, index=list(range(0,self.iter)))
+            resamp_corr_df.index.name = 'Sample'
             
             
             for col in col_list:
