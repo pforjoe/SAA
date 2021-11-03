@@ -4,6 +4,8 @@ Created on Sat Oct 30 11:38:48 2021
 
 @author: Powis Forjoe
 """
+import os
+os.chdir("..")
 
 ###############################################################################
 # IMPORT LIBRARIES                                                            #
