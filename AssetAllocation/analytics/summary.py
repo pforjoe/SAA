@@ -36,9 +36,12 @@ def get_ts_output(ts_dict,decay_factor=0.98, t=1):
             'weights':ts_dict['weights'],
             'returns':ts_dict['returns']}
 
-def get_pp_inputs(mv_inputs, ts_dict, mkt='Equity'):
+def get_pp_inputs(plan='IBT', mkt='Equity'):
+    #get return
+    mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan))
+   
     #compute analytics using historical data
-    pp_inputs = get_ts_output(ts_dict)
+    pp_inputs = get_ts_output(dm.get_ts_data(plan=plan))
     
     #change cash correlations to 0
     for asset in pp_inputs['corr'].columns:
