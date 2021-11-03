@@ -56,6 +56,7 @@ class plan_params():
         self.eff_frontier_trets = None
         self.eff_frontier_tweights = None
         self.ports_df = None
+        self.bnds_dict = self.set_bnds_dict()
     
     def get_pp_dict(self):
         vol_df = dm.pd.DataFrame(self.vol, index=self.symbols, columns=['Volatility'])
@@ -67,6 +68,11 @@ class plan_params():
                 'Cov':dm.pd.DataFrame(self.cov, index=self.symbols, columns=self.symbols),
                 'Historical Returns': self.ret_df
             }
+    def set_bnds_dict(self):
+        return {'asset_list':[asset for asset in self.symbols[1:] if asset!='Cash'],
+                'lower_bnd': list(range(0,int(util.ceil(self.funded_status*100)),5)),
+                'upper_bnd': list(range(0,int(util.ceil(self.funded_status*100)+5),5))
+                }
     
     def compute_policy_return(self):
         """
@@ -244,10 +250,12 @@ class plan_params():
             DESCRIPTION.
 
         """
+        bnds = dm.transform_bnds(bnds) if type(bnds) != tuple else bnds
         return sco.minimize(fun, self.policy_wgts, method=method, bounds=bnds, constraints=cons)
 
 
     def compute_eff_frontier(self, bnds, cons,num_ports=100):
+        bnds = dm.transform_bnds(bnds) if type(bnds) != tuple else bnds
         #initial minimimum and maximum returns to define the bounds of the efficient frontier
         opt_var = self.optimize(self.min_variance, bnds, cons)
         min_ret = self.portfolio_stats(opt_var['x'])[0]

@@ -200,6 +200,9 @@ def get_bounds(filename='bounds.xlsx', plan='IBT'):
     filepath=PLAN_INPUTS_FP+filename
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
     update_bnds_with_fs(bnds,plan)
+    return bnds
+
+def transform_bnds(bnds):
     return tuple(zip(bnds.Lower, bnds.Upper))
 
 def update_bnds_with_fs(bnds, plan='IBT'):
