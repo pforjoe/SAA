@@ -8,6 +8,8 @@ Created on Sat Oct 30 11:38:48 2021
 ###############################################################################
 # IMPORT LIBRARIES                                                            #
 ###############################################################################
+import os
+os.chdir("..")
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
 from AssetAllocation.reporting import plots, reports as rp
@@ -72,7 +74,7 @@ cons = (
 # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
 ###############################################################################
 #Get data for MV efficient frontier portfolios
-s.generate_efficient_frontiers(bnds, cons,num_ports=25)
+s.generate_efficient_frontiers(bnds, cons,num_ports=100)
 
 ###############################################################################
 # DISPLAY MV ASSET ALLOCATION                                                 #
