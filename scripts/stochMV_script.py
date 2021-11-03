@@ -11,10 +11,8 @@ Created on Sat Oct 30 11:38:48 2021
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
 from AssetAllocation.reporting import plots, reports as rp
-# import matplotlib.pyplot as plt
 import numpy as np
 import stochMV as stMV
-import seaborn as sns
 
 PLAN = 'IBT'
 
@@ -48,8 +46,7 @@ for key in s.resamp_corr_dict:
 # VIEW  RETURNS                                                               #
 ###############################################################################
 #visualize the simulated returns
-sns.pairplot(s.returns_df, corner=True)
-# plt.savefig("sampling.jpeg")
+plots.get_sim_return_fig(s)
 
 ###############################################################################
 # DEFINE BOUNDS                                                               #
