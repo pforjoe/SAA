@@ -18,12 +18,7 @@ PLAN = 'IBT'
 ###############################################################################
 # COMPUTE PLAN INPUTS                                                         #
 ###############################################################################
-#get return
-mv_inputs_dict = dm.get_mv_inputs_data('inputs_test.xlsx', plan=PLAN)
-mv_inputs = summary.get_mv_inputs(mv_inputs_dict)
-#get historical vol and correlation
-ts_dict = dm.get_ts_data(plan=PLAN)
-pp_inputs = summary.get_pp_inputs(mv_inputs, ts_dict)
+pp_inputs = summary.get_pp_inputs(plan=PLAN)
 
 ###############################################################################
 # CREATE PLAN OBJECT                                                          #
@@ -54,7 +49,6 @@ cons = (
 # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
 ###############################################################################
 #Get data for MV efficient frontier portfolios
-#TODO:change volatility to Surplus Volatility
 plan.compute_eff_frontier(bnds,cons,num_ports=100)
 
 ###############################################################################

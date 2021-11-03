@@ -63,7 +63,7 @@ def get_rv_data(filename):
         rv_df['12mo expiry'] / rv_df['3mo expiry']
     return rv_df
 
-def get_mv_inputs_data(filename, plan='IBT'):
+def get_mv_inputs_data(filename='inputs_test.xlsx', plan='IBT'):
     
     filepath = MV_INPUTS_FP + filename
     
