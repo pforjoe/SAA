@@ -101,7 +101,7 @@ def get_aa_fig(ports_df, color_dict = COLOR_DICT):
     aa_fig.update_xaxes(title_font_family = "Calibri",title_text = "<b>Excess Return</b>",
                         # range=(0,get_max_range(df)['x_axis']),
         title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
-    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Weights</b>",
+    aa_fig.update_yaxes(title_font_family = "Calibri",title_text = "<b>Allocation</b>",
                         # range=(0,get_max_range(df)['y_axis']),
                         title_font = {"size": 20},showline=True,linewidth=2,linecolor='black',mirror=False)
     
@@ -111,25 +111,13 @@ def format_df(ports_df):
     df = ports_df.copy()
     df = 100*np.round(df,6)
     df['Sharpe'] = np.round(df['Excess Return']/df['Surplus Volatility'],4)
-    return df
+    return df[:get_max_return_index(df)]
 
-# def get_max_range(ports_df):
-#     df = ports_df.copy()
+def get_max_return_index(ports_df):
+    excess_ret_series = ports_df['Excess Return']
+    max_ret_index = excess_ret_series.index[excess_ret_series == ports_df['Excess Return'].max()][0]
+    return max_ret_index + 1
     
-#     #separate columns into assets and non asset lists
-#     non_asset_list = ["Asset Return","Volatility", "Excess Return","Sharpe"]
-#     asset_list = [col for col in df.columns if col not in non_asset_list]
-    
-#     #compute total asset weight per portfolio
-#     df['Weights'] = 0
-#     for col in asset_list:
-#         df['Weights'] += df[col]
-    
-#     return {'x_axis':np.round(df['Excess Return'].max(),0),
-#             'y_axis': np.round(df['Weights'].max(),0),
-#             }
-        
-
 def get_ef_fig(ports_df):
     df = format_df(ports_df)
     ef_fig = px.scatter(df, x="Surplus Volatility", y="Excess Return",color='Sharpe')
