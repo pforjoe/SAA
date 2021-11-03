@@ -9,7 +9,7 @@ import pandas as pd
 from .import formats
 from .import plots
 
-def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
+def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False):
     """
     Create excel sheet for historical returns
     
@@ -30,6 +30,8 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
     
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='0')
     #percent format
     pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
     #neg value format
@@ -39,7 +41,11 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
     col_dim = col + df_returns.shape[1]
     
     df_returns.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
-    worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+    if sample_ret:
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':num_fmt})
+    else:
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
     worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
                                   'format':pct_fmt})
@@ -47,16 +53,19 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns'):
                                                                'criteria': 'less than',
                                                                'value': 0,
                                                                'format': neg_value_fmt})
-  
+    if sample_ret:
+        worksheet.insert_image(2, col_dim+2, 'simulated_returns.png',
+                               {'x_scale': 0.5, 'y_scale': 0.5})
+    
     return 0
 
-def set_corr_sheet(writer,corr_df,sheet_name='corr', color=True):
+def set_corr_sheet(writer,corr_df,sheet_name='Correlations', color=True):
     """
-    Create excel sheet for historical returns
+    Create excel sheet for correlations
     
     Parameters:
     writer -- excel writer
-    df_returns -- dataframe
+    corr_df -- dataframe
     sheet_name -- string
     """
 
@@ -82,13 +91,13 @@ def set_corr_sheet(writer,corr_df,sheet_name='corr', color=True):
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'3_color_scale'})
     return 0
 
-def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='ret_vol'):
+def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='Return Statistics'):
     """
-    Create excel sheet for historical returns
+    Create excel sheet for ret and volatilty analytics
     
     Parameters:
     writer -- excel writer
-    df_returns -- dataframe
+    ret_vol_df -- dataframe
     sheet_name -- string
     """
 
@@ -117,13 +126,13 @@ def set_ret_vol_sheet(writer,ret_vol_df,sheet_name='ret_vol'):
     
     return 0
 
-def set_wgts_sheet(writer,wgts_df,sheet_name='weights'):
+def set_wgts_sheet(writer,wgts_df,sheet_name='Weights'):
     """
-    Create excel sheet for historical returns
+    Create excel sheet for plan weights
     
     Parameters:
     writer -- excel writer
-    df_returns -- dataframe
+    wgts_df -- dataframe
     sheet_name -- string
     """
 
@@ -154,13 +163,13 @@ def set_wgts_sheet(writer,wgts_df,sheet_name='weights'):
                                   'format':pct_fmt})
     return 0
 
-def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
+def set_ef_port_sheet(writer,ports_df,sheet_name='Efficient Frontier Data'):
     """
-    Create excel sheet for historical returns
+    Create excel sheet for Efficient Frontier Portfolio data
     
     Parameters:
     writer -- excel writer
-    df_returns -- dataframe
+    ports_df -- dataframe
     sheet_name -- string
     """
 
@@ -208,4 +217,25 @@ def set_ef_port_sheet(writer,ports_df,sheet_name='efficient frontier'):
     worksheet.insert_image(2, col_dim+2, 'plotly.png', {'image_data': aa_image_data})
     worksheet.insert_image(30, col_dim+2, 'plotly.png', {'image_data': ef_image_data})
 
+    return 0
+
+def set_resamp_corr_sheet(writer, resamp_corr_df, sheet_name = 'Resamp Corr'):
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+    #digits format
+    digits_fmt = formats.set_number_format(workbook,num_format='0.0000')
+        
+    row_dim = row + resamp_corr_df.shape[0]
+    col_dim = col + resamp_corr_df.shape[1]
+    
+    resamp_corr_df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'duplicate',
+                                  'format':digits_fmt})
+    
     return 0

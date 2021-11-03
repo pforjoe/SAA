@@ -7,8 +7,6 @@ Created on Sat Oct  9 21:51:38 2021
 
 import pandas as pd
 from  ..datamanger import datamanger as dm
-from ..analytics import summary
-from ..analytics.util import add_sharpe_col
 from .import sheets
 import os
 
@@ -126,6 +124,53 @@ def get_ef_portfolios_report(reportname, plan):
     #save file
     print_report_info(reportname, filepath)
     writer.save()
+
+def get_stochmv_ef_portfolios_report(reportname, stochmv):
+    """
+    Generates output report
+
+    Parameters
+    ----------
+    reportname : string
+        Name of report.
+    output_dict : dict
+        dictionary containing ret_vol, weights and corr analytics.
+    
+    Returns
+    -------
+    None. An excel report called [reportname].xlsx is created 
+
+    """
+    #get file path and create excel writer
+    filepath = get_reportpath(reportname)
+    writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+    
+    pp_dict = stochmv.init_plan.get_pp_dict()
+    
+    sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
+    sheets.set_corr_sheet(writer, pp_dict['Corr'])
+    try:
+        ports_df = stochmv.opt_ports_df
+        sheets.set_ef_port_sheet(writer, ports_df)
+        
+    except TypeError:
+        print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')
+        pass
+    
+    try:
+        sheets.set_return_sheet(writer, pp_dict['Historical Returns'])
+    except AttributeError:
+        pass
+    sheets.set_return_sheet(writer, stochmv.returns_df,sheet_name='Simulated Returns',sample_ret=True)
+    
+    for key in stochmv.resamp_corr_dict:
+        sheets.set_resamp_corr_sheet(writer, stochmv.resamp_corr_dict[key], sheet_name= key + ' Resamp Corr')
+        
+    #save file
+    print_report_info(reportname, filepath)
+    writer.save()
+    if os.path.exists('simulated_returns.png'):
+            os.remove('simulated_returns.png')
 
 def print_report_info(reportname, filepath):
     """

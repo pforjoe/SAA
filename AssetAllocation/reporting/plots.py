@@ -187,3 +187,8 @@ def draw_heatmap(corr_df, half=True):
                 ,fmt=".2f"
                 ,cbar=False
                )
+
+def get_sim_return_fig(stochmv):
+    fig = sns.pairplot(stochmv.returns_df, corner=True)
+    fig.fig.suptitle("Simulated Returns")
+    plt.savefig('simulated_returns.png')
