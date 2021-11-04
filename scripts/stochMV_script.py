@@ -63,7 +63,7 @@ cons = (
         {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.45},
         {'type': 'ineq', 'fun': lambda x: .55 - np.sum(x[1:3])},
         #sum of all plan assets (excluding Futures and Hedges) = Funded Status Difference    
-        {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(s.init_plan)-1]) - x[3] - (1-s.init_plan.funded_status)},
+        {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(s.init_plan)-1]) - x[3] + (1-s.init_plan.funded_status)},
         # 50% of Equity and PE >= Hedges
         {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(s.init_plan)-1]},
         # STRIPS >= sum(50% of Futures and 25% of Hedges)
