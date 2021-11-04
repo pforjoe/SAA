@@ -37,14 +37,15 @@ bnds = dm.get_bounds(plan=PLAN)
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
 ###############################################################################
 cons = (
-    # sum of Fixed Income Assets >= 50%
-    {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.5},
-    #sum of all plan assets (excluding Futures and Hedges) = 2%    
+    # 45% <= sum of Fixed Income Assets <= 55%
+    {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - 0.45*plan.funded_status},
+    {'type': 'ineq', 'fun': lambda x: .55*plan.funded_status - np.sum(x[1:3])},
+    #sum of all plan assets (excluding Futures and Hedges) = Funded Status Difference    
     {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(plan)-1]) - x[3] + (1-plan.funded_status)},
     # Hedges <= 50% of Equity & PE
     {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(plan)-1]},
-    # STRIPS*4 >= sum(Futures and Hedges)
-    {'type': 'ineq', 'fun': lambda x: x[1]*4 - (x[3]+x[len(plan)-1])}
+    # 15+ STRIPS >= sum(50% of Futures and 25% of Hedges weights)
+    {'type': 'ineq', 'fun': lambda x: x[1] - (x[3]/2+x[len(plan)-1]/4)}
 )
 
 ###############################################################################

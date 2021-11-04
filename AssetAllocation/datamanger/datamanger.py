@@ -9,6 +9,7 @@ Created on Wed Oct  6 12:01:39 2021
 import os
 import pandas as pd
 import numpy as np
+
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -206,9 +207,9 @@ def transform_bnds(bnds):
     return tuple(zip(bnds.Lower, bnds.Upper))
 
 def update_bnds_with_fs(bnds, plan='IBT'):
-    for ind in bnds.index:
-        if ind in UPPER_BND_LIST:
-            bnds['Upper'][ind] = compute_fs(plan)
+    bnds *= compute_fs(plan)
+    bnds['Upper']['Liability'] /= compute_fs(plan)
+    bnds['Lower']['Liability'] /= compute_fs(plan)
     return None
 def get_ports_df(rets, vols, weights, symbols, raw=True):
     if raw:
