@@ -130,13 +130,10 @@ def reset_asset_bnds(df_bnds, asset, plan):
 
 
 def update_upper_bnds(df_bnds, asset, upper, plan):
-    if float(upper)/100 > plan.funded_status:
-            df_bnds['Upper'][asset] = plan.funded_status
-    else:
-        df_bnds['Upper'][asset] = float(upper)/100
+    df_bnds['Upper'][asset] = (float(upper)/100)*plan.funded_status
     return None
 
 def update_lower_bnds(df_bnds, asset, lower, plan):
     if float(lower)/100 + 0.01 < df_bnds['Upper'][asset]:
-        df_bnds['Lower'][asset] = float(lower)/100
+        df_bnds['Lower'][asset] = (float(lower)/100)*plan.funded_status
     return None
