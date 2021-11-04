@@ -70,8 +70,8 @@ class plan_params():
             }
     def set_bnds_dict(self):
         return {'asset_list':[asset for asset in self.symbols[1:] if asset!='Cash'],
-                'lower_bnd': list(range(0,int(util.ceil(self.funded_status*100)),5)),
-                'upper_bnd': list(range(0,int(util.ceil(self.funded_status*100)+5),5))
+                'lower_bnd': list(range(0, 100, 5)),
+                'upper_bnd': list(range(0, 105, 5))
                 }
     
     def compute_policy_return(self):
