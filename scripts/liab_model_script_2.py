@@ -31,7 +31,7 @@ def frange(start, stop, step):
 def set_cfs_time_col(df_cfs):
     df_cfs['Time'] = list(frange(1/12, (len(df_cfs)+.9)/12, 1/12))
 
-def get_cf_data(cf_type='PBO',plan='IBT'):
+def get_cf_data(cf_type='PBO'):
     df_cfs = pd.read_excel(dm.TS_FP+'annual_cashflows_data.xlsx', sheet_name='PBO', index_col=0)/12
     df_cfs = dm.reindex_to_monthly_data(df_cfs)
     temp_cfs = pd.read_excel(dm.TS_FP+'monthly_cashflows_data.xlsx', sheet_name='PBO', index_col=0)
@@ -39,7 +39,7 @@ def get_cf_data(cf_type='PBO',plan='IBT'):
     set_cfs_time_col(df_cfs)
     return df_cfs
 
-def generate_liab_curve(df_ftse):
+def generate_liab_curve(df_ftse, cfs):
     liab_curve_dict = {}
     dates = df_ftse['Date']
     range_list =  list(frange(0.5, dates[len(dates)-1]+.9/12, (1/12)))
@@ -52,7 +52,7 @@ def generate_liab_curve(df_ftse):
                 value = float(interp(step))
                 if not sp.isnan(value): # Don't include out-of-range values
                     y.append(value)
-                    end_rate = [y[-1]] * 592
+                    end_rate = [y[-1]] * (len(cfs) - len(range_list)-5)
                     start_rate = [y[0]] * 5
                 liab_curve_dict[col] = start_rate + y + end_rate
     liab_curve_dict.pop('Date')
@@ -130,5 +130,6 @@ df_dr = pd.read_excel(dm.TS_FP+"discount_rate_data.xlsx",sheet_name=PLAN ,index_
 df_pv_dr = compute_pvs_w_dr(pbo_cfs, dfs, df_dr)
 ############################################################################################################################################################
 irr_list = compute_irr(pbo_cfs, dfs, df_pv_dr)
+irr_list_2 = compute_irr(pbo_cfs, dfs, df_total_pv)
 ############################################################################################################################################################
 
