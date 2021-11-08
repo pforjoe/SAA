@@ -49,18 +49,23 @@ for pension_plan in plan_list:
         if bounds =='ips':
             fi_min = fi_cons_dict[pension_plan]['min']
             fi_max = fi_cons_dict[pension_plan]['max']
-        cons = (
-        # 45% <= sum of Fixed Income Assets <= 55%
-        {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - fi_min*s.init_plan.funded_status},
-        {'type': 'ineq', 'fun': lambda x: fi_max*s.init_plan.funded_status - np.sum(x[1:3])},
-        #sum of all plan assets (excluding Futures and Hedges) = Funded Status Difference    
-        {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(s.init_plan)-1]) - x[3] + (1-s.init_plan.funded_status)},
-        # 50% of Equity and PE >= Hedges
-        {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(s.init_plan)-1]},
-        # 15+ STRIPS >= sum(50% of Futures and 25% of Hedges weights)
-        {'type': 'ineq', 'fun': lambda x: x[1] - (x[3]/2+x[len(s.init_plan)-1]/4)}
+        fi_cons = (
+            # fi_min <= sum of Fixed Income Assets <= fi_max
+            {'type': 'ineq', 'fun': lambda x: np.sum(x[1:3]) - fi_min*s.init_plan.funded_status},
+            {'type': 'ineq', 'fun': lambda x: fi_max*s.init_plan.funded_status - np.sum(x[1:3])},
         )
-
+        cons = (
+            #sum of all plan assets (excluding Futures and Hedges) = Funded Status Difference    
+            {'type': 'eq', 'fun': lambda x: np.sum(x[0:len(s.init_plan)-1]) - x[3] + (1-s.init_plan.funded_status)},
+            # 50% of Equity and PE >= Hedges
+            {'type': 'ineq', 'fun': lambda x: (x[4]+x[6])*.5 - x[len(s.init_plan)-1]},
+            # 15+ STRIPS >= sum(50% of Futures and 25% of Hedges weights)
+            {'type': 'ineq', 'fun': lambda x: x[1] - (x[3]/2+x[len(s.init_plan)-1]/4)}
+        )
+        
+        if bounds != 'unbounded':
+            cons = fi_cons+cons
+        
         ###############################################################################
         # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
         ###############################################################################
