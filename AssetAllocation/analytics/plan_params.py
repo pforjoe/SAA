@@ -70,8 +70,8 @@ class plan_params():
             }
     def set_bnds_dict(self):
         return {'asset_list':[asset for asset in self.symbols[1:] if asset!='Cash'],
-                'lower_bnd': list(range(0, 100, 5)),
-                'upper_bnd': list(range(0, 105, 5))
+                'lower_bnd': ['{:.0%}'.format(x/100) for x in list(range(0, 105, 5))],
+                'upper_bnd': ['{:.0%}'.format(x/100) for x in list(range(100, -5, -5))]
                 }
     
     def compute_policy_return(self):
@@ -284,9 +284,9 @@ class plan_params():
         self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_tweights,
                                         self.symbols)
         self.ports_df = dm.format_ports_df(self.ports_df,self.ret)
+        # for asset in self.symbols[1:]:
+        #     self.ports_df[asset] /= self.funded_status
         return None
-
-
 
     def run_mc_simulation(self, num_ports=5000):
         # Initialize the lists
