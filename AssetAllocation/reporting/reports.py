@@ -84,7 +84,7 @@ def get_output_report(reportname, output_dict):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_ef_portfolios_report(reportname, plan):
+def get_ef_portfolios_report(reportname, plan, bnds=pd.DataFrame):
     """
     Generates output report
 
@@ -108,6 +108,8 @@ def get_ef_portfolios_report(reportname, plan):
     
     sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
+    if not(bnds.empty):
+        sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
         ports_df = plan.ports_df
         sheets.set_ef_port_sheet(writer, ports_df)
@@ -125,7 +127,7 @@ def get_ef_portfolios_report(reportname, plan):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_stochmv_ef_portfolios_report(reportname, stochmv):
+def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     """
     Generates output report
 
@@ -149,6 +151,8 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv):
     
     sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
+    if not(bnds.empty):
+        sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
         ports_df = stochmv.opt_ports_df
         sheets.set_ef_port_sheet(writer, ports_df)
