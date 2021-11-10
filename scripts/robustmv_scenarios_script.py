@@ -12,7 +12,8 @@ import numpy as np
 import stochMV as stMV
 
 plan_list = ['IBT', 'Pension', 'Retirement']
-bounds_list = ['unbounded', 'ips', 'q32021_privates']
+bounds_list = ['q32021_privates']
+# bounds_list = ['unbounded', 'ips', 'q32021_privates']
 fi_cons_dict = {'IBT':{'min':.2, 'max':.7},
                 'Pension':{'min':.2, 'max':.45},
                 'Retirement':{'min':.4, 'max':.75}}
