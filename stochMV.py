@@ -16,6 +16,7 @@ class stochMV():
         self.avg_weights = None
         self.opt_ports_df = None
         self.resamp_corr_dict = {}
+        self.ef_portfolio_dict = {}
         
     def generate_plans(self, nb_period=5):
 
@@ -54,13 +55,17 @@ class stochMV():
 
         #Compute the efficient frontier on the initial plan
         self.init_plan.compute_eff_frontier(bnds, cons, num_ports)
-
+        
         avg_weights = np.zeros((len(self.init_plan.eff_frontier_tweights), len(self.init_plan)))
         #For each simulated plan compute the efficient frontier
+        
+        sample = 0
         for plan in self.simulated_plans:
             plan.compute_eff_frontier(bnds, cons,num_ports)
             avg_weights = avg_weights + plan.eff_frontier_tweights
-
+            self.ef_portfolio_dict[sample] = dm.format_ports_df(dm.get_ports_df(plan.eff_frontier_trets, plan.eff_frontier_tvols, 
+                                                             plan.eff_frontier_tweights,plan.symbols), plan.ret)
+            sample += 1
         #Average of the weights across the simulated plans
         self.avg_weights = avg_weights/self.iter
 
