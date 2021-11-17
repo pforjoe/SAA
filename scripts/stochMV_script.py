@@ -12,16 +12,21 @@ import os
 os.chdir("..")
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
+from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import plots, reports as rp
 import numpy as np
-import stochMV as stMV
 
 PLAN = 'IBT'
 
 ###############################################################################
+# COMPUTE LIABILITY DATA                                                      #
+###############################################################################
+liab_model = summary.get_liab_model(PLAN)
+
+###############################################################################
 # COMPUTE PLAN INPUTS                                                         #
 ###############################################################################
-pp_inputs = summary.get_pp_inputs(plan=PLAN)
+pp_inputs = summary.get_pp_inputs(liab_model,PLAN)
 
 ###############################################################################
 # INITIALIZE PLAN                                                             #
@@ -33,7 +38,7 @@ pp_dict = plan.get_pp_dict()
 # INITIALIZE STOCHMV                                                          #
 ###############################################################################
 #initialize the stochastic mean variance
-s = stMV.stochMV(plan, 120)
+s = stochMV(plan, 10)
 #generate the random returns Aand sample corr
 s.generate_plans()
 s.generate_resamp_corr_dict()
@@ -53,7 +58,7 @@ plots.get_sim_return_fig(s)
 ###############################################################################
 # DEFINE BOUNDS                                                               #
 ###############################################################################
-bnds = dm.get_bounds(plan=PLAN)
+bnds = dm.get_bounds(liab_model,plan=PLAN)
 
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
@@ -74,7 +79,7 @@ cons = (
 # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
 ###############################################################################
 #Get data for MV efficient frontier portfolios
-s.generate_efficient_frontiers(bnds, cons,num_ports=100)
+s.generate_efficient_frontiers(bnds, cons,num_ports=20)
 
 ###############################################################################
 # DISPLAY MV ASSET ALLOCATION                                                 #
