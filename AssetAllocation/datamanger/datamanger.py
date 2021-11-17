@@ -2,13 +2,16 @@
 """
 Created on Wed Oct  6 12:01:39 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
-# Import pandas
 import os
 import pandas as pd
 import numpy as np
+
+from itertools import count, takewhile
+import scipy as sp
+from scipy import interpolate
 
 # Ignore warnings
 import warnings
@@ -115,7 +118,6 @@ def merge_dfs(main_df, new_df):
     merged_df = merged_df.dropna()
     return merged_df
     
-
 def get_plan_data(filename):
     
     plan_list = ['ret_vol', 'corr', 'weights']
@@ -185,32 +187,34 @@ def get_liab_returns(filename='liability_return_data.xlsx', plan='IBT'):
     
 def get_weights(filename = 'weights.xlsx', plan='IBT'):
     filepath = PLAN_INPUTS_FP+filename
-    weights_df = add_fs_load_col(pd.read_excel(filepath, sheet_name=plan,index_col=0),
-                                 plan)
-    weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
+    weights_df = pd.read_excel(filepath, sheet_name=plan,index_col=0)
+    # weights_df = add_fs_load_col(weights_df,plan)
+    # weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
     # weights_df = weights_df[['FS AdjWeights']]
     return weights_df
 
 def get_ts_data(plan='IBT', year='2010'):
-    returns_df = get_returns_df(plan=plan, year=year)
+    # returns_df = get_returns_df(plan=plan, year=year)
+    returns_df = get_asset_returns(year=year)
     weights_df = get_weights(plan=plan)
     return {'returns': returns_df,
             'weights': weights_df}
 
-def get_bounds(filename='bounds.xlsx', plan='IBT'):
+def get_bounds(liab_model, filename='bounds.xlsx', plan='IBT'):
     filepath=PLAN_INPUTS_FP+filename
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
-    update_bnds_with_fs(bnds,plan)
+    update_bnds_with_fs(bnds,liab_model)
     return bnds
 
 def transform_bnds(bnds):
     return tuple(zip(bnds.Lower, bnds.Upper))
 
-def update_bnds_with_fs(bnds, plan='IBT'):
-    bnds *= compute_fs(plan)
-    bnds['Upper']['Liability'] /= compute_fs(plan)
-    bnds['Lower']['Liability'] /= compute_fs(plan)
+def update_bnds_with_fs(bnds, liab_model):
+    bnds *= liab_model.funded_status
+    bnds['Upper']['Liability'] /= liab_model.funded_status
+    bnds['Lower']['Liability'] /= liab_model.funded_status
     return None
+
 def get_ports_df(rets, vols, weights, symbols, raw=True):
     if raw:
         return pd.DataFrame(np.column_stack([rets, vols, rets/vols,weights]),columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
@@ -230,7 +234,6 @@ def format_ports_df(ports_df, ret_df):
     ports_df['Asset Return'] = ret_df['Liability'] + ports_df['Excess Return']
     
     return ports_df[['Asset Return']+col_list]
-    # return ports_df
     
 def reindex_to_monthly_data(df):
     #set start date and end date
@@ -293,6 +296,10 @@ def compute_fs(plan='IBT'):
     fs_df = merge_dfs(asset_mv, liab_pv)
     return fs_df.iloc[-1:]['Market Value'][0]/fs_df.iloc[-1:]['Present Value'][0]
 
+def get_plan_asset_mv(plan='IBT'):
+    asset_mv = pd.read_excel(TS_FP+'plan_mkt_value_data.xlsx', sheet_name=plan, index_col=0)
+    return asset_mv.iloc[-1:]['Market Value'][0]
+
 def add_fs_load_col(weights_df, plan='IBT'):
     fs = compute_fs(plan)
     weights_df['FS Loadings'] = np.nan
@@ -302,3 +309,57 @@ def add_fs_load_col(weights_df, plan='IBT'):
         else:
             weights_df['FS Loadings'][ind] = fs
     return weights_df
+
+def frange(start, stop, step):
+    return takewhile(lambda x: x< stop, count(start, step))
+
+def set_cfs_time_col(df_cfs):
+    df_cfs['Time'] = list(frange(1/12, (len(df_cfs)+.9)/12, 1/12))
+
+def get_cf_data(cf_type='PBO', plan='IBT'):
+    df_cfs = pd.read_excel(TS_FP+'annual_cashflows_data.xlsx', sheet_name=cf_type, index_col=0)/12
+    df_cfs = reindex_to_monthly_data(df_cfs)
+    temp_cfs = pd.read_excel(TS_FP+'monthly_cashflows_data.xlsx', sheet_name=cf_type, index_col=0)
+    df_cfs = temp_cfs.append(df_cfs)
+    set_cfs_time_col(df_cfs)
+    return df_cfs
+
+def get_ftse_data():
+    df_old_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='old_data', index_col=0)
+    df_new_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='new_data', index_col=0)
+    df_ftse = merge_dfs(df_new_ftse,df_old_ftse)
+    df_ftse.reset_index(inplace=True)
+    return df_ftse
+
+def generate_liab_curve(df_ftse, cfs):
+    liab_curve_dict = {}
+    dates = df_ftse['Date']
+    range_list =  list(frange(0.5, dates[len(dates)-1]+.9/12, (1/12)))
+    
+    for col in df_ftse.columns:
+        y = []
+        interp = sp.interpolate.interp1d(dates, df_ftse[col], bounds_error=False,
+                                         fill_value=sp.nan)
+        for step in range_list:
+                value = float(interp(step))
+                if not sp.isnan(value): # Don't include out-of-range values
+                    y.append(value)
+                    end_rate = [y[-1]] * (len(cfs) - len(range_list)-5)
+                    start_rate = [y[0]] * 5
+                liab_curve_dict[col] = start_rate + y + end_rate
+    liab_curve_dict.pop('Date')
+    liab_curve = pd.DataFrame(liab_curve_dict)
+    liab_curve = liab_curve.iloc[:, ::-1]
+    return liab_curve
+
+def get_liab_model_data(plan='IBT', contrb_pct=.05):
+    df_pbo_cfs = get_cf_data('PBO', plan)
+    df_pvfb_cfs = get_cf_data('PVFB',plan)
+    df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
+    df_ftse = get_ftse_data()
+    disc_rates = pd.read_excel(TS_FP+"discount_rate_data.xlsx",sheet_name=plan ,usecols=[0,1],index_col=0)
+    liab_curve = generate_liab_curve(df_ftse, np.array(df_pbo_cfs[plan]))
+    asset_mv = get_plan_asset_mv(plan)
+    return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
+            'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
+    

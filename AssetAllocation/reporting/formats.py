@@ -36,3 +36,17 @@ def set_number_format(workbook,num_format, bold=False):
 
 def set_neg_value_format(workbook):
     return workbook.add_format({'font_color':'#9C0006'})
+
+def set_title_format(workbook):
+    """
+    Format title
+    
+    Parameters:
+    workbook
+    """
+    title_format = workbook.add_format()
+    title_format.set_bold()
+    title_format.set_font_color('#000000')
+    title_format.set_font_name('Calibri')
+    title_format.set_font_size(14)
+    return title_format
