@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 # Import optimization module from scipy
 import scipy.optimize as sco
 
-class plan_params():
+class planParams():
     
     def __init__(self, policy_wgts,ret,vol,corr,symbols,funded_status,ret_df=None,):
         """
