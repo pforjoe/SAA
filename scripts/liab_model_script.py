@@ -14,7 +14,6 @@ from AssetAllocation.datamanger import datamanger as dm
 import scipy as sp
 # from scipy import optimize
 from scipy.optimize import fsolve
-# from scipy import interpolate
 
 # Import pandas
 import pandas as pd
@@ -184,3 +183,10 @@ for j in range (len(df_DR_M)):
     cfs = np.append(np.negative(pv_df_dr['Present Values'][j]),CF)
     yrs = np.append(0, DF)
     IRR[j] += irr(cfs, yrs, .03)
+
+
+############################################################################################################################################################
+df_PVFB = pd.read_excel("YE2020 PBO SC Cashflows_QP.xlsx",sheet_name = "PVFB Cashflows Summary", skiprows = [0,1,2,3,4,5,6,7,8], usecols=[0,1,2,3,4], na_values=[""],index_col=0)
+df_PVFB = df_PVFB.divide(12)
+
+############################################################################################################################################################
