@@ -2,7 +2,7 @@
 """
 Created on Mon Nov  1 15:13:59 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 from AssetAllocation.datamanger import datamanger as dm
