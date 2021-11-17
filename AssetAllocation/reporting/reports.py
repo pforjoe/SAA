@@ -176,6 +176,13 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     if os.path.exists('simulated_returns.png'):
             os.remove('simulated_returns.png')
 
+def get_ff_report(reportname, fulfill_ret_dict,plan_list):
+    filepath = get_reportpath(reportname)
+    writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+    for plan in plan_list:
+        sheets.set_ff_ratio_matrix_sheet(writer, plan, fulfill_ret_dict)
+    writer.save()  
+
 def print_report_info(reportname, filepath):
     """
     Print name of report and location

@@ -239,3 +239,25 @@ def set_resamp_corr_sheet(writer, resamp_corr_df, sheet_name = 'Resamp Corr'):
                                   'format':digits_fmt})
     
     return 0
+
+def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=plan, startrow=0, startcol=0)
+    worksheet = writer.sheets[plan]
+    worksheet.set_column(0, 100, 21, cell_format)
+    row = 2
+    col = 0
+    #title format
+    title_format = formats.set_title_format(workbook)
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    
+    for key in fulfill_ret_dict[plan]:
+        row_dim = row + fulfill_ret_dict[plan][key].shape[0]
+        col_dim = col + fulfill_ret_dict[plan][key].shape[1]
+        worksheet.write(row-1,col,'{} Fully Funded Ratio Matrix'.format(key),title_format)
+        fulfill_ret_dict[plan][key].to_excel(writer, sheet_name=plan, startrow=row, startcol=col)
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+        row = row_dim + 2 + 1
+    return 0
