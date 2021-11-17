@@ -2,14 +2,14 @@
 """
 Created on Fri Nov  5 14:08:59 2021
 
-@author: NVG9HXP
+@author: Powis Forjoe
 """
 
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics import summary
+from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import reports as rp, plots
 import numpy as np
-import stochMV as stMV
 
 plan_list = ['IBT', 'Pension', 'Retirement']
 bounds_list = ['q32021_privates']
@@ -21,6 +21,15 @@ for pension_plan in plan_list:
     pp_inputs = summary.get_pp_inputs(plan=pension_plan)
 
     ###############################################################################
+    # COMPUTE LIABILITY DATA                                                      #
+    ###############################################################################
+    liab_model = summary.get_liab_model(pension_plan)
+    
+    ###############################################################################
+    # COMPUTE PLAN INPUTS                                                         #
+    ###############################################################################
+    pp_inputs = summary.get_pp_inputs(liab_model,pension_plan)
+    ###############################################################################
     # CREATE PLAN OBJECT                                                          #
     ###############################################################################
     plan = summary.get_plan_params(pp_inputs)
@@ -29,7 +38,7 @@ for pension_plan in plan_list:
     # INITIALIZE STOCHMV                                                          #
     ###############################################################################
     #initialize the stochastic mean variance
-    s = stMV.stochMV(plan, 200)
+    s = stochMV(plan, 200)
     #generate the random returns Aand sample corr
     s.generate_plans()
     s.generate_resamp_corr_dict()
@@ -40,7 +49,7 @@ for pension_plan in plan_list:
         ###############################################################################
         # DEFINE BOUNDS                                                               #
         ###############################################################################
-        bnds = dm.get_bounds(filename=bounds+'_bounds.xlsx',plan=pension_plan)
+        bnds = dm.get_bounds(liab_model,filename=bounds+'_bounds.xlsx',plan=pension_plan)
         
         ###############################################################################
         # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
