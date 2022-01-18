@@ -238,7 +238,7 @@ def format_ports_df(ports_df, ret_df):
 def reindex_to_monthly_data(df):
     #set start date and end date
     start_date = df.index.min() - pd.DateOffset(day=0)
-    end_date = df.index.max() + pd.DateOffset(day=31)
+    end_date = df.index.max() + pd.DateOffset(months=11)
 
     #create new dataframe monthly index
     dates = pd.date_range(start_date, end_date, freq='M')
@@ -324,10 +324,12 @@ def get_cf_data(cf_type='PBO', plan='IBT'):
     set_cfs_time_col(df_cfs)
     return df_cfs
 
-def get_ftse_data():
-    df_old_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='old_data', index_col=0)
-    df_new_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='new_data', index_col=0)
-    df_ftse = merge_dfs(df_new_ftse,df_old_ftse)
+def get_ftse_data(include_old=True):
+    df_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='new_data', index_col=0)
+    
+    if include_old:
+        df_old_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='old_data', index_col=0)
+        df_ftse = merge_dfs(df_ftse,df_old_ftse)
     df_ftse.reset_index(inplace=True)
     return df_ftse
 
