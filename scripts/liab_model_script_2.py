@@ -18,7 +18,7 @@ PLAN = 'IBT'
 df_pbo_cfs = dm.get_cf_data('PBO')
 df_pvfb_cfs = dm.get_cf_data('PVFB')
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
-df_ftse = dm.get_ftse_data()
+df_ftse = dm.get_ftse_data(False)
 disc_rates = pd.read_excel(dm.TS_FP+"discount_rate_data.xlsx",sheet_name=PLAN ,usecols=[0,1],index_col=0)
     
 ############################################################################################################################################################
@@ -29,9 +29,9 @@ disc_factors = df_pbo_cfs['Time']
 sc_cashflows = df_sc_cfs[PLAN]
 liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
 asset_mv = dm.get_plan_asset_mv(PLAN)
-contrb_pct = 0.05
+contrb_pct = 0.00
 liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, 
-                                  liab_curve,disc_rates,contrb_pct, asset_mv)
+                                  contrb_pct, asset_mv,liab_curve)
 
 yrs_to_ff = 20
 ff_ratio = 1.05                    
