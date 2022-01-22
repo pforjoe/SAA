@@ -146,8 +146,6 @@ class liabilityModel():
         return self.asset_mv/self.present_values.iloc[-1:]['Present Value'][0]
     
     def get_return(self):
-        if self.disc_rates.empty:
-            return self.irr_df['IRR'][-1]
-        else:
-            return self.disc_rates['IRR'][-1]
+        return self.irr_df['IRR'][-1]
+
             
