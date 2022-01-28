@@ -8,9 +8,10 @@ Created on Fri Jan 28 14:10:47 2022
 import pandas as pd
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics.liability_model import liabilityModel
-import pandas as pd
-import numpy as np
-from scipy.optimize import fsolve
+
+######################################################################################################
+# IGNORE
+######################################################################################################
 
 df = pd.read_excel('plan_return_data.xlsx', sheet_name='data')
 df_1 = df.pivot_table(values='Return', index='Date', columns='Plan')
@@ -22,6 +23,10 @@ writer = pd.ExcelWriter('plan_level_data.xlsx', engine='xlsxwriter')
 df_1.to_excel(writer, sheet_name='ret_data')
 df_2.to_excel(writer, sheet_name='mv_data')
 writer.save()
+
+######################################################################################################
+#
+######################################################################################################
 
 
 df_pbo_cfs = dm.get_cf_data('PBO')
