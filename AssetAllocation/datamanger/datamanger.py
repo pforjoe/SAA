@@ -365,3 +365,11 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
             'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
     
+# def get_asset_liab_tables(liab_ret, plan):
+    
+#     plan_returns = pd.read_excel(TS_FP+"plan_return_data.xlsx",sheet_name = plan ,usecols=[0,1],index_col=0)
+    
+#     chart = liab_ret_disc_rates.merge(plan_returns, how = "left", left_index= True, right_index = True)
+#     chart.columns = ["Liability","Asset"]
+    
+#     return chart

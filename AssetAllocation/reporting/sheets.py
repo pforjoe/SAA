@@ -6,6 +6,7 @@ Created on Sat Oct  9 21:41:41 2021
 """
 
 import pandas as pd
+from AssetAllocation.reporting import formats
 from .import formats
 from .import plots
 
@@ -260,4 +261,38 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         fulfill_ret_dict[plan][key].to_excel(writer, sheet_name=plan, startrow=row, startcol=col)
         worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
         row = row_dim + 2 + 1
+    return 0
+
+def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "charts_ftse"):
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    
+    merge_fmt = formats.set_merge_format(workbook)
+    
+    #plan_list = ["Retirement","Pension","IBT"]
+    
+
+    for key in tables_dict:
+        row_dim = row + tables_dict[key].shape[0]
+        col_dim = col + tables_dict[key].shape[1]
+        #worksheet.write(row-1, col+1, key, title_format)
+        worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
+        tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+        col = col_dim + 2   
+        
     return 0

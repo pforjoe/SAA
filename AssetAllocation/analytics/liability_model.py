@@ -15,7 +15,7 @@ warnings.filterwarnings('ignore')
 
 class liabilityModel():
     
-    def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
+    def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
         """
         
 
@@ -49,6 +49,7 @@ class liabilityModel():
         self.liab_curve = liab_curve
         self.disc_rates = disc_rates
         self.asset_mv = asset_mv
+        self.asset_returns = asset_returns
         self.present_values = self.compute_pvs()
         self.irr_df = self.compute_irr()
         self.returns_ts = self.compute_liab_ret()
@@ -57,6 +58,7 @@ class liabilityModel():
         self.excess_return = None
         self.ret = self.get_return()
         self.data_dict = self.get_liab_model_dict(pbo_cashflows, sc_cashflows)
+                
         
     def get_liab_model_dict(self,pbo_cashflows, sc_cashflows):
         cf_frame = {'Total Cashflows': (self.contrb_pct*sc_cashflows + pbo_cashflows),

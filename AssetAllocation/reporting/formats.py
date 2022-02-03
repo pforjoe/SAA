@@ -37,7 +37,7 @@ def set_number_format(workbook,num_format, bold=False):
 def set_neg_value_format(workbook):
     return workbook.add_format({'font_color':'#9C0006'})
 
-def set_title_format(workbook):
+def set_title_format(workbook, center = False):
     """
     Format title
     
@@ -49,4 +49,26 @@ def set_title_format(workbook):
     title_format.set_font_color('#000000')
     title_format.set_font_name('Calibri')
     title_format.set_font_size(14)
+    if center == True:
+        title_format.set_align('center')
+        
     return title_format
+
+
+def set_date_format(workbook):
+    date_format = workbook.add_format({"num_format": 'm-yy'})
+    date_format.set_bold()
+    date_format.set_font_color('#000000')
+    date_format.set_font_name('Calibri')
+    date_format.set_font_size(14)
+    return date_format
+
+def set_merge_format(workbook):
+    merge_format = workbook.add_format()
+    merge_format.set_bold()
+    merge_format.set_font_color('#000000')
+    merge_format.set_font_name('Calibri')
+    merge_format.set_font_size(14)
+    merge_format.set_align('center')
+    merge_format.set_valign('vcenter')
+    merge_format.set_border(1)
