@@ -62,7 +62,6 @@ for plan in plan_list:
     asset_liab_ret_dict[plan] = asset_liab_ret_df
 
 
-
 df_return = liab_model_dict['Retirement'].returns_ts.copy()
 df_return = dm.merge_dfs(df_return, liab_model_dict['Pension'].returns_ts.copy())
 df_return = dm.merge_dfs(df_return, liab_model_dict['IBT'].returns_ts.copy())
@@ -80,13 +79,21 @@ df_irr = dm.merge_dfs(df_irr,liab_model_dict['Pension'].irr_df)
 df_irr = dm.merge_dfs(df_irr,liab_model_dict['IBT'].irr_df)
 df_irr.columns = plan_list
 
+df_asset_mv =  liab_model_dict['Retirement'].asset_mv.copy()
+df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['Pension'].asset_mv.copy())
+df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['IBT'].asset_mv.copy())
+df_asset_mv.columns = plan_list
+
 writer = pd.ExcelWriter('liability_returns.xlsx', engine='xlsxwriter')
 
-df_return.to_excel(writer, sheet_name='liability_returns')
-df_pvs.to_excel(writer, sheet_name='present_values')
-df_irr.to_excel(writer, sheet_name='irr')
-
-for plan in plan_list: 
-    sheets.set_asset_liability_charts_sheet(writer, asset_liab_ret_dict, sheet_name = "charts_ftse")
+#df_return.to_excel(writer, sheet_name='liability_returns')
+#df_pvs.to_excel(writer, sheet_name='present_values')
+#df_irr.to_excel(writer, sheet_name='irr')\
+    
+sheets.set_return_sheet(writer, df_return, sheet_name = "liability_returns", sample_ret = False)
+sheets.set_present_values_sheet(writer, df_pvs) 
+sheets.set_return_sheet(writer, df_irr, sheet_name = "IRR", sample_ret = False)
+sheets.set_asset_mv_sheet(writer, df_asset_mv)
+sheets.set_asset_liability_charts_sheet(writer, asset_liab_ret_dict)
     
 writer.save()

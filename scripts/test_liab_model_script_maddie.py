@@ -73,6 +73,7 @@ def compute_liab_ret(present_values, irr_df):
 
 plans = ['Retirement', "Pension","IBT"]
 df_pbo_cfs = dm.get_cf_data('PBO')
+df_pbo_cfs["Total"] =  df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
 df_pvfb_cfs = dm.get_cf_data('PVFB')
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data(False)
@@ -109,6 +110,17 @@ for PLAN in plans:
     
     tables[PLAN] = liab_ret_disc_rates.merge(plan_returns, how = "left", left_index= True, right_index = True)
 
+###############Compute liabilities for aggregat
+total_liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["Total"])
+total_pv_curve = compute_pvs(df_pbo_cfs["Total"], disc_factors, total_liab_curve)
+total_irr_curve = compute_irr(total_pv_curve, df_pbo_cfs["Total"], disc_factors)
+
+#what would the discount rate be??
+total_pv_disc_rates = compute_pvs(df_pbo_cfs["Total"], disc_factors, disc_rates=disc_rates)
+irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
+liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
+
+compute_liab_ret(df_pbo_cfs, irr_df)
 filepath = rp.get_reportpath("test")
 writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
 for plan in plans: 

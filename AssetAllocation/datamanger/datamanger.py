@@ -297,9 +297,10 @@ def compute_fs(plan='IBT'):
     fs_df = merge_dfs(asset_mv, liab_pv)
     return fs_df.iloc[-1:]['Market Value'][0]/fs_df.iloc[-1:]['Present Value'][0]
 
+#delete .iloc[-1:]['Market Value'][0] and move it into the liability model.py so that it outputs ts
 def get_plan_asset_mv(plan='IBT'):
-    asset_mv = pd.read_excel(TS_FP+'plan_mkt_value_data.xlsx', sheet_name=plan, index_col=0)
-    return asset_mv.iloc[-1:]['Market Value'][0]
+    asset_mv = pd.read_excel(TS_FP+'plan_mkt_value_data.xlsx', sheet_name=plan, index_col=0, usecols = ["Date","Market Value"])
+    return asset_mv
 
 def add_fs_load_col(weights_df, plan='IBT'):
     fs = compute_fs(plan)

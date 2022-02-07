@@ -15,7 +15,9 @@ PLAN = 'Retirement'
 ############################################################################################################################################################
 # IMPORT CASHFLOW AND DISC RATE DATA                                                             
 ############################################################################################################################################################
+PLAN = 'Total'
 df_pbo_cfs = dm.get_cf_data('PBO')
+df_pbo_cfs["Total"] = df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
 df_pvfb_cfs = dm.get_cf_data('PVFB')
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data()

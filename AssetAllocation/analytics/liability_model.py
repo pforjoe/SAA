@@ -122,8 +122,8 @@ class liabilityModel():
         for j in range(len(self.disc_factors)):
             if (j == 0):
                 for i in range(j,len(self.total_cashflows)):
-                    erf_pvs_array[j] += (self.total_cashflows[i]/((1+self.disc_rates['IRR'][-1])**self.disc_factors[i-j]))
-                    asset_mv_array[j] = self.asset_mv
+                    erf_pvs_list[j] += (self.total_cashflows[i]/((1+self.irr_df['IRR'][-1])**self.disc_factors[i-j]))
+                    asset_mv_list[j] = self.asset_mv.iloc[-1:]['Market Value'][0]
         
             else:
                 for i in range(j,len(self.total_cashflows)):
