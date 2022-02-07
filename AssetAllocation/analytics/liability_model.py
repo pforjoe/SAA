@@ -135,7 +135,7 @@ class liabilityModel():
             if (j == 0):
                 for i in range(j,len(self.total_cashflows)):
                     erf_pvs_list[j] += (self.total_cashflows[i]/((1+self.irr_df['IRR'][-1])**self.disc_factors[i-j]))
-                    asset_mv_list[j] = self.asset_mv
+                    asset_mv_list[j] = self.asset_mv.iloc[-1:]['Market Value'][0]
         
             else:
                 for i in range(j,len(self.total_cashflows)):
@@ -145,7 +145,7 @@ class liabilityModel():
         return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
     def compute_funded_status(self):
-        return self.asset_mv/self.present_values.iloc[-1:]['Present Value'][0]
+        return self.asset_mv.iloc[-1:]['Market Value'][0]/self.present_values.iloc[-1:]['Present Value'][0]
     
     def get_return(self):
         return self.irr_df['IRR'][-1]

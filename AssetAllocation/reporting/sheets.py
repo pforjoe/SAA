@@ -263,7 +263,7 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "charts_ftse"):
+def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "asset_liab_returns"):
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -279,7 +279,6 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "charts_f
     #percent format
     pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
     
-    merge_fmt = formats.set_merge_format(workbook)
     
     #plan_list = ["Retirement","Pension","IBT"]
     
@@ -287,12 +286,87 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "charts_f
     for key in tables_dict:
         row_dim = row + tables_dict[key].shape[0]
         col_dim = col + tables_dict[key].shape[1]
-        #worksheet.write(row-1, col+1, key, title_format)
-        worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
+        worksheet.write(row-1, col+1, key, title_format)
+        #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
         tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
         worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
         col = col_dim + 2   
         
+    return 0
+
+def set_present_values_sheet(writer, df_pvs, sheet_name='present_values'):
+    """
+    Create excel sheet for historical returns
+    
+    Parameters:
+    writer -- excel writer
+    df_pvs -- dataframe
+    sheet_name -- string
+    """
+
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+     
+    row_dim = row + df_pvs.shape[0]
+    col_dim = col + df_pvs.shape[1]
+    
+    df_pvs.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+
+    worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':num_fmt})
+
+    
+    return 0
+
+
+def set_asset_mv_sheet(writer, df_asset_mv, sheet_name='asset_market_values'):
+    """
+    Create excel sheet for historical returns
+    
+    Parameters:
+    writer -- excel writer
+    df_pvs -- dataframe
+    sheet_name -- string
+    """
+
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+     
+    row_dim = row + df_asset_mv.shape[0]
+    col_dim = col + df_asset_mv.shape[1]
+    
+    df_asset_mv.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+
+    worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':num_fmt})
+
+    
     return 0
