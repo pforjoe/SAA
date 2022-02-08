@@ -297,9 +297,9 @@ def compute_fs(plan='IBT'):
     fs_df = merge_dfs(asset_mv, liab_pv)
     return fs_df.iloc[-1:]['Market Value'][0]/fs_df.iloc[-1:]['Present Value'][0]
 
-#delete .iloc[-1:]['Market Value'][0] and move it into the liability model.py so that it outputs ts
 def get_plan_asset_mv(plan='IBT'):
     asset_mv = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
+    asset_mv = asset_mv[plan]
     return asset_mv
 
 #TODO use this method to get all plan data

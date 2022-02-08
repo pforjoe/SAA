@@ -133,8 +133,9 @@ class liabilityModel():
         return asset_mv_array[x] - erf_pvs_array[x]*ff_ratio
     
     def compute_funded_status(self):
-        return self.asset_mv/self.disc_rates_pvs.iloc[-1:]['Present Value'][0]
-    
-    def transform_irr_array(self):
-        jump = len(self.present_values) - len(self.irr_array)
-        return np.append(np.zeros(jump), self.irr_array)
+        return self.asset_mv.iloc[-1:]/self.present_values.iloc[-1:]['Present Value'][0]
+    #self.asset_mv.iloc[-1:]['Market Value'][0]/self.present_values.iloc[-1:]['Present Value'][0]
+    def get_return(self):
+        return self.irr_df['IRR'][-1]
+
+            
