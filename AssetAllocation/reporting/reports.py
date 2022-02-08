@@ -201,3 +201,23 @@ def print_report_info(reportname, filepath):
     """
     folder_location = filepath.replace(reportname+'.xlsx', '')
     print('"{}.xlsx" report generated in "{}" folder'.format(reportname,folder_location))
+
+
+
+def get_liability_returns_report(report_dict,report_name = "liability_returns"):
+    
+    cwd = os.getcwd()
+
+    filepath = cwd + '\\' + report_name + '.xlsx'
+    writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
+    
+    
+    sheets.set_return_sheet(writer, report_dict["df_return"], sheet_name = "liability_returns", sample_ret = False)
+    sheets.set_present_values_sheet(writer, report_dict["df_pvs"]) 
+    sheets.set_return_sheet(writer, report_dict["df_irr"], sheet_name = "IRR", sample_ret = False)
+    sheets.set_asset_mv_sheet(writer, report_dict["df_asset_mv"])
+    sheets.set_asset_liability_charts_sheet(writer, report_dict["asset_liab_ret_dict"])
+    
+    #save file
+    print_report_info(report_name, filepath)
+    writer.save()

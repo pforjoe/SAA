@@ -281,7 +281,10 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "asset_li
     
     
     #plan_list = ["Retirement","Pension","IBT"]
-    
+     #neg value format
+     
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+
 
     for key in tables_dict:
         row_dim = row + tables_dict[key].shape[0]
@@ -292,6 +295,8 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "asset_li
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
         worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
+                                                               'format': neg_value_fmt})
         col = col_dim + 2   
         
     return 0

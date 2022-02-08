@@ -19,7 +19,8 @@ PLAN = 'Total'
 df_pbo_cfs = dm.get_cf_data('PBO')
 df_pbo_cfs["Total"] = df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
 df_pvfb_cfs = dm.get_cf_data('PVFB')
-df_sc_cfs = dm.get_cf_data('Service Cost')
+#total over pvfb
+df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data(False)
     
 ############################################################################################################################################################
@@ -40,7 +41,10 @@ liab_model.compute_fulfill_ret(yrs_to_ff, ff_ratio)
 
 import numpy as np
 
-irr_list = np.zeros(len(liab_model.present_values))
+#using discount rates *ignore*
+#pv_disc_rates = compute_pvs(pbo_cashflows, disc_factors, disc_rates=disc_rates)
+#irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
+#liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
 
 for j in range (len(liab_model.disc_rates_pvs)):
     print(j)
@@ -94,3 +98,9 @@ def compute_irr(disc_rates_pvs, total_cashflows, disc_factors):
         yrs = np.append(0, disc_factors)
         irr_array[j] += irr(cashflows, yrs, .03)
     return irr_array
+############################################################################################################################################################
+# INITIALIZE LIAB MODEL USING CURVE AND DISC RATES
+############################################################################################################################################################
+liab_model_curve = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,liab_curve)
+
+liab_model_disc_rates = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,disc_rates=disc_rates)

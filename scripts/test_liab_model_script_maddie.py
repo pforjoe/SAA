@@ -68,18 +68,23 @@ def compute_liab_ret(present_values, irr_df):
     
 
 ############################################################################################################################################################
-# IMPORT AND TRANSFORM CASHFLOW AND DISC RATE DATA                                                             
+# IMPORT AND TRANSFORM CASHFLOW                                                            
 ############################################################################################################################################################
 
-plans = ['Retirement', "Pension","IBT"]
+plans = ['Retirement', "Pension","IBT","Total"]
 df_pbo_cfs = dm.get_cf_data('PBO')
 df_pbo_cfs["Total"] =  df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
+
 df_pvfb_cfs = dm.get_cf_data('PVFB')
+df_pvfb_cfs["Total"] =  df_pvfb_cfs["IBT"] + df_pvfb_cfs["Retirement"] + df_pvfb_cfs["Pension"]
+
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data(False)
-disc_rates_dict = {}
-for PLAN in plans:
-    disc_rates_dict[PLAN] = pd.read_excel(dm.TS_FP+"discount_rate_data_towers.xlsx",sheet_name=PLAN ,usecols=[0,1],index_col=0)
+
+#disc_rates_dict = {}
+#for PLAN in plans:
+    #disc_rates_dict[PLAN] = pd.read_excel(dm.TS_FP+"discount_rate_data_towers.xlsx",sheet_name=PLAN ,usecols=[0,1],index_col=0)
+
 ############################################################################################################################################################
 # TRANSFORM DATA TO LIABILITY MODEL INPUTS                                                           
 ############################################################################################################################################################
@@ -91,7 +96,7 @@ for PLAN in plans:
     disc_factors = df_pbo_cfs['Time']
     sc_cashflows = df_sc_cfs[PLAN]
     liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
-    disc_rates = disc_rates_dict[PLAN] 
+    #disc_rates = disc_rates_dict[PLAN] 
     asset_mv = dm.get_plan_asset_mv(PLAN)
     contrb_pct = 0.00
     
@@ -102,25 +107,17 @@ for PLAN in plans:
     irr_curve = compute_irr(pv_curve, pbo_cashflows, disc_factors)
     liab_ret_curve = compute_liab_ret(pv_curve, irr_curve)
     
-    pv_disc_rates = compute_pvs(pbo_cashflows, disc_factors, disc_rates=disc_rates)
-    irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
-    liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
+    # pv_disc_rates = compute_pvs(pbo_cashflows, disc_factors, disc_rates=disc_rates)
+    # irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
+    # liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
     
-    plan_returns = pd.read_excel(dm.TS_FP+"plan_return_data.xlsx",sheet_name = PLAN ,usecols=[0,1],index_col=0)
-    
-    tables[PLAN] = liab_ret_disc_rates.merge(plan_returns, how = "left", left_index= True, right_index = True)
+    #
+    if PLAN == "Total":
+        tables[PLAN] = liab_ret_curve
+    else:
+        plan_returns = pd.read_excel(dm.TS_FP+"plan_return_data.xlsx",sheet_name = PLAN ,usecols=[0,1],index_col=0)
+        tables[PLAN] = liab_ret_curve.merge(plan_returns, how = "left", left_index= True, right_index = True)
 
-###############Compute liabilities for aggregat
-total_liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["Total"])
-total_pv_curve = compute_pvs(df_pbo_cfs["Total"], disc_factors, total_liab_curve)
-total_irr_curve = compute_irr(total_pv_curve, df_pbo_cfs["Total"], disc_factors)
-
-#what would the discount rate be??
-total_pv_disc_rates = compute_pvs(df_pbo_cfs["Total"], disc_factors, disc_rates=disc_rates)
-irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
-liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
-
-compute_liab_ret(df_pbo_cfs, irr_df)
 filepath = rp.get_reportpath("test")
 writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
 for plan in plans: 
@@ -132,4 +129,4 @@ writer.save()
 ############################################################################################################################################################
 liab_model_curve = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,liab_curve)
 
-liab_model_disc_rates = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,disc_rates=disc_rates)
+#liab_model_disc_rates = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,disc_rates=disc_rates)
