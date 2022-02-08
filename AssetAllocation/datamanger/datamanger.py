@@ -300,14 +300,7 @@ def compute_fs(plan='IBT'):
 #delete .iloc[-1:]['Market Value'][0] and move it into the liability model.py so that it outputs ts
 def get_plan_asset_mv(plan='IBT'):
     asset_mv = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
-    return asset_mv.iloc[-1:][plan][0]
-
-#TODO use this method to get all plan data
-def get_plan_data():
-    plan_mv_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
-    plan_ret_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='return', index_col=0)
-    return {'mkt_value': plan_mv_df,
-            'return': plan_ret_df}
+    return asset_mv
 
 #TODO use this method to get all plan data
 def get_plan_data():
