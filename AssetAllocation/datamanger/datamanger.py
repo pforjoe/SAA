@@ -299,8 +299,15 @@ def compute_fs(plan='IBT'):
 
 #delete .iloc[-1:]['Market Value'][0] and move it into the liability model.py so that it outputs ts
 def get_plan_asset_mv(plan='IBT'):
-    asset_mv = pd.read_excel(TS_FP+'plan_mkt_value_data.xlsx', sheet_name=plan, index_col=0, usecols = ["Date","Market Value"])
-    return asset_mv
+    asset_mv = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
+    return asset_mv.iloc[-1:][plan][0]
+
+#TODO use this method to get all plan data
+def get_plan_data():
+    plan_mv_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
+    plan_ret_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='return', index_col=0)
+    return {'mkt_value': plan_mv_df,
+            'return': plan_ret_df}
 
 def add_fs_load_col(weights_df, plan='IBT'):
     fs = compute_fs(plan)
@@ -318,7 +325,7 @@ def frange(start, stop, step):
 def set_cfs_time_col(df_cfs):
     df_cfs['Time'] = list(frange(1/12, (len(df_cfs)+.9)/12, 1/12))
 
-def get_cf_data(cf_type='PBO', plan='IBT'):
+def get_cf_data(cf_type='PBO'):
     df_cfs = pd.read_excel(TS_FP+'annual_cashflows_data.xlsx', sheet_name=cf_type, index_col=0)/12
     df_cfs = reindex_to_monthly_data(df_cfs)
     temp_cfs = pd.read_excel(TS_FP+'monthly_cashflows_data.xlsx', sheet_name=cf_type, index_col=0)
@@ -354,12 +361,15 @@ def generate_liab_curve(df_ftse, cfs):
     liab_curve = liab_curve.iloc[:, ::-1]
     return liab_curve
 
+#TODO: have option to compute using disc_rates
 def get_liab_model_data(plan='IBT', contrb_pct=.05):
-    df_pbo_cfs = get_cf_data('PBO', plan)
-    df_pvfb_cfs = get_cf_data('PVFB',plan)
-    df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
+    df_pbo_cfs = get_cf_data('PBO')
+    # df_pvfb_cfs = get_cf_data('PVFB')
+    # df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
+    df_sc_cfs = get_cf_data('Service Cost')
     df_ftse = get_ftse_data()
-    disc_rates = pd.read_excel(TS_FP+"discount_rate_data.xlsx",sheet_name=plan ,usecols=[0,1],index_col=0)
+    # disc_rates = pd.read_excel(TS_FP+"discount_rate_data.xlsx",sheet_name=plan ,usecols=[0,1],index_col=0)
+    disc_rates = pd.DataFrame()
     liab_curve = generate_liab_curve(df_ftse, np.array(df_pbo_cfs[plan]))
     asset_mv = get_plan_asset_mv(plan)
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
