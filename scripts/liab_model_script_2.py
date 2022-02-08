@@ -64,6 +64,7 @@ PLAN = 'Total'
 df_pbo_cfs = dm.get_cf_data('PBO')
 df_pbo_cfs["Total"] = df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
 df_pvfb_cfs = dm.get_cf_data('PVFB')
+#total over pvfb
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data(False)
     
@@ -86,13 +87,15 @@ pv_curve = compute_pvs(pbo_cashflows, disc_factors, liab_curve)
 irr_curve = compute_irr(pv_curve, pbo_cashflows, disc_factors)
 liab_ret_curve = compute_liab_ret(pv_curve, irr_curve)
 
-pv_disc_rates = compute_pvs(pbo_cashflows, disc_factors, disc_rates=disc_rates)
-irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
-liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
+#using discount rates *ignore*
+#pv_disc_rates = compute_pvs(pbo_cashflows, disc_factors, disc_rates=disc_rates)
+#irr_disc_rates = compute_irr(pv_disc_rates, pbo_cashflows, disc_factors)
+#liab_ret_disc_rates = compute_liab_ret(pv_disc_rates, irr_disc_rates)
 
 
 ############################################################################################################################################################
 # INITIALIZE LIAB MODEL USING CURVE AND DISC RATES
 ############################################################################################################################################################
 liab_model_curve = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,liab_curve)
+
 liab_model_disc_rates = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,disc_rates=disc_rates)
