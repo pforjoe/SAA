@@ -30,9 +30,14 @@ writer.save()
 
 
 df_pbo_cfs = dm.get_cf_data('PBO')
+df_pbo_cfs['Total'] = df_pbo_cfs['IBT']+df_pbo_cfs['Pension']+df_pbo_cfs['Retirement']
 df_pvfb_cfs = dm.get_cf_data('PBO')
+df_pvfb_cfs['Total'] = df_pvfb_cfs['IBT']+df_pvfb_cfs['Pension']+df_pvfb_cfs['Retirement']
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
 df_ftse = dm.get_ftse_data(False)
+df_plan_mv = dm.get_plan_data()['mkt_value']
+df_plan_mv['Total'] = df_plan_mv['IBT']+df_plan_mv['Pension']+df_plan_mv['Retirement']
+
 plan_list = ['IBT', 'Pension', 'Retirement']
 
 liab_model_dict={}
@@ -43,7 +48,7 @@ for pension_plan in plan_list:
     disc_factors = df_pbo_cfs['Time']
     sc_cashflows = df_sc_cfs[pension_plan]
     liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
-    asset_mv = dm.get_plan_asset_mv(pension_plan)
+    asset_mv = df_plan_mv[pension_plan]
     contrb_pct = 0.0
     liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv,liab_curve)
     
@@ -65,7 +70,7 @@ df_irr = liab_model_dict['Retirement'].irr_df.copy()
 df_irr = dm.merge_dfs(df_irr,liab_model_dict['Pension'].irr_df)
 df_irr = dm.merge_dfs(df_irr,liab_model_dict['IBT'].irr_df)
 df_irr.columns = plan_list
-writer = pd.ExcelWriter('liability_returns.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter('liability_returns_total.xlsx', engine='xlsxwriter')
 df_return.to_excel(writer, sheet_name='liability_returns')
 df_pvs.to_excel(writer, sheet_name='present_values')
 df_irr.to_excel(writer, sheet_name='irr')
