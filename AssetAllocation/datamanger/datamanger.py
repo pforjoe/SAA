@@ -309,6 +309,13 @@ def get_plan_data():
     return {'mkt_value': plan_mv_df,
             'return': plan_ret_df}
 
+#TODO use this method to get all plan data
+def get_plan_data():
+    plan_mv_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
+    plan_ret_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='return', index_col=0)
+    return {'mkt_value': plan_mv_df,
+            'return': plan_ret_df}
+
 def add_fs_load_col(weights_df, plan='IBT'):
     fs = compute_fs(plan)
     weights_df['FS Loadings'] = np.nan
