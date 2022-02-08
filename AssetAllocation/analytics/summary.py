@@ -42,8 +42,9 @@ def get_ts_output(ts_dict,liab_model,decay_factor=0.98, t=1):
 def get_liab_model(plan='IBT', contrb_pct=.05):
     liab_input_dict = dm.get_liab_model_data(plan, contrb_pct)
     return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
-                          liab_input_dict['sc_cashflows'], liab_input_dict['liab_curve'], 
-                          liab_input_dict['disc_rates'], liab_input_dict['contrb_pct'], liab_input_dict['asset_mv'])
+                          liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
+                          liab_input_dict['asset_mv'], liab_input_dict['liab_curve'], 
+                          liab_input_dict['disc_rates'])
 
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return

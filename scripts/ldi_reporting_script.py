@@ -14,6 +14,10 @@ from scipy.optimize import fsolve
 import AssetAllocation.reporting.sheets as sheets
 from AssetAllocation.reporting import reports as rp
 
+######################################################################################################
+# IGNORE
+######################################################################################################
+
 # df = pd.read_excel('plan_return_data.xlsx', sheet_name='data')
 # df_1 = df.pivot_table(values='Return', index='Date', columns='Plan')
 # df_1.columns = ['Pension', 'Retirement', 'IBT']
