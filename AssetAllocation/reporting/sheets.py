@@ -263,7 +263,7 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "asset_liab_returns"):
+def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -301,7 +301,7 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "asset_li
         
     return 0
 
-def set_present_values_sheet(writer, df_pvs, sheet_name='present_values'):
+def set_present_values_sheet(writer, df_pvs, sheet_name='Present Values'):
     """
     Create excel sheet for historical returns
     
@@ -339,7 +339,7 @@ def set_present_values_sheet(writer, df_pvs, sheet_name='present_values'):
     return 0
 
 
-def set_asset_mv_sheet(writer, df_asset_mv, sheet_name='asset_market_values'):
+def set_asset_mv_sheet(writer, df_asset_mv, sheet_name='Market Values'):
     """
     Create excel sheet for historical returns
     
