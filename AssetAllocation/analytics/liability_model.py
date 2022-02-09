@@ -66,7 +66,8 @@ class liabilityModel():
         cf_df = pd.DataFrame(cf_frame, index=pbo_cashflows.index)
         ret_df = self.returns_ts.copy()
         ret_df.columns = ['Return']
-        return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df}
+        return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
+                'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 'Market Values': self.asset_mv}
 
     def compute_pvs(self):
         if self.disc_rates.empty:
