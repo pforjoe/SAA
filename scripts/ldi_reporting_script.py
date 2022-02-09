@@ -48,13 +48,21 @@ df_ftse = dm.get_ftse_data(False)
 plan_list =['Retirement', 'Pension', 'IBT',"Total"]
 
 ############################################################################################################################################################
+# Function to get 3 year return of asset and liability                                         
+############################################################################################################################################################
+
+def get_3_year_ret(liab_model):
+    asset_liab_ret_df = dm.merge_dfs(liab_model.asset_returns, liab_model.returns_ts)
+    asset_liab_ret_df.columns = ["Asset","Liability"]
+    return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-36:,]
+
+############################################################################################################################################################
 # TRANSFORM DATA TO LIABILITY MODEL INPUTS AND GET LIABILITY MODEL                                             
 ############################################################################################################################################################
 
 liab_model_dict={}
 
 for pension_plan in plan_list:
-    
     pbo_cashflows = df_pbo_cfs[pension_plan]
     disc_factors = df_pbo_cfs['Time']
     sc_cashflows = df_sc_cfs[pension_plan]
@@ -64,8 +72,38 @@ for pension_plan in plan_list:
         asset_returns = pd.read_excel(dm.TS_FP+"plan_return_data.xlsx",sheet_name = pension_plan ,usecols=[0,1],index_col=0)
     contrb_pct = 0.0
     liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
-    liab_model_dict[pension_plan] = liab_model
+    del liab_model.data_dict['Cashflows']
+    liab_model.data_dict['Asset/Liability Returns'] = get_3_year_ret(liab_model)
+    liab_model_dict[pension_plan] = liab_model.data_dict
 
+############################################################################################################################################################
+# looping through to create report dict                                                      
+############################################################################################################################################################
+
+#set report dict keys by using first data_dict in liab_model_dict
+report_dict = liab_model_dict[plan_list[0]]
+
+#create asset_liab_dict
+asset_liab_ret_dict = {}
+asset_liab_ret_dict[plan_list[0]] = report_dict['Asset/Liability Returns']
+
+#loop through rest of plan_list and merge dataframes
+for plan in plan_list[1:]:
+    for key in liab_model_dict[plan]:
+        report_dict[key] = dm.merge_dfs(report_dict[key], liab_model_dict[plan][key])
+    
+    #add to asset_liab_dict
+    asset_liab_ret_dict[plan] = liab_model_dict[plan]['Asset/Liability Returns']
+        
+#delete 'Asset/Liability Returns' key from report_dict    
+del report_dict['Asset/Liability Returns']
+
+#rename columns in report_dict
+for key in report_dict:
+    report_dict[key].columns = plan_list
+
+#add asset_liab_dict to report_dict
+report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
 ############################################################################################################################################################
 # MERGE DATA FRAMES FOR XCEL WRITER                                                          
 ############################################################################################################################################################
