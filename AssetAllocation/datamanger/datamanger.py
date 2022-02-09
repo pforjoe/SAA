@@ -307,8 +307,6 @@ def get_plan_asset_mv(plan='IBT'):
 def get_plan_data():
     plan_mv_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
     plan_ret_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='return', index_col=0)
-    plan_mv_df.columns = ['Market Value']
-    plan_ret_df.columns = ['Return']
     return {'mkt_value': plan_mv_df,
             'return': plan_ret_df}
 

@@ -50,10 +50,10 @@ plan_list =['Retirement', 'Pension', 'IBT',"Total"]
 # Function to get 3 year return of asset and liability                                         
 ############################################################################################################################################################
 
-def get_3_year_ret(liab_model):
+def get_n_year_ret(liab_model, n=3):
     asset_liab_ret_df = dm.merge_dfs(liab_model.asset_returns, liab_model.returns_ts)
     asset_liab_ret_df.columns = ["Asset","Liability"]
-    return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-36:,]
+    return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-(n*12):,]
 
 ############################################################################################################################################################
 # TRANSFORM DATA TO LIABILITY MODEL INPUTS AND GET LIABILITY MODEL                                             
@@ -72,7 +72,7 @@ for pension_plan in plan_list:
     contrb_pct = 0.0
     liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
     del liab_model.data_dict['Cashflows']
-    liab_model.data_dict['Asset/Liability Returns'] = get_3_year_ret(liab_model)
+    liab_model.data_dict['Asset/Liability Returns'] = get_n_year_ret(liab_model)
     liab_model_dict[pension_plan] = liab_model.data_dict
 
 ############################################################################################################################################################
