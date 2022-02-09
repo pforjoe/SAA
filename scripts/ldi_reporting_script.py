@@ -66,9 +66,9 @@ for pension_plan in plan_list:
     disc_factors = df_pbo_cfs['Time']
     sc_cashflows = df_sc_cfs[pension_plan]
     liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
-    asset_mv = dm.get_plan_asset_mv(pension_plan)
-    if pension_plan != "Total":
-        asset_returns = pd.read_excel(dm.TS_FP+"plan_return_data.xlsx",sheet_name = pension_plan ,usecols=[0,1],index_col=0)
+    plan_data = dm.get_plan_data()
+    asset_mv = plan_data['mkt_value'][pension_plan]
+    asset_returns = plan_data['return'][pension_plan]
     contrb_pct = 0.0
     liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
     del liab_model.data_dict['Cashflows']
@@ -103,36 +103,41 @@ for key in report_dict:
 
 #add asset_liab_dict to report_dict
 report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
+
+rp.get_liability_returns_report(report_dict,report_name = "liability_returns")
+
+
+
 ############################################################################################################################################################
 # MERGE DATA FRAMES FOR XCEL WRITER                                                          
 ############################################################################################################################################################
 
-asset_liab_ret_dict = {}
-for plan in plan_list:
-    if plan == "Total":
-        asset_liab_ret_dict[plan] = liab_model_dict[plan].returns_ts
-    else:
-        asset_liab_ret_df = dm.merge_dfs( liab_model_dict[plan].asset_returns, liab_model_dict[plan].returns_ts)
-        asset_liab_ret_df.columns = ["Asset","Liability"]
-        asset_liab_ret_dict[plan] = asset_liab_ret_df
+# asset_liab_ret_dict = {}
+# for plan in plan_list:
+#     if plan == "Total":
+#         asset_liab_ret_dict[plan] = liab_model_dict[plan].returns_ts
+#     else:
+#         asset_liab_ret_df = dm.merge_dfs( liab_model_dict[plan].asset_returns, liab_model_dict[plan].returns_ts)
+#         asset_liab_ret_df.columns = ["Asset","Liability"]
+#         asset_liab_ret_dict[plan] = asset_liab_ret_df
 
-new_plan_list =['Pension', 'IBT']
+# new_plan_list =['Pension', 'IBT']
 
-df_return = liab_model_dict['Retirement'].returns_ts.copy()
-df_pvs = liab_model_dict['Retirement'].present_values.copy()
-df_irr = liab_model_dict['Retirement'].irr_df.copy()
-df_asset_mv =  liab_model_dict['Retirement'].asset_mv.copy()
+# df_return = liab_model_dict['Retirement'].returns_ts.copy()
+# df_pvs = liab_model_dict['Retirement'].present_values.copy()
+# df_irr = liab_model_dict['Retirement'].irr_df.copy()
+# df_asset_mv =  liab_model_dict['Retirement'].asset_mv.copy()
 
-for plan in new_plan_list:
-    df_return = dm.merge_dfs(df_return, liab_model_dict[plan].returns_ts.copy())
-    df_pvs = dm.merge_dfs(df_pvs,liab_model_dict[plan].present_values)
-    df_irr = dm.merge_dfs(df_irr,liab_model_dict[plan].irr_df)
-    df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict[plan].asset_mv.copy())
+# for plan in new_plan_list:
+#     df_return = dm.merge_dfs(df_return, liab_model_dict[plan].returns_ts.copy())
+#     df_pvs = dm.merge_dfs(df_pvs,liab_model_dict[plan].present_values)
+#     df_irr = dm.merge_dfs(df_irr,liab_model_dict[plan].irr_df)
+#     df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict[plan].asset_mv.copy())
 
-df_return.columns = ['Retirement', 'Pension', 'IBT']
-df_pvs.columns = ['Retirement', 'Pension', 'IBT']
-df_irr.columns = ['Retirement', 'Pension', 'IBT']
-df_asset_mv.columns = ['Retirement', 'Pension', 'IBT']
+# df_return.columns = ['Retirement', 'Pension', 'IBT']
+# df_pvs.columns = ['Retirement', 'Pension', 'IBT']
+# df_irr.columns = ['Retirement', 'Pension', 'IBT']
+# df_asset_mv.columns = ['Retirement', 'Pension', 'IBT']
 
 # df_return = liab_model_dict['Retirement'].returns_ts.copy()
 # df_return = dm.merge_dfs(df_return, liab_model_dict['Pension'].returns_ts.copy())
@@ -159,8 +164,6 @@ df_asset_mv.columns = ['Retirement', 'Pension', 'IBT']
 # CREATE DATA DICTIONARY WITH DATA FRAMES AND GENERATE REPORT                                                         
 ############################################################################################################################################################
 
-report_dict = {"df_return": df_return, "df_pvs": df_pvs, "df_irr": df_irr, "df_asset_mv": df_asset_mv, "asset_liab_ret_dict": asset_liab_ret_dict}
-rp.get_liability_returns_report(report_dict,report_name = "liability_returns")
 
 #df_return.to_excel(writer, sheet_name='liability_returns')
 #df_pvs.to_excel(writer, sheet_name='present_values')

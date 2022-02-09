@@ -18,7 +18,9 @@ PLAN = 'Retirement'
 PLAN = 'Total'
 df_pbo_cfs = dm.get_cf_data('PBO')
 df_pbo_cfs["Total"] = df_pbo_cfs["IBT"] + df_pbo_cfs["Retirement"] + df_pbo_cfs["Pension"]
+
 df_pvfb_cfs = dm.get_cf_data('PVFB')
+df_pvfb_cfs["Total"] =  df_pvfb_cfs["IBT"] + df_pvfb_cfs["Retirement"] + df_pvfb_cfs["Pension"]
 
 df_sc_cfs = dm.get_cf_data('Service Cost')
 df_ftse = dm.get_ftse_data(False)
@@ -30,10 +32,9 @@ pbo_cashflows = df_pbo_cfs[PLAN]
 disc_factors = df_pbo_cfs['Time']
 sc_cashflows = df_sc_cfs[PLAN]
 liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
-asset_mv = dm.get_plan_asset_mv(PLAN)
-contrb_pct = 0.05
-liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, 
-                                  liab_curve,disc_rates,contrb_pct, asset_mv)
+disc_rates = pd.read_excel(dm.TS_FP+"discount_rate_data_towers.xlsx",sheet_name=PLAN ,usecols=[0,1],index_col=0)
+asset_mv = dm.get_plan_data()
+contrb_pct = 0.00
 
 yrs_to_ff = 20
 ff_ratio = 1.05                    
