@@ -112,27 +112,44 @@ for plan in plan_list:
         asset_liab_ret_df.columns = ["Asset","Liability"]
         asset_liab_ret_dict[plan] = asset_liab_ret_df
 
-plan_list =['Retirement', 'Pension', 'IBT']
+new_plan_list =['Pension', 'IBT']
+
 df_return = liab_model_dict['Retirement'].returns_ts.copy()
-df_return = dm.merge_dfs(df_return, liab_model_dict['Pension'].returns_ts.copy())
-df_return = dm.merge_dfs(df_return, liab_model_dict['IBT'].returns_ts.copy())
-df_return.columns = plan_list
-
-df_return.columns = plan_list
 df_pvs = liab_model_dict['Retirement'].present_values.copy()
-df_pvs = dm.merge_dfs(df_pvs,liab_model_dict['Pension'].present_values)
-df_pvs = dm.merge_dfs(df_pvs,liab_model_dict['IBT'].present_values)
-df_pvs.columns = plan_list
-
 df_irr = liab_model_dict['Retirement'].irr_df.copy()
-df_irr = dm.merge_dfs(df_irr,liab_model_dict['Pension'].irr_df)
-df_irr = dm.merge_dfs(df_irr,liab_model_dict['IBT'].irr_df)
-df_irr.columns = plan_list
-
 df_asset_mv =  liab_model_dict['Retirement'].asset_mv.copy()
-df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['Pension'].asset_mv.copy())
-df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['IBT'].asset_mv.copy())
-df_asset_mv.columns = plan_list
+
+for plan in new_plan_list:
+    df_return = dm.merge_dfs(df_return, liab_model_dict[plan].returns_ts.copy())
+    df_pvs = dm.merge_dfs(df_pvs,liab_model_dict[plan].present_values)
+    df_irr = dm.merge_dfs(df_irr,liab_model_dict[plan].irr_df)
+    df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict[plan].asset_mv.copy())
+
+df_return.columns = ['Retirement', 'Pension', 'IBT']
+df_pvs.columns = ['Retirement', 'Pension', 'IBT']
+df_irr.columns = ['Retirement', 'Pension', 'IBT']
+df_asset_mv.columns = ['Retirement', 'Pension', 'IBT']
+
+# df_return = liab_model_dict['Retirement'].returns_ts.copy()
+# df_return = dm.merge_dfs(df_return, liab_model_dict['Pension'].returns_ts.copy())
+# df_return = dm.merge_dfs(df_return, liab_model_dict['IBT'].returns_ts.copy())
+# df_return.columns = plan_list
+
+# df_return.columns = plan_list
+# df_pvs = liab_model_dict['Retirement'].present_values.copy()
+# df_pvs = dm.merge_dfs(df_pvs,liab_model_dict['Pension'].present_values)
+# df_pvs = dm.merge_dfs(df_pvs,liab_model_dict['IBT'].present_values)
+# df_pvs.columns = plan_list
+
+# df_irr = liab_model_dict['Retirement'].irr_df.copy()
+# df_irr = dm.merge_dfs(df_irr,liab_model_dict['Pension'].irr_df)
+# df_irr = dm.merge_dfs(df_irr,liab_model_dict['IBT'].irr_df)
+# df_irr.columns = plan_list
+
+# df_asset_mv =  liab_model_dict['Retirement'].asset_mv.copy()
+# df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['Pension'].asset_mv.copy())
+# df_asset_mv = dm.merge_dfs(df_asset_mv, liab_model_dict['IBT'].asset_mv.copy())
+# df_asset_mv.columns = plan_list
 
 ############################################################################################################################################################
 # CREATE DATA DICTIONARY WITH DATA FRAMES AND GENERATE REPORT                                                         
