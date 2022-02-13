@@ -301,7 +301,8 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Li
         
     return 0
 
-def set_present_values_sheet(writer, df_pvs, sheet_name='Present Values'):
+#####make one fucntion for present_values_sheet
+def set_dollar_values_sheet(writer, df, sheet_name):
     """
     Create excel sheet for historical returns
     
@@ -325,48 +326,10 @@ def set_present_values_sheet(writer, df_pvs, sheet_name='Present Values'):
     #num format
     num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
      
-    row_dim = row + df_pvs.shape[0]
-    col_dim = col + df_pvs.shape[1]
+    row_dim = row + df.shape[0]
+    col_dim = col + df.shape[1]
     
-    df_pvs.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
-
-    worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
-                                  'format':date_fmt})
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':num_fmt})
-
-    
-    return 0
-
-
-def set_asset_mv_sheet(writer, df_asset_mv, sheet_name='Market Values'):
-    """
-    Create excel sheet for historical returns
-    
-    Parameters:
-    writer -- excel writer
-    df_pvs -- dataframe
-    sheet_name -- string
-    """
-
-    workbook = writer.book
-    cell_format = formats.set_worksheet_format(workbook)
-    df_empty = pd.DataFrame()
-    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
-    worksheet = writer.sheets[sheet_name]
-    worksheet.set_column(0, 1000, 21, cell_format)
-    row = 0
-    col = 0
-
-    #date format
-    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
-    #num format
-    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
-     
-    row_dim = row + df_asset_mv.shape[0]
-    col_dim = col + df_asset_mv.shape[1]
-    
-    df_asset_mv.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+    df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
 
     worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})

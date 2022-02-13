@@ -206,17 +206,15 @@ def print_report_info(reportname, filepath):
 
 def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     
-    cwd = os.getcwd()
 
-    filepath = cwd + '\\' + report_name + '.xlsx'
+    filepath = get_reportpath(report_name)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
-    
-    sheets.set_return_sheet(writer, report_dict["Liability Returns"], sheet_name = "Liability Returns", sample_ret = False)
-    sheets.set_return_sheet(writer, report_dict["Asset Returns"], sheet_name = "Asset Returns", sample_ret = False)
-    sheets.set_present_values_sheet(writer, report_dict["Present Values"]) 
-    sheets.set_return_sheet(writer, report_dict["IRR"], sheet_name = "IRR", sample_ret = False)
-    sheets.set_asset_mv_sheet(writer, report_dict["Market Values"])
+    sheets.set_return_sheet(writer, report_dict["Liability Returns"], sheet_name = "Liability Returns")
+    sheets.set_return_sheet(writer, report_dict["Asset Returns"], sheet_name = "Asset Returns")
+    sheets.set_dollar_values_sheet(writer, report_dict["Present Values"], sheet_name = "Present Values") 
+    sheets.set_return_sheet(writer, report_dict["IRR"], sheet_name = "IRR")
+    sheets.set_dollar_values_sheet(writer, report_dict["Market Values"], sheet_name = "Market Values")
     sheets.set_asset_liability_charts_sheet(writer, report_dict["asset_liab_ret_dict"])
     
     #save file

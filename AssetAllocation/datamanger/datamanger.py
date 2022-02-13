@@ -376,7 +376,14 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
     asset_mv = get_plan_asset_mv(plan)
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
             'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
-    
+
+
+def get_n_year_ret(liab_model, n=3):
+    asset_liab_ret_df = merge_dfs(liab_model.asset_returns, liab_model.returns_ts)
+    asset_liab_ret_df.columns = ["Asset","Liability"]
+    return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-(n*12):,]
+
+
 # def get_asset_liab_tables(liab_ret, plan):
     
 #     plan_returns = pd.read_excel(TS_FP+"plan_return_data.xlsx",sheet_name = plan ,usecols=[0,1],index_col=0)

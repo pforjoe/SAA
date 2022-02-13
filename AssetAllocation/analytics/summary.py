@@ -119,3 +119,61 @@ def add_fs_load_col(weights_df, liab_model):
         else:
             weights_df['FS Loadings'][ind] = liab_model.funded_status
     return weights_df
+
+def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    
+    df_pbo_cfs = dm.get_cf_data('PBO')
+    df_sc_cfs = dm.get_cf_data('Service Cost')
+    
+    df_ftse = dm.get_ftse_data(False)
+    
+    plan_data = dm.get_plan_data()
+    disc_factors = df_pbo_cfs['Time']
+    liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
+    
+        
+    liab_model_dict={}
+    
+    for pension_plan in plan_list:
+        pbo_cashflows = df_pbo_cfs[pension_plan]
+        sc_cashflows = df_sc_cfs[pension_plan]
+        asset_mv = plan_data['mkt_value'][pension_plan]
+        asset_returns = plan_data['return'][pension_plan]
+        contrb_pct = 0.0
+        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
+        del liab_model.data_dict['Cashflows']
+        liab_model.data_dict['Asset/Liability Returns'] = dm.get_n_year_ret(liab_model)
+        liab_model_dict[pension_plan] = liab_model.data_dict
+
+    return liab_model_dict
+
+
+def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    liab_model_dict = get_liab_model_dict(plan_list)
+    
+    #set report dict keys by using first data_dict in liab_model_dict
+    report_dict = liab_model_dict[plan_list[0]]
+    
+    #create asset_liab_dict
+    asset_liab_ret_dict = {}
+    asset_liab_ret_dict[plan_list[0]] = report_dict['Asset/Liability Returns']
+    
+    #loop through rest of plan_list and merge dataframes
+    for plan in plan_list[1:]:
+        for key in liab_model_dict[plan]:
+            report_dict[key] = dm.merge_dfs(report_dict[key], liab_model_dict[plan][key])
+        
+        #add to asset_liab_dict
+        asset_liab_ret_dict[plan] = liab_model_dict[plan]['Asset/Liability Returns']
+            
+    #delete 'Asset/Liability Returns' key from report_dict    
+    del report_dict['Asset/Liability Returns']
+    
+    #rename columns in report_dict
+    for key in report_dict:
+        report_dict[key].columns = plan_list
+    
+    #add asset_liab_dict to report_dict
+    report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
+    
+    return report_dict
