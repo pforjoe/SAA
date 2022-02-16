@@ -114,7 +114,7 @@ def get_mkt_factor_premiums(filename):
     return mkt_factor_prem['Market Factor Premium'].to_dict()
 
 def merge_dfs(main_df, new_df):
-    merged_df = pd.merge(main_df, new_df,left_index=True, right_index=True, how='outer')
+    merged_df = pd.merge(main_df, new_df, left_index = True, right_index = True, how = 'outer')
     merged_df = merged_df.dropna()
     return merged_df
     
@@ -383,6 +383,10 @@ def get_n_year_ret(liab_model, n=3):
     asset_liab_ret_df.columns = ["Asset","Liability"]
     return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-(n*12):,]
 
+def get_n_year_ret_one(liab_data_dict, n=3):
+    asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
+    asset_liab_ret_df.columns = ["Asset","Liability"]
+    return asset_liab_ret_df.iloc[-(n*12):,]
 
 # def get_asset_liab_tables(liab_ret, plan):
     

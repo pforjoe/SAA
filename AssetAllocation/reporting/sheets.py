@@ -27,7 +27,7 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', 
     worksheet = writer.sheets[sheet_name]
     worksheet.set_column(0, 1000, 21, cell_format)
     row = 0
-    col = 0
+    col = 1
     
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
@@ -301,10 +301,10 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Li
         
     return 0
 
-#####make one fucntion for present_values_sheet
+
 def set_dollar_values_sheet(writer, df, sheet_name):
     """
-    Create excel sheet for historical returns
+    Create excel sheet for market values and present values to format values into $.00
     
     Parameters:
     writer -- excel writer

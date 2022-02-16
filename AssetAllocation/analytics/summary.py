@@ -10,6 +10,7 @@ from .liability_model import liabilityModel
 from ..datamanger import datamanger as dm
 from .import ts_analytics as ts
 from .import util
+import pandas as pd
 
 def get_mv_inputs(mv_inputs_dict, liab_model):
     weights_df = add_fs_load_col(mv_inputs_dict['weights'],liab_model)
@@ -130,7 +131,7 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     plan_data = dm.get_plan_data()
     disc_factors = df_pbo_cfs['Time']
     liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
-    
+    contrb_pct = 0.0
         
     liab_model_dict={}
     
@@ -139,7 +140,6 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
         sc_cashflows = df_sc_cfs[pension_plan]
         asset_mv = plan_data['mkt_value'][pension_plan]
         asset_returns = plan_data['return'][pension_plan]
-        contrb_pct = 0.0
         liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
         del liab_model.data_dict['Cashflows']
         liab_model.data_dict['Asset/Liability Returns'] = dm.get_n_year_ret(liab_model)
@@ -177,3 +177,78 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
     
     return report_dict
+
+def get_liab_model_dict_one(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    
+    df_pbo_cfs = dm.get_cf_data('PBO')
+    df_sc_cfs = dm.get_cf_data('Service Cost')
+    
+    df_ftse = dm.get_ftse_data(False)
+    
+    plan_data = dm.get_plan_data()
+    disc_factors = df_pbo_cfs['Time']
+    liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
+    contrb_pct = 0.0
+        
+    liab_model_dict={}
+    
+    #does not include liab/ret table anymore
+    for pension_plan in plan_list:
+        pbo_cashflows = df_pbo_cfs[pension_plan]
+        sc_cashflows = df_sc_cfs[pension_plan]
+        asset_mv = plan_data['mkt_value'][pension_plan]
+    
+        #had to make it into a data frame
+        asset_returns = pd.DataFrame(plan_data['return'][pension_plan])
+        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
+        del liab_model.data_dict['Cashflows']
+        liab_model_dict[pension_plan] = liab_model.data_dict
+
+    return liab_model_dict
+
+
+def get_report_dict_one(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    
+    #get_liability model dictionary
+    liab_model_dict = get_liab_model_dict_one(plan_list)
+    
+    #get asset liability table dictionary
+    asset_liab_ret_dict = get_asset_liab_ret_dict(plan_list, liab_model_dict)
+     
+    #get report dictionary by merging the liability model data frames for each plan 
+    report_dict = merge_liab_model_df(liab_model_dict, plan_list)
+    
+
+    #rename columns in report_dict
+    for key in report_dict:
+        report_dict[key].columns = plan_list
+    
+    #add asset_liab_dict to report_dict
+    report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
+    
+    return report_dict
+
+def get_asset_liab_ret_dict(plan_list, liab_model_dict):
+    
+    #create asset_liab_dict
+    asset_liab_ret_dict = {}
+    
+    #create asset liab for first plan in plan list
+    asset_liab_ret_dict[plan_list[0]] = dm.get_n_year_ret_one(liab_model_dict[plan_list[0]])
+    
+    #loop through rest of plan_list and merge dataframes
+    for plan in plan_list[1:]:
+        asset_liab_ret_dict[plan] = dm.get_n_year_ret_one(liab_model_dict[plan])
+        
+    return asset_liab_ret_dict
+
+def merge_liab_model_df(liab_model_dict, plan_list):
+    
+    
+    report_dict = liab_model_dict[plan_list[0]]
+    for plan in plan_list[1:]:
+        for key in liab_model_dict[plan]:
+            report_dict[key] = dm.merge_dfs(report_dict[key], liab_model_dict[plan][key])
+    
+    return report_dict
+            

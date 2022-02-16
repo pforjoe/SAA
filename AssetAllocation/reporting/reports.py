@@ -205,11 +205,27 @@ def print_report_info(reportname, filepath):
 
 
 def get_liability_returns_report(report_dict,report_name = "liability_returns"):
+    '''
     
 
+    Parameters
+    ----------
+    report_dict : dictionary
+        report dictionary.
+    report_name : string
+        name of excel eport
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    #get file path and create excel writer
     filepath = get_reportpath(report_name)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
+    #set up sheets for report
     sheets.set_return_sheet(writer, report_dict["Liability Returns"], sheet_name = "Liability Returns")
     sheets.set_return_sheet(writer, report_dict["Asset Returns"], sheet_name = "Asset Returns")
     sheets.set_dollar_values_sheet(writer, report_dict["Present Values"], sheet_name = "Present Values") 
