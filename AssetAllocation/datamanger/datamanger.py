@@ -378,12 +378,7 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
             'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
 
 
-def get_n_year_ret(liab_model, n=3):
-    asset_liab_ret_df = merge_dfs(liab_model.asset_returns, liab_model.returns_ts)
-    asset_liab_ret_df.columns = ["Asset","Liability"]
-    return asset_liab_ret_df.iloc[len(asset_liab_ret_df)-(n*12):,]
-
-def get_n_year_ret_one(liab_data_dict, n=3):
+def get_n_year_ret(liab_data_dict, n=3):
     asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
     asset_liab_ret_df.columns = ["Asset","Liability"]
     return asset_liab_ret_df.iloc[-(n*12):,]

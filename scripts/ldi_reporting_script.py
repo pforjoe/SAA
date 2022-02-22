@@ -16,17 +16,12 @@ from AssetAllocation.reporting import reports as rp
 import AssetAllocation.analytics.summary as summary
 import time
 
-start = time.time()
-report_dict_one = summary.get_report_dict_one()
-end = time.time()
-print(end - start)
-
 
 start = time.time()
 report_dict = summary.get_report_dict()
 end = time.time()
 print(end - start)
 
-rp.get_liability_returns_report(report_dict_one,report_name = "liability_returns")
+rp.get_liability_returns_report(report_dict,report_name = "liability_returns")
 
 
