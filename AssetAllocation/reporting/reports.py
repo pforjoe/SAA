@@ -4,6 +4,7 @@ Created on Sat Oct  9 21:51:38 2021
 
 @author: Powis Forjoe
 """
+#TODO: rewrite code to make OOP-too many repeated code
 
 import pandas as pd
 from  ..datamanger import datamanger as dm

@@ -5,6 +5,7 @@ Created on Sat Oct  9 21:41:41 2021
 @author: Powis Forjoe
 """
 
+#TODO: rewrite code to make OOP-too many repeated code
 import pandas as pd
 from AssetAllocation.reporting import formats
 from .import formats
