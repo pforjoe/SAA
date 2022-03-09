@@ -11,7 +11,7 @@ from AssetAllocation.reporting import formats
 from .import formats
 from .import plots
 
-def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False):
+def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False,set_neg_value_format = True):
     """
     Create excel sheet for historical returns
     
@@ -28,7 +28,7 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', 
     worksheet = writer.sheets[sheet_name]
     worksheet.set_column(0, 1000, 21, cell_format)
     row = 0
-    col = 1
+    col = 0
     
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
@@ -49,12 +49,13 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', 
     else:
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':pct_fmt})
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
-                                                               'criteria': 'less than',
-                                                               'value': 0,
-                                                               'format': neg_value_fmt})
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                      'format':pct_fmt})
+        if set_neg_value_format:
+            worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
+                                                                       'criteria': 'less than',
+                                                                       'value': 0,
+                                                                       'format': neg_value_fmt})
     if sample_ret:
         worksheet.insert_image(2, col_dim+2, 'simulated_returns.png',
                                {'x_scale': 0.5, 'y_scale': 0.5})
