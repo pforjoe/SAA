@@ -383,6 +383,69 @@ def get_n_year_ret(liab_data_dict, n=3):
     asset_liab_ret_df.columns = ["Asset","Liability"]
     return asset_liab_ret_df.iloc[-(n*12):,]
 
+
+def get_liab_cfs(filename='UPS PBO Cash Flows YE18 to YE21 V5.xlsx',  plan_list = ['Retirement','Pension','IBT']):
+    filepath = TS_FP+filename
+    data_dict = {}
+    for key in plan_list:
+        data_dict[key] = pd.read_excel(filepath, sheet_name = key, index_col=0)
+        data_dict[key] = offset(data_dict[key])
+            
+    return(data_dict)
+
+
+def npv(irr, cfs, yrs):  
+    return np.sum(cfs / (1. + irr) ** yrs)
+
+def offset(pbo_cfs):
+    #make a copy of the data
+    data = pbo_cfs.copy()
+
+    #loop through each period and offset first n rows of 0's to the end
+    for i in range(0,len(data.columns)):
+        #get discount factor for the period
+        disc_rate = i+1
+        #make a list of the cashflows
+        cfs = list(data.iloc[:,i])
+        #removes top discount amount of rows and adds to the bottom of the list
+        cfs = cfs[disc_rate:] + cfs[:disc_rate] 
+        #replaces column with new offset data
+        data.iloc[:,i] = cfs
+    return(data)
+
+def get_plan_liab_mv(irr, pbo_cashflows ,plan= 'Retirement'):
+    #get pbo cfs for specified plan
+    cfs = pbo_cashflows[plan]
+    #get yrs
+    yrs = list(range(1,len(cfs)+1))
+    plan_irr = irr[plan]
+    pbo = []
+    for i in list(range(0,len(cfs.columns))):
+        month_irr = plan_irr.loc[cfs.columns[i]]/12
+        month_cfs = list(cfs.iloc[:,i])
+        pbo.append( npv(month_irr,month_cfs,yrs))
+    return pbo
+
+def get_liab_mv(irr, pbo_cashflows ,plan_list = ['Retirement','Pension','IBT']):
+    df = pd.DataFrame()
+    for plan in plan_list:
+        #get pbo cfs for specified plan
+        cfs = pbo_cashflows[plan]
+        #get yrs to compute npv
+        yrs = list(range(1,len(cfs)+1))
+        #
+        plan_irr = irr[plan]
+        
+        #get list of pbo for each period  for each plan
+        pbo = []
+        for i in list(range(0,len(cfs.columns))):
+            month_irr = plan_irr.loc[cfs.columns[i]]/12
+            month_cfs = list(cfs.iloc[:,i])
+            pbo.append( npv(month_irr,month_cfs,yrs))
+        df[plan] = pbo
+        df.set_index(pbo_cashflows['Retirement'].columns,inplace=True)
+    return df
+
 # def get_asset_liab_tables(liab_ret, plan):
     
 #     plan_returns = pd.read_excel(TS_FP+"plan_return_data.xlsx",sheet_name = plan ,usecols=[0,1],index_col=0)

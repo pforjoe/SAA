@@ -182,6 +182,7 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     df_pbo_cfs = dm.get_cf_data('PBO')
     df_sc_cfs = dm.get_cf_data('Service Cost')
+    df_liab_mv_cfs = dm.get_liab_cfs(plan_list = plan_list)
     
     df_ftse = dm.get_ftse_data(False)
     
@@ -194,16 +195,16 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #does not include liab/ret table anymore
     for pension_plan in plan_list:
+        liab_mv_cfs = df_liab_mv_cfs[pension_plan]
         pbo_cashflows = df_pbo_cfs[pension_plan]
         sc_cashflows = df_sc_cfs[pension_plan]
         asset_mv = plan_data['mkt_value'][pension_plan]
         asset_returns = pd.DataFrame(plan_data['return'][pension_plan])
-        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
+        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, liab_mv_cfs, asset_returns, liab_curve)
         del liab_model.data_dict['Cashflows']
         liab_model_dict[pension_plan] = liab_model.data_dict
 
     return liab_model_dict
-
 
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
