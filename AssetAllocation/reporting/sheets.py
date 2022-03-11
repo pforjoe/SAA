@@ -265,7 +265,7 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
+def set_asset_liability_ret_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -304,6 +304,38 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Li
     return 0
 
 
+def set_asset_liability_mkt_val_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    
+    
+
+
+    for key in tables_dict:
+        row_dim = row + tables_dict[key].shape[0]
+        col_dim = col + tables_dict[key].shape[1]
+        worksheet.write(row-1, col+1, key, title_format)
+        #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
+        tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':num_fmt})
+
+        col = col_dim + 2   
+        
+    return 0
 def set_dollar_values_sheet(writer, df, sheet_name):
     """
     Create excel sheet for market values and present values to format values into $.00

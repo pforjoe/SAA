@@ -378,8 +378,12 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
             'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
 
 
-def get_n_year_ret(liab_data_dict, n=3):
-    asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
+def get_n_year_ret(liab_data_dict, market_value = False, n=3):
+    if market_value == False:
+        ret_mkt_val = "Returns"
+    else: 
+        ret_mkt_val = "Market Values"
+    asset_liab_ret_df = merge_dfs(liab_data_dict['Asset '+ret_mkt_val], liab_data_dict['Liability '+ret_mkt_val])
     asset_liab_ret_df.columns = ["Asset","Liability"]
     return asset_liab_ret_df.iloc[-(n*12):,]
 
@@ -445,12 +449,3 @@ def get_liab_mv(irr, pbo_cashflows ,plan_list = ['Retirement','Pension','IBT']):
         df[plan] = pbo
         df.set_index(pbo_cashflows['Retirement'].columns,inplace=True)
     return df
-
-# def get_asset_liab_tables(liab_ret, plan):
-    
-#     plan_returns = pd.read_excel(TS_FP+"plan_return_data.xlsx",sheet_name = plan ,usecols=[0,1],index_col=0)
-    
-#     chart = liab_ret_disc_rates.merge(plan_returns, how = "left", left_index= True, right_index = True)
-#     chart.columns = ["Liability","Asset"]
-    
-#     return chart

@@ -189,6 +189,7 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     plan_data = dm.get_plan_data()
     disc_factors = df_pbo_cfs['Time']
     liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
+    liab_curve = liab_curve.iloc[:,:-2]
     contrb_pct = 0.0
         
     liab_model_dict={}
@@ -211,8 +212,11 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     #get_liability model dictionary
     liab_model_dict = get_liab_model_dict(plan_list)
     
-    #get asset liability table dictionary
-    asset_liab_ret_dict = get_asset_liab_ret_dict( liab_model_dict)
+    #get asset liability returns table dictionary
+    asset_liab_ret_dict = get_asset_liab_dict( liab_model_dict, False)
+     
+    #get asset liability market value table dictionary
+    asset_liab_mkt_val_dict = get_asset_liab_dict( liab_model_dict, True)
      
     #get report dictionary by merging the liability model data frames for each plan 
     report_dict = merge_liab_model_df(liab_model_dict, plan_list)
@@ -222,18 +226,21 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     for key in report_dict:
         report_dict[key].columns = plan_list
     
-    #add asset_liab_dict to report_dict
+    #add asset_liab_ret_dict to report_dict
     report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
+    
+    #add asset_liab_mkt_val_dict to report_dict
+    report_dict['asset_liab_mkt_val_dict'] = asset_liab_mkt_val_dict   
     
     return report_dict
 
-def get_asset_liab_ret_dict(liab_model_dict):
+def get_asset_liab_dict(liab_model_dict, market_value = False):
     
     #create asset_liab_dict
     asset_liab_ret_dict = {}
     
     for key in liab_model_dict:
-        asset_liab_ret_dict[key] = dm.get_n_year_ret(liab_model_dict[key])
+        asset_liab_ret_dict[key] = dm.get_n_year_ret(liab_model_dict[key], market_value = market_value)
         
     return asset_liab_ret_dict
 

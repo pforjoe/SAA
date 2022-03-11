@@ -228,12 +228,13 @@ def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     
     #set up sheets for report
     sheets.set_return_sheet(writer, report_dict["Liability Returns"], sheet_name = "Liability Returns")
+    sheets.set_dollar_values_sheet(writer, report_dict["Liability Market Values"], sheet_name = "Liability Market Values")
     sheets.set_return_sheet(writer, report_dict["Asset Returns"], sheet_name = "Asset Returns")
+    sheets.set_dollar_values_sheet(writer, report_dict["Asset Market Values"], sheet_name = "Asset Market Values")
     sheets.set_dollar_values_sheet(writer, report_dict["Present Values"], sheet_name = "Present Values") 
     sheets.set_return_sheet(writer, report_dict["IRR"], sheet_name = "IRR")
-    sheets.set_dollar_values_sheet(writer, report_dict["Market Values"], sheet_name = "Market Values")
-    sheets.set_asset_liability_charts_sheet(writer, report_dict["asset_liab_ret_dict"])
-    
+    sheets.set_asset_liability_ret_sheet(writer, report_dict["asset_liab_ret_dict"])
+    sheets.set_asset_liability_mkt_val_sheet(writer, report_dict["asset_liab_mkt_val_dict"], sheet_name = "Asset-Liability Mkt Values")
     #save file
     print_report_info(report_name, filepath)
     writer.save()

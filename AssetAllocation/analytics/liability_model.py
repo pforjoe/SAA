@@ -92,7 +92,9 @@ class liabilityModel():
         ret_df = self.returns_ts.copy()
         ret_df.columns = ['Return']
         
+        #liability market values into same type (pd.series) as asset market values
         liab_mv_series = pd.Series(self.liab_mv,index = self.liab_mv_cfs.columns,name = self.asset_mv.name )
+        
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
                 'Liability Market Values':liab_mv_series, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
                 'Asset Market Values': self.asset_mv}
@@ -241,6 +243,7 @@ class liabilityModel():
         #get yrs
         yrs = list(range(1,len(cfs)+1))
         pbo = []
+        #puts pbo for each time period into a list
         for i in list(range(0,len(cfs.columns))):
             month_irr = irr_df.loc[cfs.columns[i]]/12
             month_irr = month_irr.iloc[0]
