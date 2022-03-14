@@ -379,12 +379,14 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
 
 
 def get_n_year_ret(liab_data_dict, market_value = False, n=3):
-    if market_value == False:
-        ret_mkt_val = "Returns"
+    #get market value and returns tables by month
+    if market_value:
+        asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Market Values'], liab_data_dict['Liability Market Values'])
     else: 
-        ret_mkt_val = "Market Values"
-    asset_liab_ret_df = merge_dfs(liab_data_dict['Asset '+ret_mkt_val], liab_data_dict['Liability '+ret_mkt_val])
+        asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
+    #rename columns
     asset_liab_ret_df.columns = ["Asset","Liability"]
+    #returns most recent n years
     return asset_liab_ret_df.iloc[-(n*12):,]
 
 
@@ -397,9 +399,6 @@ def get_liab_cfs(filename='UPS PBO Cash Flows YE18 to YE21 V5.xlsx',  plan_list 
             
     return(data_dict)
 
-
-def npv(irr, cfs, yrs):  
-    return np.sum(cfs / (1. + irr) ** yrs)
 
 def offset(pbo_cfs):
     #make a copy of the data
@@ -417,35 +416,38 @@ def offset(pbo_cfs):
         data.iloc[:,i] = cfs
     return(data)
 
-def get_plan_liab_mv(irr, pbo_cashflows ,plan= 'Retirement'):
-    #get pbo cfs for specified plan
-    cfs = pbo_cashflows[plan]
-    #get yrs
-    yrs = list(range(1,len(cfs)+1))
-    plan_irr = irr[plan]
-    pbo = []
-    for i in list(range(0,len(cfs.columns))):
-        month_irr = plan_irr.loc[cfs.columns[i]]/12
-        month_cfs = list(cfs.iloc[:,i])
-        pbo.append( npv(month_irr,month_cfs,yrs))
-    return pbo
+def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'):
+    '''
+    
 
-def get_liab_mv(irr, pbo_cashflows ,plan_list = ['Retirement','Pension','IBT']):
-    df = pd.DataFrame()
-    for plan in plan_list:
-        #get pbo cfs for specified plan
-        cfs = pbo_cashflows[plan]
-        #get yrs to compute npv
-        yrs = list(range(1,len(cfs)+1))
-        #
-        plan_irr = irr[plan]
-        
-        #get list of pbo for each period  for each plan
-        pbo = []
-        for i in list(range(0,len(cfs.columns))):
-            month_irr = plan_irr.loc[cfs.columns[i]]/12
-            month_cfs = list(cfs.iloc[:,i])
-            pbo.append( npv(month_irr,month_cfs,yrs))
-        df[plan] = pbo
-        df.set_index(pbo_cashflows['Retirement'].columns,inplace=True)
-    return df
+    Parameters
+    ----------
+    report_name : String
+        DESCRIPTION. The default is 'monthly_plan_data.xlsx'.
+    sheet_name : String
+        DESCRIPTION. The default is 'data'.
+
+    Returns
+    -------
+        Dict:
+            Updated plan market values and returns 
+
+    '''
+    #read in monthly plan data
+    plan_data = pd.read_excel(TS_FP + report_name, sheet_name = sheet_name)
+    
+    #rename columns
+    plan_data.columns = ["Account Name","Account Id","Return Type","Date", "Market Value","Monthly Return"]
+    
+    #rename each plan 
+    plan_data["Account Name"].replace({"Total Retirement":"Retirement", "Total Pension":"Pension", "Total UPS/IBT FT Emp Pension":"IBT", "LDI ONLY-TotUSPenMinus401H":"Total"}, inplace = True)
+    
+    #pivot table so that plans are in the columns and the rows are the market value/returns for each date
+    mv_df = plan_data.pivot_table(values = 'Market Value', index='Date', columns='Account Name')
+    
+    ret_df = plan_data.pivot_table(values = 'Monthly Return', index='Date', columns='Account Name')
+    #divide returns by 100
+    ret_df /= 100
+    
+    plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
+    return(plan_data_dict)
