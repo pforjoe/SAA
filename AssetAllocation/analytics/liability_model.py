@@ -31,6 +31,8 @@ class liabilityModel():
             DESCRIPTION.
         asset_mv : Dataframe
             DESCRIPTION.
+        liab_mv_cfs : Dataframe
+            DESCRIPTION.
         asset_returns : Dataframe
             DESCRIPTION.
         liab_curve : Dataframe, optional
@@ -55,7 +57,7 @@ class liabilityModel():
         self.asset_returns = asset_returns
         self.present_values = self.compute_pvs()
         self.irr_df = self.compute_irr()
-        self.liab_mv = self.get_plan_liab_mv(self.irr_df, self.liab_mv_cfs)
+        self.liab_mv = self.get_plan_liab_mv()
         self.returns_ts = self.compute_liab_ret()
         self.funded_status = self.compute_funded_status()
         self.fulfill_irr = None
@@ -92,11 +94,9 @@ class liabilityModel():
         ret_df = self.returns_ts.copy()
         ret_df.columns = ['Return']
         
-        #liability market values into same type (pd.series) as asset market values
-        liab_mv_series = pd.Series(self.liab_mv,index = self.liab_mv_cfs.columns,name = self.asset_mv.name )
-        
+
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
-                'Liability Market Values':liab_mv_series, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
+                'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
                 'Asset Market Values': self.asset_mv}
 
     #TODO: Take out disc rates option
@@ -237,17 +237,13 @@ class liabilityModel():
         return self.irr_df['IRR'][-1]
 
             
-    def get_plan_liab_mv(self, irr_df, liab_mv_cfs):
-        #get pbo cfs for specified plan
-        cfs = liab_mv_cfs
+    def get_plan_liab_mv(self):
         #get yrs
-        yrs = list(range(1,len(cfs)+1))
+        yrs = list(range(1,len(self.liab_mv_cfs)+1))
         pbo = []
         #puts pbo for each time period into a list
-        for i in list(range(0,len(cfs.columns))):
-            month_irr = irr_df.loc[cfs.columns[i]]/12
-            month_irr = month_irr.iloc[0]
-            month_cfs = list(cfs.iloc[:,i])
-            pbo.append(self.npv(month_irr,month_cfs,yrs))
-        return pbo
+        for i in list(range(0,len(self.liab_mv_cfs.columns))):
+            cfs = list(self.liab_mv_cfs.iloc[:,i])
+            pbo.append(self.npv( self.irr_df['IRR'][self.liab_mv_cfs.columns[i]]/12, cfs, yrs))
+        return pd.DataFrame(pbo, index = self.liab_mv_cfs.columns, columns = self.asset_mv.columns)
 

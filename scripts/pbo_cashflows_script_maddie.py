@@ -7,9 +7,10 @@ Created on Fri Mar  4 17:06:20 2022
 
 from AssetAllocation.datamanger import datamanger as dm
 from AssetAllocation.analytics.liability_model import liabilityModel
+import AssetAllocation.analytics.summary as summary
 import AssetAllocation.reporting.sheets as sheets
 import AssetAllocation.reporting.reports as rp
-
+ 
 import pandas as pd
 import numpy as np
 from scipy.optimize import fsolve
@@ -74,42 +75,48 @@ def offset(pbo_cfs):
     return(data)
 
 def get_liab_cfs(filename='UPS PBO Cash Flows YE18 to YE21 V5.xlsx',  plan_list = ['Retirement','Pension','IBT']):
-    filepath = dm.TS_FP+filename
+    
+    filepath = dm.TS_FP + filename
     data_dict = {}
+    
+    #loop through each plan and get liability cashflows
     for key in plan_list:
         data_dict[key] = pd.read_excel(filepath, sheet_name = key, index_col=0)
         data_dict[key] = offset(data_dict[key])
             
     return(data_dict)
 
-def get_pbo_plan(irr, pbo_cashflows ,plan= 'Retirement'):
-    #get pbo cfs for specified plan
-    cfs = pbo_cashflows[plan]
-    #get yrs
-    yrs = list(range(1,len(cfs)+1))
+def get_liab_mv_by_plan(irr, liab_mv_cfs ,plan= 'Retirement'):
+   
+    #periods
+    yrs = list(range(1,len(liab_mv_cfs[plan])+1))
     plan_irr = irr[plan]
     pbo = []
-    for i in list(range(0,len(cfs.columns))):
-        month_irr = plan_irr.loc[cfs.columns[i]]/12
-        month_cfs = list(cfs.iloc[:,i])
-        pbo.append( npv(month_irr,month_cfs,yrs))
-    return pbo
+    
+    for i in list(range(0,len(liab_mv_cfs[plan].columns))):
+        #loop through each plan and each date to get cashflows for that time period
+            #npv function requires cashflows to be in a list
+        month_cfs = list(liab_mv_cfs[plan].iloc[:,i])
+        
+        #append market values to list
+        pbo.append( npv(plan_irr.loc[liab_mv_cfs[plan].columns[i]]/12 , month_cfs , yrs))
+        
+    #return data frame with liabilty market values
+    return pd.DataFrame(pbo, index = liab_mv_cfs.columns, columns = plan)
 
-def get_liab_mv(irr, pbo_cashflows ,plan_list = ['Retirement','Pension','IBT']):
+def get_liab_mv(irr, liab_mv_cfs ,plan_list = ['Retirement','Pension','IBT']):
     df = pd.DataFrame()
     for plan in plan_list:
-        #get pbo cfs for specified plan
-        cfs = pbo_cashflows[plan]
+        
         #get yrs
-        yrs = list(range(1,len(cfs)+1))
+        yrs = list(range(1,len(liab_mv_cfs[plan])+1))
         plan_irr = irr[plan]
         pbo = []
-        for i in list(range(0,len(cfs.columns))):
-            month_irr = plan_irr.loc[cfs.columns[i]]/12
-            month_cfs = list(cfs.iloc[:,i])
-            pbo.append( npv(month_irr,month_cfs,yrs))
+        for i in list(range(0,len(liab_mv_cfs[plan].columns))):
+            month_cfs = list(liab_mv_cfs[plan].iloc[:,i])
+            pbo.append( npv(plan_irr.loc[liab_mv_cfs[plan].columns[i]]/12 , month_cfs,yrs))
         df[plan] = pbo
-        df.set_index(pbo_cashflows['Retirement'].columns,inplace=True)
+        df.set_index(liab_mv_cfs['Retirement'].columns,inplace=True)
     return df
 
 
@@ -118,13 +125,16 @@ def get_liab_mv(irr, pbo_cashflows ,plan_list = ['Retirement','Pension','IBT']):
 #                                                            
 ############################################################################################################################################################
 plan_list = ['Retirement','Pension','IBT']
-pbo_cashflows = get_liab_cfs()
 
-irr = pd.read_excel("C:/Users/RRQ1FYQ/Documents/UPS_MV/data/time_series/UPS PBO Cash Flows YE18 to YE21 V5.xlsx",sheet_name="irr_ftse" ,index_col=0)
+#get liability cashflows
+liab_mv_cfs = get_liab_cfs()
 
-pbo_df = get_liab_mv(irr, pbo_cashflows)
+#get liability model dict to get IRR
+liab_model_dict = summary.get_liab_model_dict()
+liab_model_dict = summary.merge_liab_model_df(liab_model_dict, plan_list)
+#create IRR df
+irr_df = liab_model_dict['IRR']
+irr_df.columns = plan_list
 
-retirement_pbo = get_pbo_plan(irr, pbo_cashflows, plan = 'Retirement')
-#todo: change get_pbo to plan list
-#todo: change name of pbo to get liability mv
-#todo change pbo list to pbo data frame with dates in the columns
+#get liability market values
+liab_mv = get_liab_mv(irr_df, liab_mv_cfs)

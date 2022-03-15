@@ -11,6 +11,7 @@ from AssetAllocation.reporting import formats
 from .import formats
 from .import plots
 
+# TODO: add comments in it 
 def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False,set_neg_value_format = True):
     """
     Create excel sheet for historical returns
@@ -265,7 +266,20 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_ret_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
+def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns", num_values = False):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values 
+        False if values should be formatted in percentages
+
+    '''
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -278,13 +292,14 @@ def set_asset_liability_ret_sheet(writer, tables_dict, sheet_name = "Asset-Liabi
     title_format = formats.set_title_format(workbook, center = True)
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
-    #percent format
-    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
-    
-    
-    #plan_list = ["Retirement","Pension","IBT"]
-     #neg value format
-     
+   
+    if num_values:
+        #number format
+        value_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    else:
+        #percent format
+        value_fmt = formats.set_number_format(workbook,num_format='0.00%')
+   
     neg_value_fmt = formats.set_neg_value_format(workbook)
 
 
@@ -296,7 +311,7 @@ def set_asset_liability_ret_sheet(writer, tables_dict, sheet_name = "Asset-Liabi
         tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
-        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':value_fmt})
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
                                                                'format': neg_value_fmt})
         col = col_dim + 2   
@@ -304,38 +319,6 @@ def set_asset_liability_ret_sheet(writer, tables_dict, sheet_name = "Asset-Liabi
     return 0
 
 
-def set_asset_liability_mkt_val_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
-    workbook = writer.book
-    cell_format = formats.set_worksheet_format(workbook)
-    df_empty = pd.DataFrame()
-    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
-    worksheet = writer.sheets[sheet_name]
-    worksheet.set_column(0, 1000, 21, cell_format)
-    row = 1
-    col = 0
-    
-    title_format = formats.set_title_format(workbook, center = True)
-    #date format
-    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
-    #num format
-    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
-    
-    
-
-
-    for key in tables_dict:
-        row_dim = row + tables_dict[key].shape[0]
-        col_dim = col + tables_dict[key].shape[1]
-        worksheet.write(row-1, col+1, key, title_format)
-        #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
-        tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
-        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
-                                  'format':date_fmt})
-        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':num_fmt})
-
-        col = col_dim + 2   
-        
-    return 0
 def set_dollar_values_sheet(writer, df, sheet_name):
     """
     Create excel sheet for market values and present values to format values into $.00
