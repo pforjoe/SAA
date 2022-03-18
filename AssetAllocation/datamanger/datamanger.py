@@ -8,6 +8,7 @@ Created on Wed Oct  6 12:01:39 2021
 import os
 import pandas as pd
 import numpy as np
+import statistics as stat
 
 from itertools import count, takewhile
 import scipy as sp
@@ -451,3 +452,77 @@ def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'
     
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
     return(plan_data_dict)
+
+
+def get_funded_status(asset_liab_mkt_val_dict, plan_list = ['Retirement','Pension','IBT']):
+    '''
+    
+
+    Parameters
+    ----------
+    asset_liab_mkt_val_dict : Dictionary
+        Dictionary with asset/liability market values table for each plan. 
+        
+    plan_list : List
+       The default is ['Retirement','Pension','IBT'].
+
+    Returns
+    -------
+    Dictionary of asset/liability market values with funded status tables for each plan.
+
+    '''
+    #computes funded status for each plan : Asset/Liability
+    for plan in plan_list :
+        asset_liab_mkt_val_dict[plan]['Funded Status'] = asset_liab_mkt_val_dict[plan]['Asset']/ asset_liab_mkt_val_dict[plan]['Liability']
+    return(asset_liab_mkt_val_dict)
+
+
+def get_funded_status_vol(asset_liab_mkt_val_dict, plan_list = ['Retirement','Pension','IBT','Total'], n = 12):
+    '''
+    
+
+    Parameters
+    ----------
+    asset_liab_mkt_val_dict : Dictionary
+        Dictionary with asset/liability market values and funded status table for each plan. 
+    plan_list : list
+        The default is ['Retirement','Pension','IBT'].
+    n : int
+        Volatility time range.
+
+    Returns
+    -------
+    Data Frame
+
+    '''
+    #create empty data frame
+    vol = pd.DataFrame()
+    
+    #loop through each plan to get funded status volatility
+    for plan in plan_list:
+        #compute funded status gap: liability(i.e PBO) - asset
+        fs_gap = pd.DataFrame({'funded_status_gap':asset_liab_mkt_val_dict[plan]['Liability'] - asset_liab_mkt_val_dict[plan]['Asset']})
+        
+        #compute funded status difference between each date
+        fs_gap_diff = fs_gap.diff()
+        
+        #compute funded status gap difference percent: funded status gap/liability
+        fs_gap_diff_percent = pd.DataFrame({"fs_gap_diff_percent": fs_gap_diff["funded_status_gap"].div(asset_liab_mkt_val_dict[plan]["Liability"])})
+        
+        #get corresponding dates for vol numbers
+        indices = list(fs_gap_diff.index)
+        indices = indices[-(len(indices)-n):]
+        
+        #create empty list for volatilty
+        fs_vol = list()
+        
+        #loop through and compute funded status volatility: standard deviations for each i to i+n time period * (12^0.5)
+        for i in list(range(1,len(fs_gap_diff_percent)-n+1)):
+            fs_vol.append((stat.stdev(fs_gap_diff_percent["fs_gap_diff_percent"].iloc[i:i+n]))*(12**0.5)  )
+        
+        #put list of volatilities into a dataframe
+        plan_vol = pd.DataFrame({plan: fs_vol}, index = indices)
+        
+        #merge plan data frames to make sure they have the same dates 
+        vol = merge_dfs(vol, plan_vol)
+    return(vol)
