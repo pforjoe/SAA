@@ -391,7 +391,7 @@ def get_n_year_ret(liab_data_dict, market_value = False, n=3):
     return asset_liab_ret_df.iloc[-(n*12):,]
 
 
-def get_liab_cfs(filename='UPS PBO Cash Flows YE18 to YE21 V5.xlsx',  plan_list = ['Retirement','Pension','IBT']):
+def get_liab_cfs(filename='liab_pbo_cf_montheized.xlsx',  plan_list = ['Retirement','Pension','IBT']):
     filepath = TS_FP+filename
     data_dict = {}
     for key in plan_list:

@@ -28,7 +28,7 @@ report_dict = summary.get_report_dict()
 asset_liab_mkt_val_dict = report_dict["asset_liab_mkt_val_dict"]
 
 #get funded status for each plan
-asset_liab_mkt_val_dict = dm.get_funded_status(asset_liab_mkt_val_dict)
+asset_liab_mkt_val_dict = dm.get_funded_status(asset_liab_mkt_val_dict, plan_list)
 
 # 1y vol
 one_yr_vol = dm.get_funded_status_vol(asset_liab_mkt_val_dict,n = 12)
@@ -75,4 +75,16 @@ retirement = graph_df[['Pension_x','Pension_y']].plot(title = "Pension Realized 
 retirement.yaxis.set_major_formatter(plt.ticker.PercentFormatter())
 retirement.legend(['1yr FSV','6mth FSV'])
 
+
+
+
+plan = 'IBT'
+temp_df = asset_liab_mkt_val_dict[plan].copy()
+temp_df['FS Gap'] = temp_df['Liability']-temp_df['Asset']
+temp_df['FS Gap Diff'] = temp_df['FS Gap'].diff()
+temp_df['FS Gap Diff %'] = temp_df['FS Gap Diff']/temp_df['Liability']
+
+from AssetAllocation.analytics import ts_analytics as ts
+temp_df['1YR FSV'] = return_series.rolling(window=12).apply(ts.get_ann_vol)
+temp_df['6MNTH FSV'] = return_series.rolling(window=6).apply(ts.get_ann_vol)
 
