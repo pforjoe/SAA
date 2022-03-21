@@ -22,6 +22,6 @@ report_dict = summary.get_report_dict()
 #end = time.time()
 #print(end - start)
 
-rp.get_liability_returns_report(report_dict,report_name = "ldi_reporting")
+rp.get_liability_returns_report(report_dict,report_name = "test")
 
 

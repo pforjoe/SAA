@@ -24,67 +24,8 @@ import matplotlib as plt
 #run report dict
 report_dict = summary.get_report_dict()
 
-#get asset market values and PBO values table (i.e. asset/liability market values table)
-asset_liab_mkt_val_dict = report_dict["asset_liab_mkt_val_dict"]
+mkt_val_dict = report_dict['asset_liab_mkt_val_dict']
 
-#get funded status for each plan
-asset_liab_mkt_val_dict = dm.get_funded_status(asset_liab_mkt_val_dict, plan_list)
-
-# 1y vol
-one_yr_vol = dm.get_funded_status_vol(asset_liab_mkt_val_dict,n = 12)
-
-#6m vol
-six_mo_vol = dm.get_funded_status_vol(asset_liab_mkt_val_dict,n = 6)
-
-#merge 1y and 6m dfs to plot
-graph_df = dm.merge_dfs(one_yr_vol,six_mo_vol)
-graph_df = graph_df.tail(n = 12)
-#multiply by 100 to get percentages
-graph_df = graph_df*100
-
-
-######################
-#Plot for Retirement
-######################
-plt.style.use('default')
-retirement = graph_df[['Retirement_x','Retirement_y']].plot(title = "Retirement Realized Funded Status Volatility",
-                                                            use_index = True,
-                                                            color = ["b","0.5"])
-retirement.yaxis.set_major_formatter(plt.ticker.PercentFormatter())
-retirement.legend(['1yr FSV','6mth FSV'])
-
-
-######################
-#Plot for IBT
-######################
-plt.style.use('default')
-retirement = graph_df[['IBT_x','IBT_y']].plot(title = "IBT Realized Funded Status Volatility",
-                                                            use_index = True,
-                                                            color = ["b","0.5"])
-retirement.yaxis.set_major_formatter(plt.ticker.PercentFormatter())
-retirement.legend(['1yr FSV','6mth FSV'])
-
-
-######################
-#Plot for Pension
-######################
-plt.style.use('default')
-retirement = graph_df[['Pension_x','Pension_y']].plot(title = "Pension Realized Funded Status Volatility",
-                                                            use_index = True,
-                                                            color = ["b","0.5"])
-retirement.yaxis.set_major_formatter(plt.ticker.PercentFormatter())
-retirement.legend(['1yr FSV','6mth FSV'])
-
-
-
-
-plan = 'IBT'
-temp_df = asset_liab_mkt_val_dict[plan].copy()
-temp_df['FS Gap'] = temp_df['Liability']-temp_df['Asset']
-temp_df['FS Gap Diff'] = temp_df['FS Gap'].diff()
-temp_df['FS Gap Diff %'] = temp_df['FS Gap Diff']/temp_df['Liability']
-
-from AssetAllocation.analytics import ts_analytics as ts
-temp_df['1YR FSV'] = return_series.rolling(window=12).apply(ts.get_ann_vol)
-temp_df['6MNTH FSV'] = return_series.rolling(window=6).apply(ts.get_ann_vol)
+#get fs vol
+mkt_val_dict = dm.get_fs_data(mkt_val_dict, n = 6)
 
