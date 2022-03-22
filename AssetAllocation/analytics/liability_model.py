@@ -97,7 +97,7 @@ class liabilityModel():
 
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
                 'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
-                'Asset Market Values': self.asset_mv}
+                'Asset Market Values': self.asset_mv, 'Funded Status':self.funded_status}
 
     #TODO: Take out disc rates option
     def compute_pvs(self):
@@ -228,10 +228,15 @@ class liabilityModel():
          
         return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
-    #TODO: revisit this method
+
     def compute_funded_status(self):
-        return self.asset_mv.iloc[-1:]/self.present_values.iloc[-1:]['Present Value'][0]
+        
+        fs = self.asset_mv / self.liab_mv
+        fs.dropna(inplace = True)
+        return fs
     
+
+
     #TODOD: revisit this method
     def get_return(self):
         return self.irr_df['IRR'][-1]
@@ -246,4 +251,59 @@ class liabilityModel():
             cfs = list(self.liab_mv_cfs.iloc[:,i])
             pbo.append(self.npv( self.irr_df['IRR'][self.liab_mv_cfs.columns[i]]/12, cfs, yrs))
         return pd.DataFrame(pbo, index = self.liab_mv_cfs.columns, columns = self.asset_mv.columns)
+
+# def get_funded_status(asset_liab_mkt_val_dict):
+#     '''
+    
+
+#     Parameters
+#     ----------
+#     asset_liab_mkt_val_dict : Dictionary
+#         Dictionary with asset/liability market values table for each plan. 
+        
+#     plan_list : List
+#         The default is ['Retirement','Pension','IBT'].
+
+#     Returns
+#     -------
+#     Dictionary of asset/liability market values with funded status tables for each plan.
+
+#     '''
+#     #computes funded status for each plan : Asset/Liability
+#     for key in asset_liab_mkt_val_dict:
+#         asset_liab_mkt_val_dict[key]['Funded Status'] = asset_liab_mkt_val_dict[key]['Asset']/ asset_liab_mkt_val_dict[key]['Liability']
+        
+#         #compute funded status gap: liability(i.e PBO) - asset
+#         asset_liab_mkt_val_dict[key]['Funded Status Gap'] = asset_liab_mkt_val_dict[key]['Liability'] - asset_liab_mkt_val_dict[key]['Asset']
+        
+#     return(asset_liab_mkt_val_dict)
+
+# def compute_fs_vol(asset_liab_mkt_val_df, n):
+#     #create copy of dataframe
+#       df = asset_liab_mkt_val_df.copy()
+     
+#       #compute funded status difference between each date
+#       df['FS Gap Diff'] = df['Funded Status Gap'].diff()
+     
+#       #compute funded status gap difference percent: funded status gap/liability
+#       df['FS Gap Diff %'] = df['FS Gap Diff']/df['Liability']
+     
+#       #compute fs vol 
+#       gap_diff_series = df['FS Gap Diff %']
+#       gap_diff_series.dropna(inplace = True)
+#       df['FSV'] = gap_diff_series.rolling(window=n).apply(ts.get_ann_vol)
+     
+#       return(df)
+ 
+# def get_plan_fs_vol(asset_liab_mkt_val_dict, n = 12):
+    
+#     #create empty dictionary
+#     vol = {}
+    
+#     #loop through each plan to get funded status volatility
+#     for key in asset_liab_mkt_val_dict:
+#         fs_data = compute_fs_vol(asset_liab_mkt_val_dict[key], n = n)
+        
+#         vol[key] = fs_data
+#     return(vol)
 

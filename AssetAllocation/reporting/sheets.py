@@ -266,7 +266,7 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns", num_values = False):
+def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns", mkt_val = False):
     '''
     Create excel sheet for asset liability returns or market value tables
 
@@ -292,29 +292,43 @@ def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability
     title_format = formats.set_title_format(workbook, center = True)
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
-   
-    if num_values:
-        #number format
-        value_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
-    else:
-        #percent format
-        value_fmt = formats.set_number_format(workbook,num_format='0.00%')
-   
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #number format
+    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    #negative value format
     neg_value_fmt = formats.set_neg_value_format(workbook)
 
-
-    for key in tables_dict:
-        row_dim = row + tables_dict[key].shape[0]
-        col_dim = col + tables_dict[key].shape[1]
-        worksheet.write(row-1, col+1, key, title_format)
-        #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
-        tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
-        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
-                                  'format':date_fmt})
-        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':value_fmt})
-        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
-                                                               'format': neg_value_fmt})
-        col = col_dim + 2   
+    if mkt_val:
+        
+        for key in tables_dict:
+            row_dim = row + tables_dict[key].shape[0]
+            col_dim = col + tables_dict[key].shape[1]
+            worksheet.write(row-1, col+1, key, title_format)
+            #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
+            tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+            worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                      'format':date_fmt})
+            worksheet.conditional_format(row+1, col+1, row_dim, col_dim-1,{'type':'no_blanks','format':num_fmt})
+            worksheet.conditional_format(row+1,col+2, row_dim, col_dim ,{'type':'no_blanks','format':pct_fmt})
+            worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                       'format': neg_value_fmt})
+            col = col_dim + 2   
+    else:
+     
+        for key in tables_dict:
+            row_dim = row + tables_dict[key].shape[0]
+            col_dim = col + tables_dict[key].shape[1]
+            worksheet.write(row-1, col+1, key, title_format)
+            #worksheet.merge_range(row-1,col+1, row-1, col+2, key, title_format)
+            tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+            worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                      'format':date_fmt})
+            worksheet.conditional_format(row+1, col+1, row_dim, col_dim-1,{'type':'no_blanks','format':pct_fmt})
+            worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                   'format': neg_value_fmt})
+        
+            col = col_dim + 2   
         
     return 0
 
@@ -353,5 +367,63 @@ def set_dollar_values_sheet(writer, df, sheet_name):
     worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
                                   'format':num_fmt})
 
+    
+    return 0
+
+def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatility"):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values 
+        False if values should be formatted in percentages
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #dollar format
+    dollar_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
+
+    #negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+
+   
+    for key in fs_data_dict:
+        row_dim = row + fs_data_dict[key].shape[0]
+        col_dim = col + fs_data_dict[key].shape[1]
+        worksheet.write(row-1, col+1, key, title_format)
+        fs_data_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+        
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim - 6,{'type':'no_blanks','format':dollar_fmt})
+        worksheet.conditional_format(row+1,col+2, row_dim, col_dim - 5 ,{'type':'no_blanks','format':pct_fmt})
+        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -4,{'type':'no_blanks','format':num_fmt})
+        worksheet.conditional_format(row+1,col+4, row_dim, col_dim -3,{'type':'no_blanks','format':num_fmt})
+        col = col+4
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+      
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                   'format': neg_value_fmt})
+        col = col_dim + 2
     
     return 0

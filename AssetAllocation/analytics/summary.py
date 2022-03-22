@@ -136,19 +136,18 @@ def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
         
     liab_model_dict={}
     
-    for pension_plan in plan_list:
+    for plan in plan_list:
         #index data by plan
-        liab_mv_cfs = df_liab_mv_cfs[pension_plan]
-        pbo_cashflows = df_pbo_cfs[pension_plan]
-        sc_cashflows = df_sc_cfs[pension_plan]
-        asset_mv = pd.DataFrame(plan_data['mkt_value'][pension_plan])
-        asset_returns = pd.DataFrame(plan_data['return'][pension_plan])
+        liab_mv_cfs = df_liab_mv_cfs[plan]
+        pbo_cashflows = df_pbo_cfs[plan]
+        sc_cashflows = df_sc_cfs[plan]
+        asset_mv = pd.DataFrame(plan_data['mkt_value'][plan])
+        asset_returns = pd.DataFrame(plan_data['return'][plan])
         
         #run liability model
         liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, liab_mv_cfs, asset_returns, liab_curve)
         del liab_model.data_dict['Cashflows']
-        liab_model_dict[pension_plan] = liab_model.data_dict
-
+        liab_model_dict[plan] = liab_model.data_dict
     return liab_model_dict
 
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
@@ -161,7 +160,10 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
      
     #get asset liability market value table dictionary
     asset_liab_mkt_val_dict = get_asset_liab_dict( liab_model_dict, True)
-     
+    
+    #get funded status tables
+    funded_status = dm.get_fs_data(asset_liab_mkt_val_dict, n = [12,6] )
+    
     #get report dictionary by merging the liability model data frames for each plan 
     report_dict = merge_liab_model_df(liab_model_dict, plan_list)
     
@@ -175,10 +177,13 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #add asset_liab_mkt_val_dict to report_dict
     report_dict['asset_liab_mkt_val_dict'] = asset_liab_mkt_val_dict   
-    
+  
+    #add funded status data to report dict
+    report_dict['fs_data'] = funded_status
+
     return report_dict
 
-def get_asset_liab_dict(liab_model_dict, market_value = False):
+def get_asset_liab_dict(liab_model_dict, market_value = True):
     
     #create asset_liab_dict
     asset_liab_ret_dict = {}
