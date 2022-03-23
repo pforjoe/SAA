@@ -7,6 +7,7 @@ Created on Mon Nov  8 21:32:09 2021
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
+from AssetAllocation.datamanger import datamanger as dm
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -59,7 +60,7 @@ class liabilityModel():
         self.irr_df = self.compute_irr()
         self.liab_mv = self.get_plan_liab_mv()
         self.returns_ts = self.compute_liab_ret()
-        self.funded_status = self.compute_funded_status()
+        self.funded_status = self.compute_current_funded_status()
         self.fulfill_irr = None
         self.excess_return = None
         self.ret = self.get_return()
@@ -97,7 +98,7 @@ class liabilityModel():
 
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
                 'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
-                'Asset Market Values': self.asset_mv, 'Funded Status':self.funded_status}
+                'Asset Market Values': self.asset_mv}
 
     #TODO: Take out disc rates option
     def compute_pvs(self):
@@ -229,10 +230,9 @@ class liabilityModel():
         return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
 
-    def compute_funded_status(self):
-        
-        fs = self.asset_mv / self.liab_mv
-        fs.dropna(inplace = True)
+    def compute_current_funded_status(self):
+        df = dm.merge_dfs( self.asset_mv, self.liab_mv)
+        fs = df.iloc[-1,0] / df.iloc[-1,1]
         return fs
     
 

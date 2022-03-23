@@ -385,13 +385,11 @@ def get_n_year_ret(liab_data_dict, market_value = False, n=3):
     #get market value and returns tables by month
     if market_value:
         asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Market Values'], liab_data_dict['Liability Market Values'])
-        asset_liab_ret_df = merge_dfs( asset_liab_ret_df, liab_data_dict['Funded Status'])
-        #rename columns
-        asset_liab_ret_df.columns = ["Asset","Liability",'Funded Status']
+       
     else: 
         asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
-        #rename columns
-        asset_liab_ret_df.columns = ["Asset","Liability"]
+    #rename columns
+    asset_liab_ret_df.columns = ["Asset","Liability"]
     #returns most recent n years
     return asset_liab_ret_df.iloc[-(n*12):,]
 
@@ -459,11 +457,14 @@ def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'
     return(plan_data_dict)
 
 
-def compute_fs_data(asset_liab_mkt_val_df, n = [12,6]):
+def compute_fs_data(asset_liab_mkt_val_df):
     
       #create copy of dataframe
       df = asset_liab_mkt_val_df.copy()
      
+      #compute funded status: asset/liability
+      df['Funded Status'] = df['Asset'] / df['Liability'] 
+      
       #compute funded status gap: liability(i.e PBO) - asset
       df['Funded Status Gap'] = df['Liability'] - df['Asset']
      
@@ -477,13 +478,12 @@ def compute_fs_data(asset_liab_mkt_val_df, n = [12,6]):
       gap_diff_series = df['FS Gap Diff %']
       gap_diff_series.dropna(inplace = True)
       
-      for i in list(range(0,len(n))):
-          time = str(n[i])
-          df[time + ' mo FSV'] = gap_diff_series.rolling(window = n[i]).apply(ts.get_ann_vol)
-     
+      df['1Y FSV'] = gap_diff_series.rolling(window = 12).apply(ts.get_ann_vol)
+      df['6mo FSV'] = gap_diff_series.rolling(window = 6).apply(ts.get_ann_vol)
+
       return(df)
  
-def get_fs_data(asset_liab_mkt_val_dict, n = 12):
+def get_fs_data(asset_liab_mkt_val_dict):
     
     #create empty dictionary
     vol = {}
@@ -491,7 +491,7 @@ def get_fs_data(asset_liab_mkt_val_dict, n = 12):
     #loop through each plan to get funded status volatility
     for key in asset_liab_mkt_val_dict:
         
-        fs_data = compute_fs_data(asset_liab_mkt_val_dict[key], n = n)
+        fs_data = compute_fs_data(asset_liab_mkt_val_dict[key])
         
         vol[key] = fs_data
         

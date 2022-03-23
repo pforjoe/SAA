@@ -162,12 +162,11 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     asset_liab_mkt_val_dict = get_asset_liab_dict( liab_model_dict, True)
     
     #get funded status tables
-    funded_status = dm.get_fs_data(asset_liab_mkt_val_dict, n = [12,6] )
+    funded_status = dm.get_fs_data(asset_liab_mkt_val_dict )
     
     #get report dictionary by merging the liability model data frames for each plan 
     report_dict = merge_liab_model_df(liab_model_dict, plan_list)
     
-
     #rename columns in report_dict
     for key in report_dict:
         report_dict[key].columns = plan_list
