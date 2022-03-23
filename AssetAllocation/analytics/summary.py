@@ -44,8 +44,8 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
     liab_input_dict = dm.get_liab_model_data(plan, contrb_pct)
     return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
-                          liab_input_dict['asset_mv'], liab_input_dict['liab_curve'], 
-                          liab_input_dict['disc_rates'])
+                          liab_input_dict['asset_mv'], liab_input_dict['asset_ret'],
+                          liab_input_dict['liab_curve'])
 
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return
@@ -178,27 +178,28 @@ def add_fs_load_col(weights_df, liab_model):
     
 #    return report_dict
 
-def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']):
     
-    df_pbo_cfs = dm.get_cf_data('PBO')
-    df_sc_cfs = dm.get_cf_data('Service Cost')
+    # df_pbo_cfs = dm.get_cf_data('PBO')
+    # df_sc_cfs = dm.get_cf_data('Service Cost')
     
-    df_ftse = dm.get_ftse_data(False)
+    # df_ftse = dm.get_ftse_data()
     
-    plan_data = dm.get_plan_data()
-    disc_factors = df_pbo_cfs['Time']
-    liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
+    # plan_asset_data = dm.get_plan_asset_data()
+    # disc_factors = df_pbo_cfs['Time']
+    # liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
     contrb_pct = 0.0
         
     liab_model_dict={}
     
     #does not include liab/ret table anymore
     for pension_plan in plan_list:
-        pbo_cashflows = df_pbo_cfs[pension_plan]
-        sc_cashflows = df_sc_cfs[pension_plan]
-        asset_mv = plan_data['mkt_value'][pension_plan]
-        asset_returns = pd.DataFrame(plan_data['return'][pension_plan])
-        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
+        liab_model = get_liab_model(pension_plan, contrb_pct)
+        # pbo_cashflows = df_pbo_cfs[pension_plan]
+        # sc_cashflows = df_sc_cfs[pension_plan]
+        # asset_mv = dm.get_plan_asset_mv(plan_asset_data, pension_plan)
+        # asset_returns = dm.get_plan_asset_returns(plan_asset_data, pension_plan)
+        # liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns, liab_curve)
         del liab_model.data_dict['Cashflows']
         liab_model_dict[pension_plan] = liab_model.data_dict
 
