@@ -296,14 +296,17 @@ def compute_fs(plan='IBT'):
     fs_df = merge_dfs(asset_mv, liab_pv)
     return fs_df.iloc[-1:]['Market Value'][0]/fs_df.iloc[-1:]['Present Value'][0]
 
-def get_plan_asset_mv(plan='IBT'):
-    asset_mv = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
-    asset_mv = asset_mv[plan]
-    asset_mv.columns = ['Market Values']
+def get_plan_asset_mv(plan_data, plan='IBT'):
+    asset_mv = pd.DataFrame(plan_data['mkt_value'][plan])
+    asset_mv.columns = ['Market Value']
     return asset_mv
 
-#TODO use this method to get all plan data
-def get_plan_data():
+def get_plan_asset_returns(plan_data, plan='IBT'):
+    asset_return = pd.DataFrame(plan_data['return'][plan])
+    asset_return.columns = ['Return']
+    return asset_return
+
+def get_plan_asset_data():
     plan_mv_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='mkt_value', index_col=0)
     plan_ret_df = pd.read_excel(TS_FP+'plan_data.xlsx', sheet_name='return', index_col=0)
     return {'mkt_value': plan_mv_df,
@@ -333,10 +336,12 @@ def get_cf_data(cf_type='PBO'):
     set_cfs_time_col(df_cfs)
     return df_cfs
 
-def get_ftse_data():
-    df_old_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='old_data', index_col=0)
-    df_new_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='new_data', index_col=0)
-    df_ftse = merge_dfs(df_new_ftse,df_old_ftse)
+def get_ftse_data(include_old=False):
+    df_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='new_data', index_col=0)
+    
+    if include_old:
+        df_old_ftse = pd.read_excel(TS_FP+'ftse_data.xlsx',sheet_name='old_data', index_col=0)
+        df_ftse = merge_dfs(df_ftse,df_old_ftse)
     df_ftse.reset_index(inplace=True)
     return df_ftse
 
@@ -361,19 +366,15 @@ def generate_liab_curve(df_ftse, cfs):
     liab_curve = liab_curve.iloc[:, ::-1]
     return liab_curve
 
-#TODO: have option to compute using disc_rates
 def get_liab_model_data(plan='IBT', contrb_pct=.05):
     df_pbo_cfs = get_cf_data('PBO')
-    # df_pvfb_cfs = get_cf_data('PVFB')
-    # df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
     df_sc_cfs = get_cf_data('Service Cost')
     df_ftse = get_ftse_data()
-    # disc_rates = pd.read_excel(TS_FP+"discount_rate_data.xlsx",sheet_name=plan ,usecols=[0,1],index_col=0)
-    disc_rates = pd.DataFrame()
-    liab_curve = generate_liab_curve(df_ftse, np.array(df_pbo_cfs[plan]))
-    asset_mv = get_plan_asset_mv(plan)
+    plan_asset_data = get_plan_asset_data()
+    liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
-            'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
+            'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': get_plan_asset_mv(plan_asset_data, plan),
+            'asset_ret': get_plan_asset_returns(plan_asset_data, plan)}
 
 
 def get_n_year_ret(liab_data_dict, n=3):
