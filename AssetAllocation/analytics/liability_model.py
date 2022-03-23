@@ -53,8 +53,7 @@ class liabilityModel():
         self.asset_mv = asset_mv
         self.asset_returns = asset_returns
         self.present_values = self.compute_pvs()
-        self.disc_rates_pvs = self.compute_disc_rates_pvs()
-        self.irr_array = self.compute_irr()
+        self.irr_df = self.compute_irr()
         self.returns_ts = self.compute_liab_ret()
         self.funded_status = self.compute_funded_status()
         self.fulfill_irr = None
@@ -92,7 +91,8 @@ class liabilityModel():
         ret_df.columns = ['Return']
         
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
-                'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 'Market Values': self.asset_mv}
+                'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
+                'Asset Market Values': self.asset_mv}
 
     #TODO: Take out disc rates option
     def compute_pvs(self):
@@ -125,7 +125,8 @@ class liabilityModel():
 
         """
         liab_ret = np.zeros(len(self.present_values))
-        irr_ret = self.transform_irr_array()
+
+        # if self.disc_rates.empty:
         for i in range (0,len(self.present_values)-1):
             #compute liab pv return and add iff
             liab_ret[i+1] += self.irr_df['IRR'][i]/12 + ((self.present_values['Present Value'][i+1])/self.present_values['Present Value'][i])-1
@@ -135,13 +136,14 @@ class liabilityModel():
             
         return pd.DataFrame(liab_ret, columns=['Liability'], index=self.present_values.index)
     
+    #TODO:remove method
     def compute_disc_rates_pvs(self):
-        disc_rates_pv_array = np.zeros(len(self.disc_rates))
+        disc_rates_pv_list = np.zeros(len(self.disc_rates))
         for i in range(len(self.disc_rates)):
             for j in range (0,len(self.total_cashflows)):
-                disc_rates_pv_array[i] += (self.total_cashflows[j]/((1+self.disc_rates['IRR'][i])**self.disc_factors[j]))
+                disc_rates_pv_list[i] += (self.total_cashflows[j]/((1+self.disc_rates['IRR'][i])**self.disc_factors[j]))
             
-        return pd.DataFrame(disc_rates_pv_array, columns=['Present Value'], index=self.disc_rates.index)
+        return pd.DataFrame(disc_rates_pv_list, columns=['Present Value'], index=self.disc_rates.index)
     
     def npv(self,irr, cfs, yrs):
         """
@@ -195,7 +197,7 @@ class liabilityModel():
             cashflows = np.append(np.negative(self.present_values['Present Value'][j]),self.total_cashflows)
             yrs = np.append(0, self.disc_factors)
             irr_array[j] += self.irr(cashflows, yrs, .03)
-        return irr_array
+        return pd.DataFrame(irr_array, columns=['IRR'], index=self.present_values.index)
     
     def compute_fulfill_ret(self, yrs_to_ff, ff_ratio,x0=.01):
         self.fulfill_irr = np.asscalar(fsolve(self.fulfill_solve, x0=x0,
@@ -203,8 +205,8 @@ class liabilityModel():
         self.excess_return = self.fulfill_irr - self.ret
 
     def fulfill_solve(self,fulfill_return, yrs_to_ff, ff_ratio):
-        erf_pvs_array = np.zeros(len(self.disc_factors))
-        asset_mv_array = np.zeros(len(self.disc_factors))
+        erf_pvs_list = np.zeros(len(self.disc_factors))
+        asset_mv_list = np.zeros(len(self.disc_factors))
         x = yrs_to_ff/self.disc_factors[0]
         x = x.astype(int)
         
@@ -216,14 +218,14 @@ class liabilityModel():
         
             else:
                 for i in range(j,len(self.total_cashflows)):
-                    erf_pvs_array[j] += (self.total_cashflows[i]/((1+self.disc_rates['IRR'][-1])**self.disc_factors[i-j]))
-                    asset_mv_array[j] = (asset_mv_array[j-1]*(1+fulfill_return)**self.disc_factors[0].tolist())-self.total_cashflows[j-1]
+                    erf_pvs_list[j] += (self.total_cashflows[i]/((1+self.irr_df['IRR'][-1])**self.disc_factors[i-j]))
+                    asset_mv_list[j] = (asset_mv_list[j-1]*(1+fulfill_return)**self.disc_factors[0].tolist())-self.total_cashflows[j-1]
          
-        return asset_mv_array[x] - erf_pvs_array[x]*ff_ratio
+        return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
     #TODO: revisit this method
     def compute_funded_status(self):
-        return self.asset_mv.iloc[-1:]/self.present_values.iloc[-1:]['Present Value'][0]
+        return self.asset_mv.iloc[-1:]['Market Value'][0]/self.present_values.iloc[-1:]['Present Value'][0]
     
     #TODOD: revisit this method
     def get_return(self):
