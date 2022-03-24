@@ -162,7 +162,7 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     asset_liab_mkt_val_dict = get_asset_liab_dict( liab_model_dict, True)
     
     #get funded status tables
-    funded_status = dm.get_fs_data(asset_liab_mkt_val_dict )
+    funded_status = get_fs_data(asset_liab_mkt_val_dict )
     
     #get report dictionary by merging the liability model data frames for each plan 
     report_dict = merge_liab_model_df(liab_model_dict, plan_list)
@@ -182,6 +182,7 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
 
     return report_dict
 
+#TODO: move these last 2 methods to datamanager
 def get_asset_liab_dict(liab_model_dict, market_value = True):
     
     #create asset_liab_dict
@@ -204,3 +205,18 @@ def merge_liab_model_df(liab_model_dict, plan_list):
             report_dict[key] = dm.merge_dfs(report_dict[key], liab_model_dict[plan][key])
     
     return report_dict
+
+
+def get_fs_data(asset_liab_mkt_val_dict):
+    
+    #create empty dictionary
+    vol = {}
+    
+    #loop through each plan to get funded status volatility
+    for key in asset_liab_mkt_val_dict:
+        
+        fs_data = ts.compute_fs_data(asset_liab_mkt_val_dict[key])
+        
+        vol[key] = fs_data
+        
+    return(vol)

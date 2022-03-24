@@ -402,11 +402,17 @@ def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatili
         
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
-        worksheet.conditional_format(row+1, col+1, row_dim, col_dim - 6,{'type':'no_blanks','format':dollar_fmt})
-        worksheet.conditional_format(row+1,col+2, row_dim, col_dim - 5 ,{'type':'no_blanks','format':pct_fmt})
-        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -4,{'type':'no_blanks','format':num_fmt})
-        worksheet.conditional_format(row+1,col+4, row_dim, col_dim -3,{'type':'no_blanks','format':num_fmt})
-        col = col+4
+        
+        #format asset and liability market values
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim - 4,{'type':'no_blanks','format':dollar_fmt})
+        
+        #funded status format
+        worksheet.conditional_format(row+1,col+2, row_dim, col_dim - 3 ,{'type':'no_blanks','format':pct_fmt})
+        
+        #fs gap format
+        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -2,{'type':'no_blanks','format':num_fmt})
+        
+        #1yr and 6mo format
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
       
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
