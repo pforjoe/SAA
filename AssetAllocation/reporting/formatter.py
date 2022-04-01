@@ -92,7 +92,7 @@ def color_neg_red(val):
     color = 'red' if val < 0 else 'black'
     return 'color: %s' % color
 
-def get_plan_styler(df):
+def get_plan_styler(df, returns = True):
     
     
     try:
@@ -105,8 +105,10 @@ def get_plan_styler(df):
     for col in col_list:
         if col == 'Sharpe':
             formatter[col] = "{:.4f}"
-        else:
+        if returns:
             formatter[col] = "{:.2%}"
+        else:
+            formatter[col] = "${:,.2f}"
     
     #return styler
     return df.style.\
@@ -139,3 +141,24 @@ def update_lower_bnds(df_bnds, asset, lower, plan):
     if (lower_value) < df_bnds['Upper'][asset]:
         df_bnds['Lower'][asset] = lower_value
     return None
+
+
+def get_fs_data_styler(df):
+    try:
+        df.index = pd.to_datetime(df.index, format = '%m/%d/%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        pass
+    #define formatter
+    col_list = list(df.columns)
+    formatter = {}
+    formatter[col_list[0]] = "${:,.2f}"
+    formatter[col_list[1]] = "${:,.2f}" 
+    formatter[col_list[2]] = "{:.2%}"
+    formatter[col_list[3]] = "${:,.2f}"
+    formatter[col_list[4]] = "{:.2%}"
+    formatter[col_list[5]] = "{:.2%}"
+
+    #return styler
+    return df.style.\
+        applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
+        format(formatter)

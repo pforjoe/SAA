@@ -388,7 +388,7 @@ def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatili
     #dollar format
     dollar_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
     #num format
-    num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
+    #num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
 
     #negative value format
     neg_value_fmt = formats.set_neg_value_format(workbook)
@@ -410,7 +410,7 @@ def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatili
         worksheet.conditional_format(row+1,col+2, row_dim, col_dim - 3 ,{'type':'no_blanks','format':pct_fmt})
         
         #fs gap format
-        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -2,{'type':'no_blanks','format':num_fmt})
+        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -2,{'type':'no_blanks','format':dollar_fmt})
         
         #1yr and 6mo format
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
@@ -418,5 +418,48 @@ def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatili
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
                                                                    'format': neg_value_fmt})
         col = col_dim + 2
+    
+    return 0
+
+
+def set_ftse_data_sheet(writer, df, sheet_name):
+    """
+    Create excel sheet for market values and present values to format values into $.00
+    
+    Parameters:
+    writer -- excel writer
+    df_pvs -- dataframe
+    sheet_name -- string
+    """
+
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='0.000000')
+    
+    #
+    period_fmt =  formats.set_number_format(workbook,num_format='0.00')
+    
+    row_dim = row + df.shape[0]
+    col_dim = col + df.shape[1]
+    
+    df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+
+    worksheet.conditional_format(row,col, row, col_dim+1,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row, col, row, col,{'type':'no_blanks',
+                                  'format':period_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':num_fmt})
+
     
     return 0

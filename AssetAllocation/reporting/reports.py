@@ -265,3 +265,29 @@ def get_plan_data_report(plan_data_dict, report_name = "new_plan_data"):
     sheets.set_return_sheet(writer, plan_data_dict["return"], sheet_name='return', set_neg_value_format= True)
 
     writer.save()
+    
+    
+    
+def get_ftse_data_report(ftse_dict, report_name = "new_ftse_data"):
+    '''
+    
+
+    Parameters
+    ----------
+    ftse_dict : dictionary
+
+    file_name : string
+        name of excel report. The default is "new_plan_data".
+
+    Returns
+    -------
+    None.
+
+    '''
+    #creates excel report with updated ftse data
+    filepath = get_reportpath(report_name)
+    writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
+    sheets.set_ftse_data_sheet(writer, ftse_dict['new_data'], sheet_name='new_data')
+    sheets.set_ftse_data_sheet(writer, ftse_dict['old_data'], sheet_name='old_data')
+
+    writer.save()

@@ -455,3 +455,18 @@ def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'
     
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
     return(plan_data_dict)
+
+def get_new_ftse_data():
+    #read in new ftse data
+    new_ftse = pd.read_excel(TS_FP + 'ftse-pension-discount-curve.xlsx', sheet_name = 'Data - Current',skiprows= 25,header = 1)
+    
+    #get list of the rows needed to drop
+    drop_rows = list(range(61, len(new_ftse))) + [0]
+    
+    #drop rows to only get ftse curve
+    new_ftse.drop(labels = drop_rows ,axis = 0, inplace = True)
+    
+    #set index 
+    new_ftse.set_index('Date', inplace = True)
+    
+    return(new_ftse)
