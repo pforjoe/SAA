@@ -116,9 +116,10 @@ def get_mkt_factor_premiums(filename):
     # mkt_factor_prem.dropna(inplace=True)
     return mkt_factor_prem['Market Factor Premium'].to_dict()
 
-def merge_dfs(main_df, new_df):
+def merge_dfs(main_df, new_df, drop=True):
     merged_df = pd.merge(main_df, new_df, left_index = True, right_index = True, how = 'outer')
-    merged_df = merged_df.dropna()
+    if drop:
+        merged_df = merged_df.dropna()
     return merged_df
     
 def get_plan_data(filename):
