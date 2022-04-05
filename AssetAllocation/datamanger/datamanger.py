@@ -457,9 +457,9 @@ def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
     return(plan_data_dict)
 
-def get_new_ftse_data():
+def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     #read in new ftse data
-    new_ftse = pd.read_excel(TS_FP + 'ftse-pension-discount-curve.xlsx', sheet_name = 'Data - Current',skiprows= 25,header = 1)
+    new_ftse = pd.read_excel(TS_FP + file_name , sheet_name = 'Data - Current', skiprows= 25,header = 1)
     
     #get list of the rows needed to drop
     drop_rows = list(range(61, len(new_ftse))) + [0]
