@@ -463,3 +463,88 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 
     
     return 0
+
+
+
+def set_plan_ldi_sheet(writer, returns_dict, liab_data_dict, fs_data_dict, sheet_name, plan):
+    '''
+    
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    sheet_name : string
+    returns_dict : Dictionary
+        Dictionary with asset/liability returns tables
+    liab_data_dict : Dictionary
+        Dictionary with PV and IRR tables
+    fs_data_dict : Dictionary
+        Dictionary with Funded Status data tables
+    plan : string
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    #title format
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #dollar format
+    dollar_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    #negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+ 
+   #get dimensions of each dataframe
+    ret_row_dim = row + returns_dict[plan].shape[0]
+    ret_col_dim = col + returns_dict[plan].shape[1]
+    
+    liab_row_dim = row + liab_data_dict[plan].shape[0]
+    liab_col_dim = col + liab_data_dict[plan].shape[1]
+    
+    fs_row_dim = row + fs_data_dict[plan].shape[0]
+    
+    
+    #write titles of each table
+    worksheet.write(row-1, col+1, "Returns", title_format)
+    
+    worksheet.write(row-1, col+ ret_col_dim + 3, "Liability Data", title_format)
+    
+    worksheet.write(row-1, col+ ret_col_dim + liab_col_dim + 5, "Funded Status", title_format)
+
+
+    #write  dataframes to excel
+    returns_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+    liab_data_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col+ ret_col_dim + 2)    
+    fs_data_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col + ret_col_dim + liab_col_dim + 4)
+    
+    
+    #format asset and liability returns values
+    worksheet.conditional_format(row, col, ret_row_dim, col,{'type':'no_blanks', 'format':date_fmt})
+    worksheet.conditional_format(row+1, col+1, ret_row_dim, ret_col_dim ,{'type':'no_blanks','format':pct_fmt})
+    worksheet.conditional_format(row+1, col+1, ret_row_dim, ret_col_dim ,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                   'format': neg_value_fmt})
+    
+    #pv and irr format
+    worksheet.conditional_format(row+1, col + ret_col_dim + 2  , liab_row_dim, col+ ret_col_dim + 2 ,{'type':'no_blanks','format':date_fmt})
+    worksheet.conditional_format(row+1,col+ ret_col_dim + 3 , liab_row_dim, col+ ret_col_dim + 3,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col+ ret_col_dim + 4, liab_row_dim, col+ ret_col_dim + 4,{'type':'no_blanks','format':pct_fmt})
+
+    #Funded status format
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 4  , fs_row_dim, col + ret_col_dim + liab_col_dim + 4,{'type':'no_blanks','format':date_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 5  , liab_row_dim, col + ret_col_dim + liab_col_dim + 6,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 7 , liab_row_dim, col + ret_col_dim + liab_col_dim + 7,{'type':'no_blanks','format':pct_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 8  , liab_row_dim, col + ret_col_dim + liab_col_dim + 8,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 9  , liab_row_dim, col + ret_col_dim + liab_col_dim + 10,{'type':'no_blanks','format':pct_fmt})
+
+
+    return 0
+

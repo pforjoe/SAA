@@ -162,3 +162,20 @@ def get_fs_data_styler(df):
     return df.style.\
         applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
         format(formatter)
+        
+        
+def get_pv_irr_styler(df):
+    try:
+        df.index = pd.to_datetime(df.index, format = '%m/%d/%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        pass
+    #define formatter
+    col_list = list(df.columns)
+    formatter = {}
+    formatter[col_list[0]] = "${:,.2f}" 
+    formatter[col_list[1]] = "{:.2%}"
+
+    #return styler
+    return df.style.\
+        applymap(color_neg_red, subset = pd.IndexSlice[:,col_list]).\
+        format(formatter)
