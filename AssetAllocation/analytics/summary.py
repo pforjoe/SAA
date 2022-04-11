@@ -156,16 +156,17 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     liab_model_dict = get_liab_model_dict(plan_list)
     
     #get asset liability returns table dictionary
-    asset_liab_ret_dict = get_asset_liab_dict( liab_model_dict, False)
+    asset_liab_ret_dict = dm.get_asset_liab_dict( liab_model_dict, 'Asset Returns', 'Liability Returns', columns = ['Asset','Liability'])
      
     #get asset liability market value table dictionary
-    asset_liab_mkt_val_dict = get_asset_liab_dict( liab_model_dict, True)
+    asset_liab_mkt_val_dict = dm.get_asset_liab_dict( liab_model_dict, 'Asset Market Values', 'Liability Market Values', columns = ['Asset','Liability'])
     
+    pv_irr_dict = dm.get_asset_liab_dict(liab_model_dict, 'Present Values', 'IRR', columns = ['Present Values', 'IRR'] )
     #get funded status tables
     funded_status = get_fs_data(asset_liab_mkt_val_dict )
     
     #get report dictionary by merging the liability model data frames for each plan 
-    report_dict = merge_liab_model_df(liab_model_dict, plan_list)
+    report_dict = dm.merge_liab_model_df(liab_model_dict, plan_list)
     
     #rename columns in report_dict
     for key in report_dict:
@@ -176,35 +177,14 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #add asset_liab_mkt_val_dict to report_dict
     report_dict['asset_liab_mkt_val_dict'] = asset_liab_mkt_val_dict   
-  
+
+    report_dict['pv_irr_dict'] = pv_irr_dict
+    
     #add funded status data to report dict
     report_dict['fs_data'] = funded_status
 
     return report_dict
 
-#TODO: move these last 2 methods to datamanager
-def get_asset_liab_dict(liab_model_dict, market_value = True):
-    
-    #create asset_liab_dict
-    asset_liab_ret_dict = {}
-    
-    #loop through each plan and get asset/liability table
-    for key in liab_model_dict:
-        asset_liab_ret_dict[key] = dm.get_n_year_ret(liab_model_dict[key], market_value = market_value)
-        
-    return asset_liab_ret_dict
-
-def merge_liab_model_df(liab_model_dict, plan_list):
-    
-    #get report dict for first plan in plan list
-    report_dict = liab_model_dict[plan_list[0]]
-    
-    #go through each plan and merge each data frames 
-    for plan in plan_list[1:]:
-        for key in liab_model_dict[plan]:
-            report_dict[key] = dm.merge_dfs(report_dict[key], liab_model_dict[plan][key])
-    
-    return report_dict
 
 
 def get_fs_data(asset_liab_mkt_val_dict):

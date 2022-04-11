@@ -382,17 +382,16 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
             'liab_curve': liab_curve, 'disc_rates':disc_rates, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv}
 
 
-def get_n_year_ret(liab_data_dict, market_value = False, n=3):
+def get_n_year_ret(liab_data_dict, df1 = 'Asset Market Values', df2 = 'Liability Market Values', colnames = [], n=3):
     #get market value and returns tables by month
-    if market_value:
-        asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Market Values'], liab_data_dict['Liability Market Values'])
-       
-    else: 
-        asset_liab_ret_df = merge_dfs(liab_data_dict['Asset Returns'], liab_data_dict['Liability Returns'])
+    merged_df = merge_dfs(liab_data_dict[df1], liab_data_dict[df2])
+    
     #rename columns
-    asset_liab_ret_df.columns = ["Asset","Liability"]
+    merged_df.columns = colnames
+        
+        
     #returns most recent n years
-    return asset_liab_ret_df.iloc[-(n*12):,]
+    return merged_df.iloc[-(n*12):,]
 
 
 def get_liab_cfs(filename='liab_pbo_cf_montheized.xlsx',  plan_list = ['Retirement','Pension','IBT']):
@@ -471,3 +470,27 @@ def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     new_ftse.set_index('Date', inplace = True)
     
     return(new_ftse)
+
+
+def get_asset_liab_dict(liab_model_dict, df_one, df_two, columns):
+    
+    #create asset_liab_dict
+    merged_dfs_dict = {}
+    
+    #loop through each plan and get asset/liability table
+    for key in liab_model_dict:
+        merged_dfs_dict[key] = get_n_year_ret(liab_model_dict[key], df1 = df_one, df2 = df_two, colnames = columns)
+        
+    return merged_dfs_dict
+
+def merge_liab_model_df(liab_model_dict, plan_list):
+    
+    #get report dict for first plan in plan list
+    report_dict = liab_model_dict[plan_list[0]]
+    
+    #go through each plan and merge each data frames 
+    for plan in plan_list[1:]:
+        for key in liab_model_dict[plan]:
+            report_dict[key] = merge_dfs(report_dict[key], liab_model_dict[plan][key])
+    
+    return report_dict
