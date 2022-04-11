@@ -33,6 +33,31 @@ def get_reportpath(reportname):
     filename = reportname +'.xlsx'
     return cwd + reports_fp + filename
 
+
+
+def get_ts_path(reportname):
+    """
+    Gets the file path where the report will be stored
+
+    Parameters
+    ----------
+    reportname : String
+        Name of report
+
+    Returns
+    -------
+    string
+        File path
+
+    """
+    
+    cwd = os.getcwd()
+    ts_fp = '\\data\\time_series\\'
+    filename = reportname +'.xlsx'
+    return cwd + ts_fp + filename
+
+
+
 def get_plan_inputpath(inputname):
     """
     Gets the file path where the output report will be stored
@@ -285,7 +310,9 @@ def get_ftse_data_report(ftse_dict, report_name = "new_ftse_data"):
 
     '''
     #creates excel report with updated ftse data
-    filepath = get_reportpath(report_name)
+    filepath = get_ts_path(report_name)
+    
+    
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     sheets.set_ftse_data_sheet(writer, ftse_dict['new_data'], sheet_name='new_data')
     sheets.set_ftse_data_sheet(writer, ftse_dict['old_data'], sheet_name='old_data')

@@ -20,4 +20,4 @@ new_ftse = dm.get_new_ftse_data()
 ftse_dict = {'new_data' : new_ftse, 'old_data' :  prev_ftse['old_data']}
 
 #generate new ftse report
-rp.get_ftse_data_report(ftse_dict)
+rp.get_ftse_data_report(ftse_dict, "ftse_data")
