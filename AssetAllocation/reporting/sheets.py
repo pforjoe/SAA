@@ -466,7 +466,7 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 
 
 
-def set_plan_ldi_sheet(writer, returns_dict, liab_data_dict, fs_data_dict, sheet_name, plan):
+def set_plan_ldi_sheet(writer, returns_dict, pv_irr_dict, fs_data_dict, sheet_name, plan):
     '''
     
 
@@ -507,8 +507,8 @@ def set_plan_ldi_sheet(writer, returns_dict, liab_data_dict, fs_data_dict, sheet
     ret_row_dim = row + returns_dict[plan].shape[0]
     ret_col_dim = col + returns_dict[plan].shape[1]
     
-    liab_row_dim = row + liab_data_dict[plan].shape[0]
-    liab_col_dim = col + liab_data_dict[plan].shape[1]
+    liab_row_dim = row + pv_irr_dict[plan].shape[0]
+    liab_col_dim = col + pv_irr_dict[plan].shape[1]
     
     fs_row_dim = row + fs_data_dict[plan].shape[0]
     
@@ -516,14 +516,14 @@ def set_plan_ldi_sheet(writer, returns_dict, liab_data_dict, fs_data_dict, sheet
     #write titles of each table
     worksheet.write(row-1, col+1, "Returns", title_format)
     
-    worksheet.write(row-1, col+ ret_col_dim + 3, "Liability Data", title_format)
+    worksheet.write(row-1, col+ ret_col_dim + 3, "Present Values & IRR", title_format)
     
     worksheet.write(row-1, col+ ret_col_dim + liab_col_dim + 5, "Funded Status", title_format)
 
 
     #write  dataframes to excel
     returns_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
-    liab_data_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col+ ret_col_dim + 2)    
+    pv_irr_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col+ ret_col_dim + 2)    
     fs_data_dict[plan].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col + ret_col_dim + liab_col_dim + 4)
     
     

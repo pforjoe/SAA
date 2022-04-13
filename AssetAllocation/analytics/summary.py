@@ -10,7 +10,6 @@ from .liability_model import liabilityModel
 from ..datamanger import datamanger as dm
 from .import ts_analytics as ts
 from .import util
-import pandas as pd
 
 def get_mv_inputs(mv_inputs_dict, liab_model):
     weights_df = add_fs_load_col(mv_inputs_dict['weights'],liab_model)
@@ -44,8 +43,8 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
     liab_input_dict = dm.get_liab_model_data(plan, contrb_pct)
     return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
-                          liab_input_dict['asset_mv'], liab_input_dict['liab_curve'], 
-                          liab_input_dict['disc_rates'])
+                          liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
+                          liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
 
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return
@@ -121,52 +120,38 @@ def add_fs_load_col(weights_df, liab_model):
             weights_df['FS Loadings'][ind] = liab_model.funded_status
     return weights_df
 
-def get_liab_model_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
-    #get data needed for liability model
-    df_pbo_cfs = dm.get_cf_data('PBO')
-    df_sc_cfs = dm.get_cf_data('Service Cost')
-    df_liab_mv_cfs = dm.get_liab_cfs(plan_list = plan_list)
-    df_ftse = dm.get_ftse_data(False)
-    plan_data = dm.get_plan_data()
-    disc_factors = df_pbo_cfs['Time']
-    liab_curve = dm.generate_liab_curve(df_ftse, df_pbo_cfs["IBT"])
-    #line below is TEMPORARY
-    liab_curve = liab_curve.iloc[:,:-2]
-    contrb_pct = 0.0
-        
-    liab_model_dict={}
+def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
+    liab_data_dict={}
     
+    #does not include liab/ret table anymore
     for plan in plan_list:
-        #index data by plan
-        liab_mv_cfs = df_liab_mv_cfs[plan]
-        pbo_cashflows = df_pbo_cfs[plan]
-        sc_cashflows = df_sc_cfs[plan]
-        asset_mv = pd.DataFrame(plan_data['mkt_value'][plan])
-        asset_returns = pd.DataFrame(plan_data['return'][plan])
-        
-        #run liability model
-        liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, liab_mv_cfs, asset_returns, liab_curve)
+        liab_model = get_liab_model(plan, contrb_pct)
         del liab_model.data_dict['Cashflows']
-        liab_model_dict[plan] = liab_model.data_dict
-    return liab_model_dict
+        liab_data_dict[plan] = liab_model.data_dict
+
+    return liab_data_dict
 
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #get_liability model dictionary
-    liab_model_dict = get_liab_model_dict(plan_list)
+    liab_data_dict = get_liab_data_dict(plan_list)
     
     #get asset liability returns table dictionary
-    asset_liab_ret_dict = dm.get_asset_liab_dict( liab_model_dict, 'Asset Returns', 'Liability Returns', columns = ['Asset','Liability'])
-     
-    #get asset liability market value table dictionary
-    asset_liab_mkt_val_dict = dm.get_asset_liab_dict( liab_model_dict, 'Asset Market Values', 'Liability Market Values', columns = ['Asset','Liability'])
+    asset_liab_ret_dict = dm.get_asset_liab_dict(liab_data_dict, 'Asset Returns', 'Liability Returns', columns = ['Asset','Liability'])
+    asset_liab_ret_dict_1 = dm.group_asset_liab_data(liab_data_dict)
     
-    pv_irr_dict = dm.get_asset_liab_dict(liab_model_dict, 'Present Values', 'IRR', columns = ['Present Values', 'IRR'] )
+    #get asset liability market value table dictionary
+    asset_liab_mv_dict = dm.get_asset_liab_dict(liab_data_dict, 'Asset Market Values', 'Liability Market Values', columns = ['Asset','Liability'])
+    asset_liab_mv_dict_1 = dm.group_asset_liab_data(liab_data_dict, 'market_values')
+    
+    pv_irr_dict = dm.get_asset_liab_dict(liab_data_dict, 'Present Values', 'IRR', columns = ['Present Values', 'IRR'] )
+    pv_irr_dict_1 = dm.group_asset_liab_data(liab_data_dict, 'pv_irr')
+    
     #get funded status tables
-    funded_status = get_fs_data(asset_liab_mkt_val_dict )
+    funded_status = get_fs_data(asset_liab_mv_dict )
     
     #get report dictionary by merging the liability model data frames for each plan 
-    report_dict = dm.merge_liab_model_df(liab_model_dict, plan_list)
+    report_dict = dm.merge_liab_data_df(liab_data_dict, plan_list)
     
     #rename columns in report_dict
     for key in report_dict:
@@ -176,7 +161,7 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
     
     #add asset_liab_mkt_val_dict to report_dict
-    report_dict['asset_liab_mkt_val_dict'] = asset_liab_mkt_val_dict   
+    report_dict['asset_liab_mv_dict'] = asset_liab_mv_dict   
 
     report_dict['pv_irr_dict'] = pv_irr_dict
     
@@ -185,18 +170,31 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
 
     return report_dict
 
-
-
-def get_fs_data(asset_liab_mkt_val_dict):
+def get_report_dict_1(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    
+    #get_liability model dictionary
+    liab_data_dict = get_liab_data_dict(plan_list)
+    
+    report_dict = {}
+    data_list = ['returns', 'market_values', 'pv_irr']
+    
+    for data in data_list:
+        report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data)
+    
+    report_dict['fs_data'] = get_fs_data(report_dict['market_values'])
+    
+    return dm.transform_report_dict(report_dict, plan_list)
+    
+def get_fs_data(asset_liab_mv_dict):
     
     #create empty dictionary
-    vol = {}
+    fs_data_dict = {}
     
     #loop through each plan to get funded status volatility
-    for key in asset_liab_mkt_val_dict:
+    for key in asset_liab_mv_dict:
         
-        fs_data = ts.compute_fs_data(asset_liab_mkt_val_dict[key])
+        fs_data_df = ts.compute_fs_data(asset_liab_mv_dict[key])
         
-        vol[key] = fs_data
+        fs_data_dict[key] = fs_data_df
         
-    return(vol)
+    return fs_data_dict

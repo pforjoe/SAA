@@ -12,8 +12,9 @@ from AssetAllocation.datamanger import datamanger as dm
 
 
 #start = time.time()
-liab_model_dict = summary.get_liab_model_dict()
+liab_data_dict = summary.get_liab_data_dict()
 report_dict = summary.get_report_dict()
+report_dict_1 = summary.get_report_dict_1()
 #end = time.time()
 #print(end - start)
 # temp_dict = {}
@@ -24,6 +25,5 @@ report_dict = summary.get_report_dict()
 # report_dict['pv_irr_dict'] = temp_dict
 
 rp.get_liability_returns_report(report_dict,report_name = "test")
-
 #new ldi report format
-rp.get_ldi_report(report_dict)
+rp.get_ldi_report(report_dict_1)

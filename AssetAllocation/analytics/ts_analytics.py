@@ -159,10 +159,10 @@ def get_ret_vol_df(returns_df):
     return add_sharpe_col(ret_vol_df)
 
 #TODO: move compute fs data to a diff library 
-def compute_fs_data(asset_liab_mkt_val_df):
+def compute_fs_data(asset_liab_mv_df):
     
       #create copy of dataframe
-      df = asset_liab_mkt_val_df.copy()
+      df = asset_liab_mv_df.copy()
      
       #compute funded status: asset/liability
       df['Funded Status'] = df['Asset'] / df['Liability'] 
