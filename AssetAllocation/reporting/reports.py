@@ -334,3 +334,27 @@ def get_ldi_report(report_dict, report_name = "ldi_report"):
                                   sheet_name = key, plan = key)
        
     writer.save()
+    
+def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
+    '''
+    
+
+    Parameters
+    ----------
+    plan_mv_cfs_dict : TYPE
+        DESCRIPTION.
+    report_name : TYPE, optional
+        DESCRIPTION. The default is "liab_mv_cfs".
+
+    Returns
+    -------
+    None.
+
+    '''
+    
+    filepath = get_reportpath(report_name)
+    writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
+    
+    for plan in plan_mv_cfs_dict:
+        sheets.set_liab_mv_cf_sheet(writer, plan_mv_cfs_dict[plan], plan)
+    writer.save()
