@@ -269,3 +269,12 @@ for key in plan_mv_cfs_dict:
     plan_mv_cfs_dict[key].to_excel(writer, key)
     
 writer.save()
+
+###############################################
+
+from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.reporting import reports as rp
+plan_mv_cfs_dict = dm.get_plan_mv_cfs_dict()
+rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
+
+
