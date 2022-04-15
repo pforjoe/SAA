@@ -324,14 +324,13 @@ def get_ldi_report(report_dict, report_name = "ldi_report"):
     #creates excel report with updated ftse data
     filepath = get_reportpath(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
-    
-    #should I loop through a plan list instead???
-    for key in report_dict['asset_liab_ret_dict']:
+  
+    for key in report_dict:
         
-        sheets.set_plan_ldi_sheet(writer, report_dict['asset_liab_ret_dict'], 
-                                  report_dict['pv_irr_dict'], 
-                                  report_dict['fs_data'] ,
-                                  sheet_name = key, plan = key)
+        sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'], 
+                                  report_dict[key]['pv_irr'], 
+                                  report_dict[key]['fs_data'] ,
+                                  sheet_name = key)
        
     writer.save()
     

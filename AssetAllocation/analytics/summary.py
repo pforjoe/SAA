@@ -45,7 +45,12 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
                           liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
-
+def get_liab_model1(plan='IBT', contrb_pct=.05):
+    liab_input_dict = dm.get_liab_model_data1(plan, contrb_pct)
+    return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
+                          liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
+                          liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
+                          liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return
     mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan), liab_model)
@@ -131,6 +136,19 @@ def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], co
 
     return liab_data_dict
 
+
+def get_liab_data_dict1(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
+    liab_data_dict={}
+    
+    #does not include liab/ret table anymore
+    for plan in plan_list:
+        liab_model = get_liab_model1(plan, contrb_pct)
+        del liab_model.data_dict['Cashflows']
+        liab_data_dict[plan] = liab_model.data_dict
+
+    return liab_data_dict
+
+
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #get_liability model dictionary
@@ -184,7 +202,7 @@ def get_report_dict_1(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     report_dict['fs_data'] = get_fs_data(report_dict['market_values'])
     
     return dm.transform_report_dict(report_dict, plan_list)
-    
+
 def get_fs_data(asset_liab_mv_dict):
     
     #create empty dictionary

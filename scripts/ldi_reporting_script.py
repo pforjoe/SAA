@@ -24,6 +24,6 @@ report_dict_1 = summary.get_report_dict_1()
 
 # report_dict['pv_irr_dict'] = temp_dict
 
-rp.get_liability_returns_report(report_dict,report_name = "test")
+#rp.get_liability_returns_report(report_dict,report_name = "test")
 #new ldi report format
 rp.get_ldi_report(report_dict_1)

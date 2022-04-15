@@ -8,11 +8,14 @@ Created on Wed Oct  6 12:01:39 2021
 import os
 import pandas as pd
 import numpy as np
+from AssetAllocation.reporting import reports as rp
+
 # import statistics as stat
 
 from itertools import count, takewhile
 import scipy as sp
 from scipy import interpolate
+
 
 # Ignore warnings
 import warnings
@@ -391,6 +394,19 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
             'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': get_plan_asset_mv(plan_asset_data, plan),
             'liab_mv_cfs':offset(plan_mv_cfs_dict[plan]),'asset_ret': get_plan_asset_returns(plan_asset_data, plan)}
 
+def get_liab_model_data1(plan='IBT', contrb_pct=.05):
+    df_pbo_cfs = get_cf_data('PBO')
+    # df_pvfb_cfs = get_cf_data('PVFB')
+    # df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
+    df_sc_cfs = get_cf_data('Service Cost')
+    df_ftse = get_ftse_data()
+    plan_asset_data = get_plan_asset_data()
+    liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])
+    plan_mv_cfs_dict = get_plan_mv_file()
+    return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
+            'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': get_plan_asset_mv(plan_asset_data, plan),
+            'liab_mv_cfs':offset(plan_mv_cfs_dict[plan]),'asset_ret': get_plan_asset_returns(plan_asset_data, plan)}
+
 def get_n_year_ret(liab_data_dict, df1 = 'Asset Market Values', df2 = 'Liability Market Values', colnames = [], n=3):
     #get market value and returns tables by month
     merged_df = merge_dfs(liab_data_dict[df1], liab_data_dict[df2])
@@ -449,7 +465,7 @@ def offset(pbo_cfs):
         data.iloc[:,i] = cfs
     return(data)
 
-def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'):
+def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_name = 'Plan level Historical Returns'):
     '''
     
 
@@ -483,6 +499,10 @@ def update_plan_data(report_name = 'monthly_plan_data.xlsx', sheet_name = 'data'
     ret_df /= 100
     
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
+    
+     
+    rp.get_plan_data_report(plan_data_dict)
+
     return(plan_data_dict)
 
 def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
@@ -499,6 +519,21 @@ def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     new_ftse.set_index('Date', inplace = True)
     
     return(new_ftse)
+
+def update_ftse_data(file_name = "ftse_data.xlsx"):
+    #read in current ftse data
+    prev_ftse = pd.read_excel(TS_FP + file_name, sheet_name = ['new_data','old_data'],index_col=0)
+
+    #get new ftse data
+    new_ftse = get_new_ftse_data()
+
+    #create ftse dict for report
+    ftse_dict = {'new_data' : new_ftse, 'old_data' :  prev_ftse['old_data']}
+    
+    #export report
+    rp.get_ftse_data_report(ftse_dict, "ftse_data")
+    
+    return ftse_dict
 
 def get_asset_liab_dict(liab_data_dict, df_one, df_two, columns):
     
@@ -677,9 +712,32 @@ def get_plan_mv_cfs_dict():
     plan_mv_cfs_dict['Total'] = aggregate_mv_cfs(plan_mv_cfs_dict)
     return plan_mv_cfs_dict
 
+def get_plan_mv_file(plan_list = ['Retirement','IBT','Pension','Total'], file_name = "liab_mv_cfs.xlsx"):
+    plan_mv_dict = {}
+    for plan in plan_list:
+        plan_mv_dict[plan] = pd.read_excel(TS_FP + file_name, sheet_name = plan, index_col=0)
+        
+    return plan_mv_dict 
+        
 def aggregate_mv_cfs(plan_mv_cfs_dict):
     agg_df = pd.DataFrame(index=plan_mv_cfs_dict[PLAN_LIST[0]].index, columns=plan_mv_cfs_dict[PLAN_LIST[0]].columns)
     agg_df.fillna(0, inplace=True)
     for plan in PLAN_LIST:
         agg_df = plan_mv_cfs_dict[plan] + agg_df
     return agg_df
+
+
+def update_plan_mv():
+    #update plan liability market values
+    plan_mv_cfs_dict = get_plan_mv_cfs_dict()
+    
+    #export report
+    rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
+    
+    return plan_mv_cfs_dict
+
+
+def update_ldi_data():
+    update_plan_data()
+    update_ftse_data()
+    update_plan_mv()
