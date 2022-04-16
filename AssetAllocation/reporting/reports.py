@@ -267,7 +267,7 @@ def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     writer.save()
     
    
-def get_plan_data_report(plan_data_dict, report_name = "new_plan_data"):
+def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     '''
     
 
@@ -284,11 +284,13 @@ def get_plan_data_report(plan_data_dict, report_name = "new_plan_data"):
 
     '''
     #creates excel report with updated plan market vallues and returns
-    filepath = get_reportpath(report_name)
+    filepath = get_ts_path(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     sheets.set_dollar_values_sheet(writer, plan_data_dict['mkt_value'], sheet_name='mkt_value')
     sheets.set_return_sheet(writer, plan_data_dict["return"], sheet_name='return', set_neg_value_format= True)
 
+    #save file
+    print_report_info(report_name, filepath)
     writer.save()
     
     
@@ -317,6 +319,8 @@ def get_ftse_data_report(ftse_dict, report_name = "new_ftse_data"):
     sheets.set_ftse_data_sheet(writer, ftse_dict['new_data'], sheet_name='new_data')
     sheets.set_ftse_data_sheet(writer, ftse_dict['old_data'], sheet_name='old_data')
 
+    #save file
+    print_report_info(report_name, filepath)
     writer.save()
     
     
@@ -332,6 +336,8 @@ def get_ldi_report(report_dict, report_name = "ldi_report"):
                                   report_dict[key]['fs_data'] ,
                                   sheet_name = key)
        
+    #save file
+    print_report_info(report_name, filepath)
     writer.save()
     
 def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
@@ -351,9 +357,13 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
 
     '''
     
-    filepath = get_reportpath(report_name)
+    filepath = get_ts_path(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     
     for plan in plan_mv_cfs_dict:
         sheets.set_liab_mv_cf_sheet(writer, plan_mv_cfs_dict[plan], plan)
+    
+    #save file
+    print_report_info(report_name, filepath)
     writer.save()
+    
