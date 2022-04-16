@@ -64,10 +64,10 @@ def get_plan_pbo_dict():
         temp_pbo_df = pd.DataFrame()
         #merge past years pbos
         for key in past_pbo_dict:
-            temp_pbo_df = dm.merge_dfs(temp_pbo_df, past_pbo_dict[key][plan],drop = False)
+            temp_pbo_df = dm.merge_dfs(temp_pbo_df, past_pbo_dict[key][plan],dropna = False)
         
         #merge current years pbos
-        temp_pbo_df = dm.merge_dfs(temp_pbo_df, dm.get_cf_data()[plan], drop = False)
+        temp_pbo_df = dm.merge_dfs(temp_pbo_df, dm.get_cf_data()[plan], dropna = False)
         
         #rename dataframe
         temp_pbo_df.columns = SHEET_LIST
@@ -96,7 +96,7 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
                                       sheet_name='2021', index_col=0)/12
             df_sc_cfs = dm.reindex_to_monthly_data(df_sc_cfs)[[plan]]/12
             df_sc_cfs.columns = ['2021']
-            sc_df = dm.merge_dfs(sc_df, df_sc_cfs, drop= False)
+            sc_df = dm.merge_dfs(sc_df, df_sc_cfs, dropna= False)
         plan_sc_dict[plan] = sc_df[SHEET_LIST]
     return plan_sc_dict
     
@@ -142,7 +142,7 @@ def get_plan_mv_cfs_dict():
         mv_cfs_df = pd.DataFrame()
         #merge past years pbos
         for year in liab_mv_dict[plan]:
-            mv_cfs_df = dm.merge_dfs(mv_cfs_df, liab_mv_dict[plan][year],drop = False)
+            mv_cfs_df = dm.merge_dfs(mv_cfs_df, liab_mv_dict[plan][year],dropna = False)
         mv_cfs_df.columns = get_liab_mv_cf_cols()
         mv_cfs_df.fillna(0, inplace=True)
         plan_mv_cfs_dict[plan] = mv_cfs_df
