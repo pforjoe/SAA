@@ -28,6 +28,8 @@ DATA_FP = CWD + '\\data\\'
 MV_INPUTS_FP = DATA_FP + 'mv_inputs\\'
 TS_FP = DATA_FP + 'time_series\\'
 PLAN_INPUTS_FP = DATA_FP + 'plan_inputs\\'
+UPDATE_FP = DATA_FP + 'update_files\\'
+
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
 SHEET_LIST = ['2019','2020','2021','2021_1', '2022']
@@ -471,7 +473,7 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
     '''
     print('updating plan_data.xlsx')
     #read in monthly plan data
-    plan_data = pd.read_excel(TS_FP + report_name, sheet_name = sheet_name)
+    plan_data = pd.read_excel(UPDATE_FP + report_name, sheet_name = sheet_name)
     
     #rename columns
     plan_data.columns = ["Account Name","Account Id","Return Type","Date", "Market Value","Monthly Return"]
@@ -495,7 +497,7 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
 
 def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     #read in new ftse data
-    new_ftse = pd.read_excel(TS_FP + file_name , sheet_name = 'Data - Current', skiprows= 25,header = 1)
+    new_ftse = pd.read_excel(UPDATE_FP + file_name , sheet_name = 'Data - Current', skiprows= 25,header = 1)
     
     #get list of the rows needed to drop
     drop_rows = list(range(61, len(new_ftse))) + [0]
