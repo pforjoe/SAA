@@ -45,12 +45,7 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
                           liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
-def get_liab_model1(plan='IBT', contrb_pct=.05):
-    liab_input_dict = dm.get_liab_model_data1(plan, contrb_pct)
-    return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
-                          liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
-                          liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
-                          liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
+
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return
     mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan), liab_model)
@@ -136,59 +131,7 @@ def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], co
 
     return liab_data_dict
 
-
-def get_liab_data_dict1(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
-    liab_data_dict={}
-    
-    #does not include liab/ret table anymore
-    for plan in plan_list:
-        liab_model = get_liab_model1(plan, contrb_pct)
-        del liab_model.data_dict['Cashflows']
-        liab_data_dict[plan] = liab_model.data_dict
-
-    return liab_data_dict
-
-
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
-    
-    #get_liability model dictionary
-    liab_data_dict = get_liab_data_dict(plan_list)
-    
-    #get asset liability returns table dictionary
-    asset_liab_ret_dict = dm.get_asset_liab_dict(liab_data_dict, 'Asset Returns', 'Liability Returns', columns = ['Asset','Liability'])
-    asset_liab_ret_dict_1 = dm.group_asset_liab_data(liab_data_dict)
-    
-    #get asset liability market value table dictionary
-    asset_liab_mv_dict = dm.get_asset_liab_dict(liab_data_dict, 'Asset Market Values', 'Liability Market Values', columns = ['Asset','Liability'])
-    asset_liab_mv_dict_1 = dm.group_asset_liab_data(liab_data_dict, 'market_values')
-    
-    pv_irr_dict = dm.get_asset_liab_dict(liab_data_dict, 'Present Values', 'IRR', columns = ['Present Values', 'IRR'] )
-    pv_irr_dict_1 = dm.group_asset_liab_data(liab_data_dict, 'pv_irr')
-    
-    #get funded status tables
-    funded_status = get_fs_data(asset_liab_mv_dict )
-    
-    #get report dictionary by merging the liability model data frames for each plan 
-    report_dict = dm.merge_liab_data_df(liab_data_dict, plan_list)
-    
-    #rename columns in report_dict
-    for key in report_dict:
-        report_dict[key].columns = plan_list
-    
-    #add asset_liab_ret_dict to report_dict
-    report_dict['asset_liab_ret_dict'] = asset_liab_ret_dict   
-    
-    #add asset_liab_mkt_val_dict to report_dict
-    report_dict['asset_liab_mv_dict'] = asset_liab_mv_dict   
-
-    report_dict['pv_irr_dict'] = pv_irr_dict
-    
-    #add funded status data to report dict
-    report_dict['fs_data'] = funded_status
-
-    return report_dict
-
-def get_report_dict_1(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #get_liability model dictionary
     liab_data_dict = get_liab_data_dict(plan_list)
