@@ -428,15 +428,6 @@ def switch_liab_dict(arg):
     }
     return switcher.get(arg)
 
-#TODO: delete this
-def get_liab_cfs(filename='liab_pbo_cf_montheized.xlsx',  plan_list = ['Retirement','Pension','IBT']):
-    filepath = TS_FP+filename
-    data_dict = {}
-    for key in plan_list:
-        data_dict[key] = offset(pd.read_excel(filepath, sheet_name = key, index_col=0))
-        # data_dict[key] = offset(data_dict[key])
-            
-    return(data_dict)
 
 def offset(pbo_cfs):
     #make a copy of the data
@@ -730,36 +721,9 @@ def update_plan_mv():
     
     return plan_mv_cfs_dict
 
-#TODO: Make update_plan_mv() optional
-def update_ldi_data(update_plan_mv = True):
+def update_ldi_data(update_plan_market_val = True):
     update_plan_data()
     update_ftse_data()
-    if update_plan_mv:
+    if update_plan_market_val:
         update_plan_mv()
         
-        
-def get_benefit_overpmt(start_yr = 2003, end_yr = 2028, filename = 'Benefit Pmt Overpmt Monthly JE (BNYM detail).xlsx'):
-    #get list of which sheets to read in
-    years = list(range(start_yr, end_yr+1, 1))
-    
-    #define empty dict
-    pmt = {}
-    for yr in years:
-        #try reading in sheet by year 
-        try:
-            overpmt = pd.read_excel(MV_INPUTS_FP + filename, sheet_name = str(yr), skiprows=4, header = 1, usecols=[0,1,2])
-        
-        #if error then read in sheeat by year + " " 
-        except:
-            overpmt = pd.read_excel(MV_INPUTS_FP + filename, sheet_name = str(yr) + " ", skiprows=4, header = 1, usecols=[0,1,2])
-        
-        #drop first row by row number since index is not consistent
-        overpmt.drop(0, axis = 0, inplace = True)
-        
-        #set dates as index
-        overpmt.set_index(overpmt.columns[0], inplace = True)
-        
-        #define dict
-        pmt[str(yr)] = overpmt
-    
-    return pmt
