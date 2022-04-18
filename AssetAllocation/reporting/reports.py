@@ -276,7 +276,7 @@ def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     plan_data_dict : dictionary
         plan data dictionary (includes plan market values and returns)
     file_name : string
-        name of excel report. The default is "new_plan_data".
+        name of excel report. The default is "plan_data".
 
     Returns
     -------
@@ -295,7 +295,7 @@ def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     
     
     
-def get_ftse_data_report(ftse_dict, report_name = "new_ftse_data"):
+def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     '''
     
 
@@ -304,7 +304,7 @@ def get_ftse_data_report(ftse_dict, report_name = "new_ftse_data"):
     ftse_dict : dictionary
 
     file_name : string
-        name of excel report. The default is "new_plan_data".
+        name of excel report. The default is "plan_data".
 
     Returns
     -------
