@@ -319,7 +319,6 @@ def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability
         
     return 0
 
-
 def set_dollar_values_sheet(writer, df, sheet_name):
     """
     Create excel sheet for market values and present values to format values into $.00
@@ -421,7 +420,6 @@ def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatili
     
     return 0
 
-
 def set_ftse_data_sheet(writer, df, sheet_name):
     """
     Create excel sheet for market values and present values to format values into $.00
@@ -463,8 +461,6 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 
     
     return 0
-
-
 
 def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name):
     '''

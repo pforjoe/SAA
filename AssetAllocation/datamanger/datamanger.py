@@ -475,16 +475,23 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
     #pivot table so that plans are in the columns and the rows are the market value/returns for each date
     mv_df = plan_data.pivot_table(values = 'Market Value', index='Date', columns='Account Name')
     
+    #add back misc recievables
+    add_misc_receiv(mv_df)
+    
     ret_df = plan_data.pivot_table(values = 'Monthly Return', index='Date', columns='Account Name')
     #divide returns by 100
     ret_df /= 100
     
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
     
-     
     rp.get_plan_data_report(plan_data_dict)
 
-    return(plan_data_dict)
+    # return(plan_data_dict)
+
+def add_misc_receiv(mv_df, filename='misc_receivables_data.xlsx'):
+    misc_receiv_df = pd.read_excel(TS_FP+filename, sheet_name='misc_receiv', index_col=0)
+    mv_df['Total'] += misc_receiv_df['Misc Receivable']
+    mv_df['Retirement'] += misc_receiv_df['Misc Receivable']
 
 def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     #read in new ftse data
@@ -515,7 +522,7 @@ def update_ftse_data(file_name = "ftse_data.xlsx"):
     #export report
     rp.get_ftse_data_report(ftse_dict, "ftse_data")
     
-    return ftse_dict
+    # return ftse_dict
 
 def get_asset_liab_dict(liab_data_dict, df_one, df_two, columns):
     
@@ -719,7 +726,7 @@ def update_plan_mv():
     #export report
     rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
     
-    return plan_mv_cfs_dict
+    # return plan_mv_cfs_dict
 
 def update_ldi_data(update_plan_market_val = True):
     update_plan_data()

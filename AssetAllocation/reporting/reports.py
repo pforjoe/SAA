@@ -33,8 +33,6 @@ def get_reportpath(reportname):
     filename = reportname +'.xlsx'
     return cwd + reports_fp + filename
 
-
-
 def get_ts_path(reportname):
     """
     Gets the file path where the report will be stored
@@ -56,8 +54,6 @@ def get_ts_path(reportname):
     filename = reportname +'.xlsx'
     return cwd + ts_fp + filename
 
-
-
 def get_plan_inputpath(inputname):
     """
     Gets the file path where the output report will be stored
@@ -77,7 +73,6 @@ def get_plan_inputpath(inputname):
     filename = inputname +'.xlsx'
     return dm.PLAN_INPUTS_FP + filename
 
-    
 def get_output_report(reportname, output_dict):
     """
     Generates output report
@@ -228,8 +223,6 @@ def print_report_info(reportname, filepath):
     folder_location = filepath.replace(reportname+'.xlsx', '')
     print('"{}.xlsx" report generated in "{}" folder'.format(reportname,folder_location))
 
-
-
 def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     '''
     
@@ -265,8 +258,7 @@ def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     #save file
     print_report_info(report_name, filepath)
     writer.save()
-    
-   
+
 def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     '''
     
@@ -292,8 +284,6 @@ def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     #save file
     print_report_info(report_name, filepath)
     writer.save()
-    
-    
     
 def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     '''
@@ -322,7 +312,6 @@ def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     #save file
     print_report_info(report_name, filepath)
     writer.save()
-    
     
 def get_ldi_report(report_dict, report_name = "ldi_report"):
     #creates excel report with updated ftse data
