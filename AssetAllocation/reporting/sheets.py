@@ -2,7 +2,7 @@
 """
 Created on Sat Oct  9 21:41:41 2021
 
-@author: Powis Forjoe
+@author: Powis Forjoe, Maddie Choi
 """
 
 #TODO: rewrite code to make OOP-too many repeated code
@@ -11,7 +11,8 @@ from AssetAllocation.reporting import formats
 from .import formats
 from .import plots
 
-def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False):
+# TODO: add comments in it 
+def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', sample_ret=False,set_neg_value_format = True):
     """
     Create excel sheet for historical returns
     
@@ -49,12 +50,13 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', 
     else:
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
-                                  'format':pct_fmt})
-    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
-                                                               'criteria': 'less than',
-                                                               'value': 0,
-                                                               'format': neg_value_fmt})
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                      'format':pct_fmt})
+        if set_neg_value_format:
+            worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell',
+                                                                       'criteria': 'less than',
+                                                                       'value': 0,
+                                                                       'format': neg_value_fmt})
     if sample_ret:
         worksheet.insert_image(2, col_dim+2, 'simulated_returns.png',
                                {'x_scale': 0.5, 'y_scale': 0.5})
@@ -264,7 +266,20 @@ def set_ff_ratio_matrix_sheet(writer,plan, fulfill_ret_dict):
         row = row_dim + 2 + 1
     return 0
 
-def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns"):
+def set_asset_liability_sheet(writer, tables_dict, sheet_name = "Asset-Liability Returns", num_values = False):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values 
+        False if values should be formatted in percentages
+
+    '''
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -277,16 +292,16 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Li
     title_format = formats.set_title_format(workbook, center = True)
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
-    #percent format
-    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
-    
-    
-    #plan_list = ["Retirement","Pension","IBT"]
-     #neg value format
-     
+    #negative value format
     neg_value_fmt = formats.set_neg_value_format(workbook)
 
-
+    if num_values:
+        #number format
+        value_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    else:
+        #percent format
+        value_fmt = formats.set_number_format(workbook,num_format='0.00%')
+        
     for key in tables_dict:
         row_dim = row + tables_dict[key].shape[0]
         col_dim = col + tables_dict[key].shape[1]
@@ -295,13 +310,12 @@ def set_asset_liability_charts_sheet(writer, tables_dict, sheet_name = "Asset-Li
         tables_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
         worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
                                   'format':date_fmt})
-        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim,{'type':'no_blanks','format':value_fmt})
         worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
                                                                'format': neg_value_fmt})
         col = col_dim + 2   
         
     return 0
-
 
 def set_dollar_values_sheet(writer, df, sheet_name):
     """
@@ -333,6 +347,233 @@ def set_dollar_values_sheet(writer, df, sheet_name):
     df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
 
     worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':num_fmt})
+
+    
+    return 0
+
+def set_fs_data_sheet(writer, fs_data_dict, sheet_name = "Funded Status Volatility"):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values 
+        False if values should be formatted in percentages
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #dollar format
+    dollar_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    #num format
+    #num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
+
+    #negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+
+   
+    for key in fs_data_dict:
+        row_dim = row + fs_data_dict[key].shape[0]
+        col_dim = col + fs_data_dict[key].shape[1]
+        worksheet.write(row-1, col+1, key, title_format)
+        fs_data_dict[key].to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+        
+        worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+        
+        #format asset and liability market values
+        worksheet.conditional_format(row+1, col+1, row_dim, col_dim - 4,{'type':'no_blanks','format':dollar_fmt})
+        
+        #funded status format
+        worksheet.conditional_format(row+1,col+2, row_dim, col_dim - 3 ,{'type':'no_blanks','format':pct_fmt})
+        
+        #fs gap format
+        worksheet.conditional_format(row+1,col+3, row_dim, col_dim -2,{'type':'no_blanks','format':dollar_fmt})
+        
+        #1yr and 6mo format
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks','format':pct_fmt})
+      
+        worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                   'format': neg_value_fmt})
+        col = col_dim + 2
+    
+    return 0
+
+def set_ftse_data_sheet(writer, df, sheet_name):
+    """
+    Create excel sheet for market values and present values to format values into $.00
+    
+    Parameters:
+    writer -- excel writer
+    df_pvs -- dataframe
+    sheet_name -- string
+    """
+
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='0.000000')
+    
+    #
+    period_fmt =  formats.set_number_format(workbook,num_format='0.00')
+    
+    row_dim = row + df.shape[0]
+    col_dim = col + df.shape[1]
+    
+    df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+
+    worksheet.conditional_format(row,col, row, col_dim+1,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row, col, row, col,{'type':'no_blanks',
+                                  'format':period_fmt})
+    worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
+                                  'format':num_fmt})
+
+    
+    return 0
+
+def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name):
+    '''
+    
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    sheet_name : string
+    returns_dict : Dictionary
+        Dictionary with asset/liability returns tables
+    liab_data_dict : Dictionary
+        Dictionary with PV and IRR tables
+    fs_data_dict : Dictionary
+        Dictionary with Funded Status data tables
+    plan : string
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+    
+    #title format
+    title_format = formats.set_title_format(workbook, center = True)
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy',bold = True)
+    #percent format
+    pct_fmt = formats.set_number_format(workbook,num_format='0.00%')
+    #dollar format
+    dollar_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+    #negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+ 
+   #get dimensions of each dataframe
+    ret_row_dim = row + returns.shape[0]
+    ret_col_dim = col + returns.shape[1]
+    
+    liab_row_dim = row + pv_irr.shape[0]
+    liab_col_dim = col + pv_irr.shape[1]
+    
+    fs_row_dim = row + fs_data.shape[0]
+    
+    
+    #write titles of each table
+    worksheet.write(row-1, col+1, "Returns", title_format)
+    
+    worksheet.write(row-1, col+ ret_col_dim + 3, "Present Values & IRR", title_format)
+    
+    worksheet.write(row-1, col+ ret_col_dim + liab_col_dim + 5, "Funded Status", title_format)
+
+
+    #write  dataframes to excel
+    returns.to_excel(writer, sheet_name= sheet_name, startrow=row, startcol=col)
+    pv_irr.to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col+ ret_col_dim + 2)    
+    fs_data.to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col + ret_col_dim + liab_col_dim + 4)
+    
+    
+    #format asset and liability returns values
+    worksheet.conditional_format(row, col, ret_row_dim, col,{'type':'no_blanks', 'format':date_fmt})
+    worksheet.conditional_format(row+1, col+1, ret_row_dim, ret_col_dim ,{'type':'no_blanks','format':pct_fmt})
+    worksheet.conditional_format(row+1, col+1, ret_row_dim, ret_col_dim ,{'type': 'cell','criteria': 'less than','value': 0,
+                                                                   'format': neg_value_fmt})
+    
+    #pv and irr format
+    worksheet.conditional_format(row+1, col + ret_col_dim + 2  , liab_row_dim, col+ ret_col_dim + 2 ,{'type':'no_blanks','format':date_fmt})
+    worksheet.conditional_format(row+1,col+ ret_col_dim + 3 , liab_row_dim, col+ ret_col_dim + 3,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col+ ret_col_dim + 4, liab_row_dim, col+ ret_col_dim + 4,{'type':'no_blanks','format':pct_fmt})
+
+    #Funded status format
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 4  , fs_row_dim, col + ret_col_dim + liab_col_dim + 4,{'type':'no_blanks','format':date_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 5  , liab_row_dim, col + ret_col_dim + liab_col_dim + 6,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 7 , liab_row_dim, col + ret_col_dim + liab_col_dim + 7,{'type':'no_blanks','format':pct_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 8  , liab_row_dim, col + ret_col_dim + liab_col_dim + 8,{'type':'no_blanks','format':dollar_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 9  , liab_row_dim, col + ret_col_dim + liab_col_dim + 10,{'type':'no_blanks','format':pct_fmt})
+
+
+    return 0
+
+def set_liab_mv_cf_sheet(writer, df, sheet_name):
+    """
+    Create excel sheet for market values and present values to format values into $.00
+    
+    Parameters:
+    writer -- excel writer
+    df_pvs -- dataframe
+    sheet_name -- string
+    """
+
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 0
+    col = 0
+
+    #date format
+    date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
+    #num format
+    num_fmt = formats.set_number_format(workbook,num_format='"$" #,##0.00')
+     
+    row_dim = row + df.shape[0]
+    col_dim = col + df.shape[1]
+    
+    df.to_excel(writer, sheet_name=sheet_name, startrow=row , startcol=col)   
+
+    worksheet.conditional_format(row,col, row_dim, col,{'type':'no_blanks',
+                                  'format':date_fmt})
+    worksheet.conditional_format(row,col, row, col_dim,{'type':'no_blanks',
                                   'format':date_fmt})
     worksheet.conditional_format(row+1,col+1, row_dim, col_dim,{'type':'no_blanks',
                                   'format':num_fmt})

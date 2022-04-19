@@ -158,3 +158,29 @@ def get_ret_vol_df(returns_df):
     ret_vol_df = pd.DataFrame(ret_vol_dict, index = ['Return', 'Volatility']).transpose()
     return add_sharpe_col(ret_vol_df)
 
+#TODO: move compute fs data to a diff library 
+def compute_fs_data(asset_liab_mv_df):
+    
+      #create copy of dataframe
+      df = asset_liab_mv_df.copy()
+     
+      #compute funded status: asset/liability
+      df['Funded Status'] = df['Asset'] / df['Liability'] 
+      
+      #compute funded status gap: liability(i.e PBO) - asset
+      df['Funded Status Gap'] = df['Liability'] - df['Asset']
+     
+      #compute funded status difference between each date
+      gap_diff = df['Funded Status Gap'].diff()
+     
+      #compute funded status gap difference percent: funded status gap/liability
+      gap_diff_percent = gap_diff/df['Liability']
+     
+      #compute fs vol 
+      gap_diff_percent.dropna(inplace = True)
+      
+      df['1Y FSV'] = gap_diff_percent.rolling(window = 12).apply(get_ann_vol)
+      df['6mo FSV'] = gap_diff_percent.rolling(window = 6).apply(get_ann_vol)
+
+      return(df)
+ 

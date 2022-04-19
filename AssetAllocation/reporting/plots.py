@@ -10,6 +10,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.rcParams['figure.figsize'] = 16, 8
 import matplotlib.ticker as mtick
+import matplotlib.dates as mdates
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -192,3 +193,35 @@ def get_sim_return_fig(stochmv):
     fig = sns.pairplot(stochmv.returns_df, corner=True)
     fig.fig.suptitle("Simulated Returns")
     plt.savefig('simulated_returns.png')
+    
+    
+    
+
+def display_fs_vol(report_dict):
+    #get last 12 months of 1yr and 6mo vol data
+    #fs = report_dict['fs_data'][Plan]['Funded Status'].tail(12)
+    fs_vol_1y = report_dict['fs_data']['1Y FSV'].tail(12)
+    fs_vol_6mo = report_dict['fs_data']['6mo FSV'].tail(12)
+    
+    #set theme
+    sns.set_style("whitegrid", {'axes.grid' : False})
+    plt.gca().yaxis.grid(True)
+    
+    #set x and y axis
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.gca().xaxis.set_major_locator(mdates.MonthLocator(interval=1, bymonthday = -1))
+    plt.gca().yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=None, symbol='%', is_latex=False))
+    
+    #plot 1yr vol and 6mo vol
+    #plt.plot(fs, label = "Funded Status", color = "navy")
+    
+    plt.plot(fs_vol_1y, label = "1yr FSV", color = "navy")
+    plt.plot(fs_vol_6mo ,label = "6mth FSV", color = "#ff8c00")
+    
+    # Rotate X-Axis Ticks by 45-degrees
+    plt.xticks(rotation = 45) 
+    #set title
+    plt.title("Funded Status")
+#     plt.title("Realized Funded Status Volatility")
+    plt.legend()
+    plt.show()

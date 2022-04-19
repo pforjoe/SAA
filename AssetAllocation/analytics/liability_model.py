@@ -7,6 +7,7 @@ Created on Mon Nov  8 21:32:09 2021
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
+from AssetAllocation.datamanger import datamanger as dm
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -15,7 +16,7 @@ warnings.filterwarnings('ignore')
 class liabilityModel():
     
     #TODO: take out disc_rates option
-    def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
+    def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, liab_mv_cfs, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
         """
         
 
@@ -30,6 +31,8 @@ class liabilityModel():
         contrb_pct : double
             DESCRIPTION.
         asset_mv : Dataframe
+            DESCRIPTION.
+        liab_mv_cfs : Dataframe
             DESCRIPTION.
         asset_returns : Dataframe
             DESCRIPTION.
@@ -51,9 +54,11 @@ class liabilityModel():
         self.liab_curve = liab_curve
         self.disc_rates = disc_rates
         self.asset_mv = asset_mv
+        self.liab_mv_cfs = liab_mv_cfs
         self.asset_returns = asset_returns
         self.present_values = self.compute_pvs()
         self.irr_df = self.compute_irr()
+        self.liab_mv = self.get_plan_liab_mv()
         self.returns_ts = self.compute_liab_ret()
         self.funded_status = self.compute_funded_status()
         self.fulfill_irr = None
@@ -91,7 +96,7 @@ class liabilityModel():
         ret_df.columns = ['Return']
         
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
-                'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
+                'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
                 'Asset Market Values': self.asset_mv}
 
     #TODO: Take out disc rates option
@@ -223,12 +228,23 @@ class liabilityModel():
          
         return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
-    #TODO: revisit this method
     def compute_funded_status(self):
-        return self.asset_mv.iloc[-1:]['Market Value'][0]/self.present_values.iloc[-1:]['Present Value'][0]
-    
+        #gets funded status of most recent date
+        fs = self.asset_mv / self.liab_mv
+        fs.dropna(inplace = True)
+        
+        return fs.iloc[-1]
+
     #TODOD: revisit this method
     def get_return(self):
         return self.irr_df['IRR'][-1]
 
-            
+    def get_plan_liab_mv(self):
+        #get yrs
+        yrs = list(range(1,len(self.liab_mv_cfs)+1))
+        pbo = []
+        #puts pbo for each time period into a list
+        for i in list(range(0,len(self.liab_mv_cfs.columns))):
+            cfs = list(self.liab_mv_cfs.iloc[:,i])
+            pbo.append(self.npv( self.irr_df['IRR'][self.liab_mv_cfs.columns[i]]/12, cfs, yrs))
+        return pd.DataFrame(pbo, index = self.liab_mv_cfs.columns, columns = self.asset_mv.columns)
