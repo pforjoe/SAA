@@ -122,7 +122,7 @@ def add_fs_load_col(weights_df, liab_model):
 
 def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
     liab_data_dict={}
-    
+    print("Getting data from Liability Model...")
     #does not include liab/ret table anymore
     for plan in plan_list:
         liab_model = get_liab_model(plan, contrb_pct)
@@ -139,11 +139,14 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     report_dict = {}
     data_list = ['returns', 'market_values', 'pv_irr']
     
+
     for data in data_list:
+        print("Formatting " + data + "...")
         report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data)
     
+    print("Computing Funded Status...")
     report_dict['fs_data'] = get_fs_data(report_dict['market_values'])
-    
+
     return dm.transform_report_dict(report_dict, plan_list)
 
 def get_fs_data(asset_liab_mv_dict):
