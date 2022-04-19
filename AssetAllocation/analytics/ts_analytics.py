@@ -165,16 +165,16 @@ def compute_fs_data(asset_liab_mv_df):
       df = asset_liab_mv_df.copy()
      
       #compute funded status: asset/liability
-      df['Funded Status'] = df['Asset'] / df['Liability'] 
+      df['Funded Status'] = df['Asset MV'] / df['Liability MV'] 
       
       #compute funded status gap: liability(i.e PBO) - asset
-      df['Funded Status Gap'] = df['Liability'] - df['Asset']
+      df['Funded Status Gap'] = df['Liability MV'] - df['Asset MV']
      
       #compute funded status difference between each date
       gap_diff = df['Funded Status Gap'].diff()
      
       #compute funded status gap difference percent: funded status gap/liability
-      gap_diff_percent = gap_diff/df['Liability']
+      gap_diff_percent = gap_diff/df['Liability MV']
      
       #compute fs vol 
       gap_diff_percent.dropna(inplace = True)

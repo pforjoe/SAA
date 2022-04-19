@@ -423,7 +423,7 @@ def switch_liab_dict(arg):
 
     switcher = {
             "returns": {'df1':'Asset Returns', 'df2':'Liability Returns', 'col_names':['Asset','Liability']},
-            "market_values": {'df1':'Asset Market Values', 'df2':'Liability Market Values', 'col_names':['Asset','Liability']},
+            "market_values": {'df1':'Asset Market Values', 'df2':'Liability Market Values', 'col_names':['Asset MV','Liability MV']},
             "pv_irr": {'df1':'Present Values', 'df2':'IRR', 'col_names':['Present Values','IRR']}
     }
     return switcher.get(arg)
