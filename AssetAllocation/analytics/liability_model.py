@@ -7,7 +7,7 @@ Created on Mon Nov  8 21:32:09 2021
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
-from AssetAllocation.datamanger import datamanger as dm
+from .ts_analytics import get_ann_vol
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -97,7 +97,7 @@ class liabilityModel():
         
         return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
                 'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
-                'Asset Market Values': self.asset_mv}
+                'Asset Market Values': self.asset_mv, 'Funded Status': self.funded_status}
 
     #TODO: Take out disc rates option
     def compute_pvs(self):
@@ -229,11 +229,26 @@ class liabilityModel():
         return asset_mv_list[x] - erf_pvs_list[x]*ff_ratio
     
     def compute_funded_status(self):
-        #gets funded status of most recent date
-        fs = self.asset_mv / self.liab_mv
-        fs.dropna(inplace = True)
+        #compute funded status: asset/liability
+        fs_df = self.asset_mv / self.liab_mv
+        fs_df.columns = ['Funded Status']
         
-        return fs.iloc[-1]
+        #compute funded status gap: liability(i.e PBO) - asset
+        fs_df['Funded Status Gap'] = self.liab_mv - self.asset_mv   
+        fs_df.dropna(inplace=True)
+        
+        #compute funded status difference between each date
+        gap_diff = fs_df['Funded Status Gap'].diff()
+           
+        #compute funded status gap difference percent: funded status gap/liability
+        gap_diff_percent = gap_diff/self.liab_mv['Market Value']
+           
+        #compute fs vol 
+        gap_diff_percent.dropna(inplace=True)
+        fs_df['1Y FSV'] = gap_diff_percent.rolling(window = 12).apply(get_ann_vol)
+        fs_df['6mo FSV'] = gap_diff_percent.rolling(window = 6).apply(get_ann_vol)
+          
+        return fs_df
 
     #TODOD: revisit this method
     def get_return(self):

@@ -39,7 +39,7 @@ for pension_plan in plan_list:
         ###############################################################################
         # DEFINE BOUNDS                                                               #
         ###############################################################################
-        bnds = dm.get_bounds(liab_model,filename=bounds+'_bounds.xlsx',plan=pension_plan)
+        bnds = dm.get_bounds(plan.funded_status,filename=bounds+'_bounds.xlsx',plan=pension_plan)
         
         ###############################################################################
         # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #

@@ -10,10 +10,10 @@ from .liability_model import liabilityModel
 from ..datamanger import datamanger as dm
 from .import ts_analytics as ts
 from .import util
-import pandas as pd
 
 def get_mv_inputs(mv_inputs_dict, liab_model):
-    weights_df = add_fs_load_col(mv_inputs_dict['weights'],liab_model)
+    weights_df = add_fs_load_col(mv_inputs_dict['weights'],
+                                 liab_model.funded_status['Funded Status'][-1])
     weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
     return mv_inputs(mv_inputs_dict['ret_assump'],mv_inputs_dict['mkt_factor_prem'],
                      mv_inputs_dict['fi_data'],mv_inputs_dict['rsa_data'], 
@@ -32,7 +32,8 @@ def get_ts_output(ts_dict,liab_model,decay_factor=0.98, t=1):
     returns_df = dm.merge_dfs(liab_model.returns_ts, ts_dict['returns'])
     ret_vol_df = ts.get_ret_vol_df(returns_df)
     corr_df = ts.compute_ewcorr_matrix(returns_df,decay_factor, t)
-    weights_df = add_fs_load_col(ts_dict['weights'],liab_model)
+    fs_df = dm.merge_dfs(liab_model.funded_status, returns_df)
+    weights_df = add_fs_load_col(ts_dict['weights'],fs_df['Funded Status'][-1])
     weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
     return {'ret_vol':ret_vol_df, 
             'corr':corr_df,
@@ -111,14 +112,14 @@ def get_pp_dict(plan):
             'Cov':dm.pd.DataFrame(plan.cov, index=plan.symbols, columns=plan.symbols),
         }
 
-def add_fs_load_col(weights_df, liab_model):
+def add_fs_load_col(weights_df, funded_status):
     
     weights_df['FS Loadings'] = dm.np.nan
     for ind in weights_df.index:
         if ind == 'Liability':
             weights_df['FS Loadings'][ind] = 1
         else:
-            weights_df['FS Loadings'][ind] = liab_model.funded_status
+            weights_df['FS Loadings'][ind] = funded_status
     return weights_df
 
 def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
@@ -138,25 +139,9 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     liab_data_dict = get_liab_data_dict(plan_list)
     
     report_dict = {}
-    data_list = ['returns', 'market_values', 'pv_irr']
+    data_list = ['returns', 'market_values', 'pv_irr', 'fs_data']
     
     for data in data_list:
         report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data)
     
-    report_dict['fs_data'] = get_fs_data(report_dict['market_values'])
-    
     return dm.transform_report_dict(report_dict, plan_list)
-
-def get_fs_data(asset_liab_mv_dict):
-    
-    #create empty dictionary
-    fs_data_dict = {}
-    
-    #loop through each plan to get funded status volatility
-    for key in asset_liab_mv_dict:
-        
-        fs_data_df = ts.compute_fs_data(asset_liab_mv_dict[key])
-        
-        fs_data_dict[key] = fs_data_df
-        
-    return fs_data_dict

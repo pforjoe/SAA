@@ -58,7 +58,7 @@ plots.get_sim_return_fig(s)
 ###############################################################################
 # DEFINE BOUNDS                                                               #
 ###############################################################################
-bnds = dm.get_bounds(liab_model,plan=PLAN)
+bnds = dm.get_bounds(plan.funded_status,plan=PLAN)
 
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #

@@ -29,7 +29,7 @@ def set_return_sheet(writer,df_returns,sheet_name='Monthly Historical Returns', 
     worksheet = writer.sheets[sheet_name]
     worksheet.set_column(0, 1000, 21, cell_format)
     row = 0
-    col = 1
+    col = 0
     
     #date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
@@ -460,6 +460,7 @@ def set_ftse_data_sheet(writer, df, sheet_name):
     
     return 0
 
+#TODO: Add market value table and edit fs_data table
 def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name):
     '''
     

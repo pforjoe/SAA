@@ -210,19 +210,19 @@ def get_ts_data(plan='IBT', year='2010'):
     return {'returns': returns_df,
             'weights': weights_df}
 
-def get_bounds(liab_model, filename='bounds.xlsx', plan='IBT'):
+def get_bounds(funded_status, filename='bounds.xlsx', plan='IBT'):
     filepath=PLAN_INPUTS_FP+filename
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
-    update_bnds_with_fs(bnds,liab_model)
+    update_bnds_with_fs(bnds,funded_status)
     return bnds
 
 def transform_bnds(bnds):
     return tuple(zip(bnds.Lower, bnds.Upper))
 
-def update_bnds_with_fs(bnds, liab_model):
-    bnds *= liab_model.funded_status
-    bnds['Upper']['Liability'] /= liab_model.funded_status
-    bnds['Lower']['Liability'] /= liab_model.funded_status
+def update_bnds_with_fs(bnds, funded_status):
+    bnds *= funded_status
+    bnds['Upper']['Liability'] /= funded_status
+    bnds['Lower']['Liability'] /= funded_status
     return None
 
 def get_ports_df(rets, vols, weights, symbols, raw=True):
@@ -395,11 +395,14 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05):
 
 def get_n_year_df(liab_plan_data_dict, data='returns', n=3):
     
-    df_data_dict = switch_liab_dict(data)
-    n_year_df = merge_dfs(liab_plan_data_dict[df_data_dict['df1']], liab_plan_data_dict[df_data_dict['df2']])
-    
-    #rename columns
-    n_year_df.columns = df_data_dict['col_names']
+    if data == 'fs_data':
+        n_year_df = liab_plan_data_dict['Funded Status'].copy()
+    else:
+        df_data_dict = switch_liab_dict(data)
+        n_year_df = merge_dfs(liab_plan_data_dict[df_data_dict['df1']], liab_plan_data_dict[df_data_dict['df2']])
+        
+        #rename columns
+        n_year_df.columns = df_data_dict['col_names']
         
     #returns most recent n years
     return n_year_df.iloc[-(n*12):,]
@@ -507,17 +510,6 @@ def update_ftse_data(file_name = "ftse_data.xlsx"):
     rp.get_ftse_data_report(ftse_dict, "ftse_data")
     
     # return ftse_dict
-
-def get_asset_liab_dict(liab_data_dict, df_one, df_two, columns):
-    
-    #create asset_liab_dict
-    merged_dfs_dict = {}
-    
-    #loop through each plan and get asset/liability table
-    for key in liab_data_dict:
-        merged_dfs_dict[key] = get_n_year_ret(liab_data_dict[key], df1 = df_one, df2 = df_two, colnames = columns)
-        
-    return merged_dfs_dict
 
 def group_asset_liab_data(liab_data_dict, data='returns'):
     
