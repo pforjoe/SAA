@@ -403,7 +403,7 @@ def get_n_year_df(liab_plan_data_dict, data='returns', n=3):
         
         #rename columns
         n_year_df.columns = df_data_dict['col_names']
-        
+
     #returns most recent n years
     return n_year_df.iloc[-(n*12):,]
 
@@ -411,7 +411,7 @@ def switch_liab_dict(arg):
 
     switcher = {
             "returns": {'df1':'Asset Returns', 'df2':'Liability Returns', 'col_names':['Asset','Liability']},
-            "market_values": {'df1':'Asset Market Values', 'df2':'Liability Market Values', 'col_names':['Asset','Liability']},
+            "market_values": {'df1':'Asset Market Values', 'df2':'Liability Market Values', 'col_names':['Asset MV','Liability MV']},
             "pv_irr": {'df1':'Present Values', 'df2':'IRR', 'col_names':['Present Values','IRR']}
     }
     return switcher.get(arg)
@@ -701,8 +701,6 @@ def update_plan_mv():
     
     #export report
     rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
-    
-    # return plan_mv_cfs_dict
 
 def update_ldi_data(update_plan_market_val = True):
     update_plan_data()
