@@ -319,10 +319,10 @@ def get_ldi_report(report_dict, report_name = "ldi_report"):
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
   
     for key in report_dict:
-        
+        temp_mv_fs_df = dm.merge_dfs(report_dict[key]['market_values'], report_dict[key]['fs_data'], dropna = False)
         sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'], 
                                   report_dict[key]['pv_irr'], 
-                                  report_dict[key]['fs_data'] ,
+                                  temp_mv_fs_df,
                                   sheet_name = key)
        
     #save file
@@ -356,3 +356,4 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
     print_report_info(report_name, filepath)
     writer.save()
 
+pd.merge
