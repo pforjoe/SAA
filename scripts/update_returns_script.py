@@ -6,7 +6,7 @@ Created on Tue Mar  8 11:25:44 2022
 """
 
 import pandas as pd
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 import AssetAllocation.reporting.sheets as sheets
 from AssetAllocation.reporting import reports as rp
 

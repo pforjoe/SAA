@@ -7,7 +7,7 @@ Created on Fri Oct  1 17:05:16 2021
 
 import pandas as pd
 import numpy as np
-from ..datamanger import datamanger as dm
+from ..datamanager import datamanager as dm
 from .util import add_sharpe_col
 
 

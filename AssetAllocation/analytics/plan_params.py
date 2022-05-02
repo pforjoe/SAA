@@ -9,7 +9,7 @@ import numpy as np
 #import pandas as pd
 from numpy.linalg import multi_dot
 from .import util
-from ..datamanger import datamanger as dm
+from ..datamanager import datamanager as dm
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')

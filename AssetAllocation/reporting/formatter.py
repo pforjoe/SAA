@@ -6,7 +6,7 @@ Created on Wed Oct 20 21:26:55 2021
 """
 
 import pandas as pd
-from  ..datamanger import datamanger as dm
+from  ..datamanager import datamanager as dm
 
 def highlight_max(s):
     """

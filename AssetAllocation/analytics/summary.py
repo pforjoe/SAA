@@ -7,7 +7,7 @@ Created on Sun Oct 10 12:27:19 2021
 from .mv_inputs import mv_inputs
 from .plan_params import planParams
 from .liability_model import liabilityModel
-from ..datamanger import datamanger as dm
+from ..datamanager import datamanager as dm
 from .import ts_analytics as ts
 from .import util
 
