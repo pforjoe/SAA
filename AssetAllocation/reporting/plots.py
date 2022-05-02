@@ -5,6 +5,7 @@ Created on Fri Sep 17 17:33:37 2021
 @authors: Roxton McNeal, Matt Johnston, Powis Forjoe
 """
 import numpy as np
+from datetime import datetime
 import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
@@ -225,3 +226,72 @@ def display_fs_vol(report_dict):
 #     plt.title("Realized Funded Status Volatility")
     plt.legend()
     plt.show()
+    
+    
+def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, position):
+    #specify what type of chart
+    returns_chart = workbook.add_chart({'type':'column'})
+
+    #add asset returns data to bar chart
+    returns_chart.add_series({
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 1, ret_row_dim, 1],
+        'name':"Asset"})
+    
+    #add liability returns data to bar chart
+    returns_chart.add_series({
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 2, ret_row_dim, 2],
+        'name': 'Liabilty'})
+    
+    #set x axis
+    returns_chart.set_x_axis({'label_position' : 'low',
+                        'date_axis': True,
+                       'num_format' : 'mm-yy',})
+    
+    #set y axis format
+    returns_chart.set_y_axis({'num_format':'0.00%'})
+    
+    #set chart title
+    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve"})
+    
+    #set legend position
+    returns_chart.set_legend({'position':'bottom'})
+    
+    #add chart to sheet and scale
+    returns_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, returns_chart)   
+    
+    
+#todo: make plots for 2022 returns, funded status, funded status vol, and hedge ratio
+
+# def get_current_yr_returns_chart(returns, workbook, worksheet, sheet_name, ret_row_dim, position):
+ 
+#     currentYear = datetime.now().year
+#     current_returns = returns[returns.index.year == currentYear]
+
+    
+#     current_yr = workbook.add_chart({'type':'column'})
+
+#     #add asset returns data to bar chart
+#     current_yr.add_series({
+#         'categories': '='+sheet_name+'!$B$2', 
+#         'values': '=SUM('+ sheet_name + '!$B$36:$B38)',
+#         'name':"Asset",
+#         'data_labels': {'value': True},
+#         })
+    
+#     #set x axis
+#     current_yr.set_x_axis({'line': {'none': True}})
+    
+#     #set y axis format
+#     current_yr.set_y_axis({'num_format':'0.00%'})
+    
+#     #set chart title
+#     current_yr.set_title({'name': str(currentYear) + " Returns"})
+    
+
+    
+#     #add chart to sheet and scale
+#     current_yr.set_size({'x_scale': 1.5, 'y_scale': 1})
+#     worksheet.insert_chart(position, current_yr)   
