@@ -707,3 +707,35 @@ def update_ldi_data(update_plan_market_val = True):
     update_ftse_data()
     if update_plan_market_val:
         update_plan_mv()
+
+def update_hist_asset_class_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
+    hist_ret = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name)
+   
+    #rename columns
+    hist_ret.columns = ["Account Name","Account Id","Return Type","Date", "Market Value","Monthly Return"]
+    
+    
+    #pivot table so that plans are in the columns and the rows are the market value/returns for each date
+    hist_ret_df = hist_ret.pivot_table(values = 'Monthly Return', index='Date', columns='Account Name')
+    
+    hist_ret_df  = hist_ret_df .dropna()
+
+    #divide returns by 100
+    hist_ret_df /= 100
+    
+    rp.get_monthly_returns_report(hist_ret_df, report_name = 'historical_asset_class_returns')
+    
+def update_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
+    index_data = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name,index_col=0)
+     
+    #calculate returns
+    index_returns = format_data(index_data)
+    
+    #rename columns
+    cols = []
+    for i in list(range(0,len(index_returns.columns))):
+        cols.append( index_returns.columns[i].replace(' Index',''))
+
+    index_returns.columns = cols
+        
+    rp.get_monthly_returns_report(index_returns, report_name = 'index_returns')

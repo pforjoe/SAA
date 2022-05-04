@@ -10,9 +10,11 @@ from AssetAllocation.analytics import summary
 from AssetAllocation.datamanager import datamanager as dm
 # import time
 
-
 # start = time.time()
 # liab_data_dict = summary.get_liab_data_dict()
+dm.update_hist_asset_class_returns()
+dm.update_index_data()
+
 dm.update_ldi_data()
 report_dict = summary.get_report_dict()
 

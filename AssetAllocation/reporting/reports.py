@@ -356,4 +356,25 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
     print_report_info(report_name, filepath)
     writer.save()
 
-pd.merge
+def get_monthly_returns_report(returns_df, report_name):
+    '''
+    
+
+    Parameters
+    ----------
+    returns_df : dataframe
+
+    Returns
+    -------
+    None.
+
+    '''
+    filepath = get_ts_path(report_name)
+    writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
+    
+    sheets.set_return_sheet(writer, returns_df)
+    
+    #save file
+    print_report_info(report_name, filepath)
+    writer.save()
+    
