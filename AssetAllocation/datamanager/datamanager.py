@@ -182,7 +182,7 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
                              sheet_name=year, index_col=0)
     # returns_df['Credit'] = 0.2*returns_df['CS LL'] + 0.3*returns_df['BOA HY'] + 0.5*returns_df['CDLI']
     # returns_df['Liquid Alternatives'] = 0.33*returns_df['HF MACRO'] + 0.33*returns_df['HFRI MACRO'] + 0.34*returns_df['TREND']
-    asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total Dom Eq w/o Derivatives', 'Total Liquid Alts',
+    asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total EQ w/o Derivatives', 'Total Liquid Alts',
                              'Total Private Equity', 'Total Credit', 'Total Real Estate', 'Cash', 'Equity Hedges']]
     asset_ret_df.columns = ['15+ STRIPS', 'Long Corporate','Ultra 30Y Futures', 'Equity', 'Liquid Alternatives',
                           'Private Equity', 'Credit', 'Real Estate', 'Cash', 'Hedges']
@@ -296,7 +296,7 @@ def format_data(df_index, freq="1M"):
     if not(freq == '1D'):
        data = data.resample(freq).ffill()
     data = data.pct_change(1)
-    data = data.dropna()
+    # data = data.dropna()
     data = data.loc[(data!=0).any(1)]
     return data
 
@@ -708,7 +708,7 @@ def update_ldi_data(update_plan_market_val = True):
     if update_plan_market_val:
         update_plan_mv()
 
-def update_hist_asset_class_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
+def transform_asset_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
     hist_ret = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name)
    
     #rename columns
@@ -718,24 +718,34 @@ def update_hist_asset_class_returns(file_name = 'Historical Returns.xls', sheet_
     #pivot table so that plans are in the columns and the rows are the market value/returns for each date
     hist_ret_df = hist_ret.pivot_table(values = 'Monthly Return', index='Date', columns='Account Name')
     
-    hist_ret_df  = hist_ret_df .dropna()
+    # hist_ret_df  = hist_ret_df.dropna()
 
     #divide returns by 100
     hist_ret_df /= 100
+    return hist_ret_df
+
+    # rp.get_monthly_returns_report(hist_ret_df, report_name = 'historical_asset_class_returns')
     
-    rp.get_monthly_returns_report(hist_ret_df, report_name = 'historical_asset_class_returns')
-    
-def update_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
+def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
     index_data = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name,index_col=0)
      
     #calculate returns
     index_returns = format_data(index_data)
     
     #rename columns
-    cols = []
-    for i in list(range(0,len(index_returns.columns))):
-        cols.append( index_returns.columns[i].replace(' Index',''))
-
-    index_returns.columns = cols
-        
-    rp.get_monthly_returns_report(index_returns, report_name = 'index_returns')
+    index_returns.columns = ['15+ STRIPS', 'Long Corps', 'BNP 30Y ULTRA FUT', 'SP500',
+                             'MSCI ACWI', 'RUSS2000', 'MSCI EAFE', 'MSCI EM', 'CS LL',
+                             'BOA HY', 'HF MACRO', 'HFRI MACRO', 'TREND',
+                             'ALT RISK', 'DW REIT', 'BXIIU3MC Index', 'USGB090Y Index',
+                             'USBMMY3M Index', 'CDLI', 'MSCI ACWI IMI', 'RUSS3000',
+                             'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT']
+    
+    return index_returns
+    # rp.get_monthly_returns_report(index_returns, report_name = 'index_returns')
+    
+def get_new_asset_returns():
+    hist_ret_df = transform_asset_returns()
+    index_returns = transform_index_data()
+    new_asset_ret_df = merge_dfs(index_returns, hist_ret_df)
+    new_asset_ret_df['Cash'] = 1/600
+    return new_asset_ret_df

@@ -63,7 +63,7 @@ def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     
     #compute returns using buiild up approach
     ret_df = mv_inputs.compute_plan_return('Equity')
-    ret_df['Return']['Liability'] = pp_inputs['returns']['Liability'][-1]
+    ret_df['Return']['Liability'] = liab_model.ret
     
     #add return to pp_inputs
     for asset in ret_df.index:
