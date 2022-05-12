@@ -263,35 +263,71 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
     worksheet.insert_chart(position, returns_chart)   
     
     
-#todo: make plots for 2022 returns, funded status, funded status vol, and hedge ratio
 
-# def get_current_yr_returns_chart(returns, workbook, worksheet, sheet_name, ret_row_dim, position):
- 
-#     currentYear = datetime.now().year
-#     current_returns = returns[returns.index.year == currentYear]
+def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+    #specify what type of chart
+    fs_chart = workbook.add_chart({'type':'line'})
 
+    #add asset returns data to bar chart
+    fs_chart.add_series({
+        'categories': [sheet_name, fs_row_dim-12, fs_col_dim, fs_row_dim, fs_col_dim], 
+        'values': [sheet_name, fs_row_dim-12, fs_col_dim+3, fs_row_dim, fs_col_dim+3],
+        'name':"Funded Status"})
     
-#     current_yr = workbook.add_chart({'type':'column'})
+    #set x axis
+    fs_chart.set_x_axis({
+                       'date_axis': True,
+                     'num_format' : 'mm/dd/yyyy',
+                     'num_font':{'rotation':-45},
+                     'minor_unit':1,
+                     'minor_unit_type': 'days',
+                     'major_unit':      1,
+                     'major_unit_type': 'months',
 
-#     #add asset returns data to bar chart
-#     current_yr.add_series({
-#         'categories': '='+sheet_name+'!$B$2', 
-#         'values': '=SUM('+ sheet_name + '!$B$36:$B38)',
-#         'name':"Asset",
-#         'data_labels': {'value': True},
-#         })
+                       })
     
-#     #set x axis
-#     current_yr.set_x_axis({'line': {'none': True}})
+    #set y axis format
+    fs_chart.set_y_axis({'num_format':'0.00%'})
     
-#     #set y axis format
-#     current_yr.set_y_axis({'num_format':'0.00%'})
+    #set chart title
+    fs_chart.set_title({'name':"Economic Funded Status - " + sheet_name})
     
-#     #set chart title
-#     current_yr.set_title({'name': str(currentYear) + " Returns"})
-    
+    fs_chart.set_legend({'position': 'none'})
 
+    #add chart to sheet and scale
+    fs_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, fs_chart)  
     
-#     #add chart to sheet and scale
-#     current_yr.set_size({'x_scale': 1.5, 'y_scale': 1})
-#     worksheet.insert_chart(position, current_yr)   
+def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+    #specify what type of chart
+    fs_vol_chart = workbook.add_chart({'type':'line'})
+
+    #add asset returns data to bar chart
+    fs_vol_chart.add_series({
+        'categories': [sheet_name, fs_row_dim-24, fs_col_dim, fs_row_dim, fs_col_dim], 
+        'values': [sheet_name, fs_row_dim-24, fs_col_dim+5, fs_row_dim, fs_col_dim+5],
+        'name':"1yr FSV"})
+    
+    #set x axis
+    fs_vol_chart.set_x_axis({
+                       'date_axis': True,
+                     'num_format' : 'mm/dd/yyyy',
+                     'num_font':{'rotation':-45},
+                     'minor_unit':1,
+                     'minor_unit_type': 'days',
+                     'major_unit':      1,
+                     'major_unit_type': 'months',
+
+                       })
+    
+    #set y axis format
+    fs_vol_chart.set_y_axis({'num_format':'0.00%'})
+    
+    #set chart title
+    fs_vol_chart.set_title({'name':"Realized Funded Status Volatility"})
+    
+    fs_vol_chart.set_legend({'position': 'bottom'})
+
+    #add chart to sheet and scale
+    fs_vol_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, fs_vol_chart)  
