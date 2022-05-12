@@ -740,12 +740,37 @@ def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
                              'USBMMY3M Index', 'CDLI', 'MSCI ACWI IMI', 'RUSS3000',
                              'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT']
     
+    
     return index_returns
     # rp.get_monthly_returns_report(index_returns, report_name = 'index_returns')
+
+def get_new_weighted_hedges():
+    #read in current hedge data from equity hedge report
+    weighted_hedge = pd.read_excel(TS_FP+'asset_return_data.xlsx', sheet_name = 'data', usecols=['Date','Equity Hedges'])
     
+    #read in new hedge data
+    new_hedge = pd.read_excel(TS_FP+'equity_hedge_data.xlsx', sheet_name = 'Monthly Historical Returns', usecols=['Date','Weighted Hedges'])
+    #rename columns
+    new_hedge.columns = ['Date','Equity Hedges']
+    
+    #find what new data is not included in current data
+    difference = set(new_hedge.Date).difference(weighted_hedge.Date)
+    difference_dates = new_hedge['Date'].isin(difference)
+    new_hedge = new_hedge[difference_dates]
+    
+    #append dataframes and make Date the index
+    update = weighted_hedge.append(new_hedge, ignore_index=True)
+    update.set_index('Date', drop = True, inplace = True)
+
+    return update
+
+
 def get_new_asset_returns():
     hist_ret_df = transform_asset_returns()
     index_returns = transform_index_data()
+    weighted_hedges = get_new_weighted_hedges()
     new_asset_ret_df = merge_dfs(index_returns, hist_ret_df)
     new_asset_ret_df['Cash'] = 1/600
+    new_asset_ret_df = merge_dfs(new_asset_ret_df, weighted_hedges)
+
     return new_asset_ret_df
