@@ -160,7 +160,7 @@ def get_returns_df(plan='IBT', year='2011'):
     returns_df = merge_dfs(liab_ret_df, asset_ret_df)
     return returns_df
 
-def get_asset_returns(filename='return_data.xlsx', year='2010'):
+def get_asset_returns(filename='asset_return_data.xlsx'):
     """
 
 
@@ -179,7 +179,7 @@ def get_asset_returns(filename='return_data.xlsx', year='2010'):
     """
     filepath = TS_FP+filename
     asset_ret_df = pd.read_excel(filepath,
-                             sheet_name=year, index_col=0)
+                             sheet_name='Monthly Historical Returns', index_col=0)
     # returns_df['Credit'] = 0.2*returns_df['CS LL'] + 0.3*returns_df['BOA HY'] + 0.5*returns_df['CDLI']
     # returns_df['Liquid Alternatives'] = 0.33*returns_df['HF MACRO'] + 0.33*returns_df['HFRI MACRO'] + 0.34*returns_df['TREND']
     asset_ret_df = asset_ret_df[['15+ STRIPS', 'Long Corps', 'WN1 COMB Comdty', 'Total EQ w/o Derivatives', 'Total Liquid Alts',
@@ -203,9 +203,9 @@ def get_weights(filename = 'weights.xlsx', plan='IBT'):
     # weights_df = weights_df[['FS AdjWeights']]
     return weights_df
 
-def get_ts_data(plan='IBT', year='2010'):
+def get_ts_data(plan='IBT'):
     # returns_df = get_returns_df(plan=plan, year=year)
-    returns_df = get_asset_returns(year=year)
+    returns_df = get_asset_returns()
     weights_df = get_weights(plan=plan)
     return {'returns': returns_df,
             'weights': weights_df}
@@ -744,33 +744,42 @@ def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
     return index_returns
     # rp.get_monthly_returns_report(index_returns, report_name = 'index_returns')
 
-def get_new_weighted_hedges():
-    #read in current hedge data from equity hedge report
-    weighted_hedge = pd.read_excel(TS_FP+'asset_return_data.xlsx', sheet_name = 'data', usecols=['Date','Equity Hedges'])
-    
+def transform_eq_hedges():
     #read in new hedge data
-    new_hedge = pd.read_excel(TS_FP+'equity_hedge_data.xlsx', sheet_name = 'Monthly Historical Returns', usecols=['Date','Weighted Hedges'])
+    eq_hedge_df = pd.read_excel(TS_FP+'equity_hedge_data.xlsx', sheet_name = 'Monthly Historical Returns', usecols=['Date','Weighted Hedges'], index_col=0)
     #rename columns
-    new_hedge.columns = ['Date','Equity Hedges']
-    
-    #find what new data is not included in current data
-    difference = set(new_hedge.Date).difference(weighted_hedge.Date)
-    difference_dates = new_hedge['Date'].isin(difference)
-    new_hedge = new_hedge[difference_dates]
-    
-    #append dataframes and make Date the index
-    update = weighted_hedge.append(new_hedge, ignore_index=True)
-    update.set_index('Date', drop = True, inplace = True)
-
-    return update
+    eq_hedge_df.columns = ['Equity Hedges']
+        
+    return eq_hedge_df
 
 
 def get_new_asset_returns():
     hist_ret_df = transform_asset_returns()
     index_returns = transform_index_data()
-    weighted_hedges = get_new_weighted_hedges()
+    eq_hedges = transform_eq_hedges()
     new_asset_ret_df = merge_dfs(index_returns, hist_ret_df)
     new_asset_ret_df['Cash'] = 1/600
-    new_asset_ret_df = merge_dfs(new_asset_ret_df, weighted_hedges)
-
+    new_asset_ret_df = merge_dfs(new_asset_ret_df, eq_hedges)
+    new_asset_ret_df.index.names = ['Date']
     return new_asset_ret_df
+
+def update_asset_ret_data():
+    asset_ret_data = pd.read_excel(TS_FP+'asset_return_data.xlsx', sheet_name = 'Monthly Historical Returns', index_col=0)
+    new_asset_ret_df = get_new_asset_returns()
+    new_asset_ret_df = new_asset_ret_df[list(asset_ret_data.columns)]
+    
+    #TODO:Make method
+    new_asset_ret_df.reset_index(inplace = True)
+    asset_ret_data.reset_index(inplace=True)
+    difference = set(new_asset_ret_df.Date).difference(asset_ret_data.Date)
+    difference_dates = new_asset_ret_df['Date'].isin(difference)
+    new_asset_ret_df = new_asset_ret_df[difference_dates]
+    new_asset_ret_df.set_index('Date', inplace = True)
+    asset_ret_data.set_index('Date', inplace = True)
+   
+    
+    try:
+        asset_ret_data =  asset_ret_data.append(new_asset_ret_df)
+    except KeyError:
+        pass
+    rp.get_monthly_returns_report(asset_ret_data, 'asset_return_data')

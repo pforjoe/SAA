@@ -356,7 +356,7 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
     print_report_info(report_name, filepath)
     writer.save()
 
-def get_monthly_returns_report(returns_df, report_name):
+def get_monthly_returns_report(returns_df, report_name, sheet_name='Monthly Historical Returns'):
     '''
     
 
@@ -372,7 +372,7 @@ def get_monthly_returns_report(returns_df, report_name):
     filepath = get_ts_path(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     
-    sheets.set_return_sheet(writer, returns_df)
+    sheets.set_return_sheet(writer, returns_df,sheet_name)
     
     #save file
     print_report_info(report_name, filepath)
