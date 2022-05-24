@@ -5,7 +5,7 @@ Created on Sun Oct 10 12:27:19 2021
 @author: Antoine Tan, Powis Forjoe
 """
 from .plan_params import planParams
-from ..datamanger import datamanger as dm
+from ..datamanager import datamanager as dm
 from .corr_matrix_sampler import CorrelationMatrixSampler
 import numpy as np
 import pandas as pd

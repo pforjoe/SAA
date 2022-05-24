@@ -7,12 +7,12 @@ Created on Fri Jan 28 14:10:47 2022
 
 from AssetAllocation.reporting import reports as rp
 from AssetAllocation.analytics import summary
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 # import time
-
 
 # start = time.time()
 # liab_data_dict = summary.get_liab_data_dict()
+
 dm.update_ldi_data()
 report_dict = summary.get_report_dict()
 

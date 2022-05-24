@@ -7,7 +7,7 @@ Created on Sun Oct 10 12:27:19 2021
 from .mv_inputs import mv_inputs
 from .plan_params import planParams
 from .liability_model import liabilityModel
-from ..datamanger import datamanger as dm
+from ..datamanager import datamanager as dm
 from .import ts_analytics as ts
 from .import util
 
@@ -63,7 +63,7 @@ def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     
     #compute returns using buiild up approach
     ret_df = mv_inputs.compute_plan_return('Equity')
-    ret_df['Return']['Liability'] = pp_inputs['returns']['Liability'][-1]
+    ret_df['Return']['Liability'] = liab_model.ret
     
     #add return to pp_inputs
     for asset in ret_df.index:

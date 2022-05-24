@@ -7,7 +7,7 @@ Created on Sat Oct  9 21:51:38 2021
 #TODO: rewrite code to make OOP-too many repeated code
 
 import pandas as pd
-from  ..datamanger import datamanger as dm
+from  ..datamanager import datamanager as dm
 from .import sheets
 import os
 
@@ -356,4 +356,24 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
     print_report_info(report_name, filepath)
     writer.save()
 
-pd.merge
+def get_monthly_returns_report(returns_df, report_name, sheet_name='Monthly Historical Returns'):
+    '''
+    
+
+    Parameters
+    ----------
+    returns_df : dataframe
+
+    Returns
+    -------
+    None.
+
+    '''
+    filepath = get_ts_path(report_name)
+    writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
+    
+    sheets.set_return_sheet(writer, returns_df,sheet_name)
+    
+    #save file
+    print_report_info(report_name, filepath)
+    writer.save()

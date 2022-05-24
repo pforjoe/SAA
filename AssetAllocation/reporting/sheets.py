@@ -521,6 +521,9 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name):
     pv_irr.to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col+ ret_col_dim + 2)    
     fs_data.to_excel(writer, sheet_name= sheet_name, startrow=row, startcol = col + ret_col_dim + liab_col_dim + 4)
     
+    plots.get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
+    plots.get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim = col + ret_col_dim + liab_col_dim + 4, position = 'Q22')
+    plots.get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim = col + ret_col_dim + liab_col_dim + 4, position = 'Q40')
     
     #format asset and liability returns values
     worksheet.conditional_format(row, col, ret_row_dim, col,{'type':'no_blanks', 'format':date_fmt})
@@ -540,7 +543,11 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name):
     worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 8  , liab_row_dim, col + ret_col_dim + liab_col_dim + 8,{'type':'no_blanks','format':dollar_fmt})
     worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 9  , liab_row_dim, col + ret_col_dim + liab_col_dim + 10,{'type':'no_blanks','format':pct_fmt})
 
-
+ #   plots.get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
+  #  plots.get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim = col + ret_col_dim + liab_col_dim + 4, position = 'Q22')
+    #plots.get_current_yr_returns_chart(returns, workbook, worksheet, sheet_name, ret_row_dim, position = 'Q23')
+    
+    
     return 0
 
 def set_liab_mv_cf_sheet(writer, df, sheet_name):

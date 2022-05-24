@@ -6,7 +6,7 @@ Created on Thu Mar 31 14:20:20 2022
 """
 
 import pandas as pd
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.reporting import reports as rp
 
 ftse_dict = dm.update_ftse_data()

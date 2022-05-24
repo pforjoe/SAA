@@ -5,6 +5,7 @@ Created on Fri Sep 17 17:33:37 2021
 @authors: Roxton McNeal, Matt Johnston, Powis Forjoe
 """
 import numpy as np
+from datetime import datetime
 import seaborn as sns
 import matplotlib
 import matplotlib.pyplot as plt
@@ -225,3 +226,108 @@ def display_fs_vol(report_dict):
 #     plt.title("Realized Funded Status Volatility")
     plt.legend()
     plt.show()
+    
+    
+def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, position):
+    #specify what type of chart
+    returns_chart = workbook.add_chart({'type':'column'})
+
+    #add asset returns data to bar chart
+    returns_chart.add_series({
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 1, ret_row_dim, 1],
+        'name':"Asset"})
+    
+    #add liability returns data to bar chart
+    returns_chart.add_series({
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 2, ret_row_dim, 2],
+        'name': 'Liabilty'})
+    
+    #set x axis
+    returns_chart.set_x_axis({'label_position' : 'low',
+                        'date_axis': True,
+                       'num_format' : 'mm-yy',})
+    
+    #set y axis format
+    returns_chart.set_y_axis({'num_format':'0.00%'})
+    
+    #set chart title
+    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve"})
+    
+    #set legend position
+    returns_chart.set_legend({'position':'bottom'})
+    
+    #add chart to sheet and scale
+    returns_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, returns_chart)   
+    
+    
+
+def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+    #specify what type of chart
+    fs_chart = workbook.add_chart({'type':'line'})
+
+    #add asset returns data to bar chart
+    fs_chart.add_series({
+        'categories': [sheet_name, fs_row_dim-12, fs_col_dim, fs_row_dim, fs_col_dim], 
+        'values': [sheet_name, fs_row_dim-12, fs_col_dim+3, fs_row_dim, fs_col_dim+3],
+        'name':"Funded Status"})
+    
+    #set x axis
+    fs_chart.set_x_axis({
+                       'date_axis': True,
+                     'num_format' : 'mm/dd/yyyy',
+                     'num_font':{'rotation':-45},
+                     'minor_unit':1,
+                     'minor_unit_type': 'days',
+                     'major_unit':      1,
+                     'major_unit_type': 'months',
+
+                       })
+    
+    #set y axis format
+    fs_chart.set_y_axis({'num_format':'0.00%'})
+    
+    #set chart title
+    fs_chart.set_title({'name':"Economic Funded Status - " + sheet_name})
+    
+    fs_chart.set_legend({'position': 'none'})
+
+    #add chart to sheet and scale
+    fs_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, fs_chart)  
+    
+def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+    #specify what type of chart
+    fs_vol_chart = workbook.add_chart({'type':'line'})
+
+    #add asset returns data to bar chart
+    fs_vol_chart.add_series({
+        'categories': [sheet_name, fs_row_dim-24, fs_col_dim, fs_row_dim, fs_col_dim], 
+        'values': [sheet_name, fs_row_dim-24, fs_col_dim+5, fs_row_dim, fs_col_dim+5],
+        'name':"1yr FSV"})
+    
+    #set x axis
+    fs_vol_chart.set_x_axis({
+                       'date_axis': True,
+                     'num_format' : 'mm/dd/yyyy',
+                     'num_font':{'rotation':-45},
+                     'minor_unit':1,
+                     'minor_unit_type': 'days',
+                     'major_unit':      1,
+                     'major_unit_type': 'months',
+
+                       })
+    
+    #set y axis format
+    fs_vol_chart.set_y_axis({'num_format':'0.00%'})
+    
+    #set chart title
+    fs_vol_chart.set_title({'name':"Realized Funded Status Volatility"})
+    
+    fs_vol_chart.set_legend({'position': 'bottom'})
+
+    #add chart to sheet and scale
+    fs_vol_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
+    worksheet.insert_chart(position, fs_vol_chart)  
