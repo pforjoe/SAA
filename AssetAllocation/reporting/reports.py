@@ -9,6 +9,7 @@ Created on Sat Oct  9 21:51:38 2021
 import pandas as pd
 from  ..datamanager import datamanager as dm
 from .import sheets
+from ..analytics import util
 import os
 
 
@@ -313,7 +314,7 @@ def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     print_report_info(report_name, filepath)
     writer.save()
     
-def get_ldi_report(report_dict, report_name = "ldi_report"):
+def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = True):
     #creates excel report with updated ftse data
     filepath = get_reportpath(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
@@ -323,7 +324,8 @@ def get_ldi_report(report_dict, report_name = "ldi_report"):
         sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'], 
                                   report_dict[key]['pv_irr'], 
                                   temp_mv_fs_df,
-                                  sheet_name = key)
+                                  sheet_name = key, dashboard_graphs = dashboard_graphs)
+
        
     #save file
     print_report_info(report_name, filepath)
@@ -377,3 +379,4 @@ def get_monthly_returns_report(returns_df, report_name, sheet_name='Monthly Hist
     #save file
     print_report_info(report_name, filepath)
     writer.save()
+

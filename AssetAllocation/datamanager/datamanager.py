@@ -763,23 +763,43 @@ def get_new_asset_returns():
     new_asset_ret_df.index.names = ['Date']
     return new_asset_ret_df
 
-def update_asset_ret_data():
-    asset_ret_data = pd.read_excel(TS_FP+'asset_return_data.xlsx', sheet_name = 'Monthly Historical Returns', index_col=0)
+def update_asset_ret_data(file_name='asset_return_data.xlsx',sheet_name='Monthly Historical Returns'):
+    asset_ret_data = pd.read_excel(TS_FP+file_name, sheet_name = sheet_name, index_col=0)
     new_asset_ret_df = get_new_asset_returns()
     new_asset_ret_df = new_asset_ret_df[list(asset_ret_data.columns)]
     
-    #TODO:Make method
-    new_asset_ret_df.reset_index(inplace = True)
-    asset_ret_data.reset_index(inplace=True)
-    difference = set(new_asset_ret_df.Date).difference(asset_ret_data.Date)
-    difference_dates = new_asset_ret_df['Date'].isin(difference)
-    new_asset_ret_df = new_asset_ret_df[difference_dates]
-    new_asset_ret_df.set_index('Date', inplace = True)
-    asset_ret_data.set_index('Date', inplace = True)
-   
+    new_asset_returns = update_ret_data_dates(asset_ret_data, new_asset_ret_df)
     
     try:
-        asset_ret_data =  asset_ret_data.append(new_asset_ret_df)
+        asset_ret_data =  asset_ret_data.append(new_asset_returns)
     except KeyError:
         pass
     rp.get_monthly_returns_report(asset_ret_data, 'asset_return_data')
+    
+
+def update_ret_data_dates(ret_df, new_ret_df):
+    #reset both data frames index
+    new_ret_df.reset_index(inplace = True)
+    ret_df.reset_index(inplace=True)
+    
+    #find difference in dates
+    difference = set(new_ret_df.Date).difference(ret_df.Date)
+    #find which dates in the new returns are not in the current returns data
+    difference_dates = new_ret_df['Date'].isin(difference)
+    
+    #isolate
+    new_ret_df = new_ret_df[difference_dates]
+    
+    #set index for both data frames
+    new_ret_df.set_index('Date', inplace = True)
+    ret_df.set_index('Date', inplace = True)
+    
+    return new_ret_df
+
+    
+    
+    
+    
+    
+    
+    
