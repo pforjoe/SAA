@@ -493,7 +493,7 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 # TODO: Add market value table and edit fs_data table
 
 
-def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_graphs):
+def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_graphs=True):
     '''
 
 

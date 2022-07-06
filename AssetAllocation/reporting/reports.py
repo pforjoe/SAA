@@ -314,7 +314,7 @@ def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     print_report_info(report_name, filepath)
     writer.save()
     
-def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = False):
+def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = True):
     #creates excel report with updated ftse data
     filepath = get_reportpath(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
