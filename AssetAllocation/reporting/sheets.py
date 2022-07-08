@@ -561,15 +561,15 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_g
                          startcol = 16)
         
         
-    plots.get_asset_liab_ret_bar_plot(
-        workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
-    plots.get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim,
-                       fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q22')
-    plots.get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim,
-                           fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q40')
-    
-    plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q62')
-    
+        plots.get_asset_liab_ret_bar_plot(
+            workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
+        plots.get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim,
+                           fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q22')
+        plots.get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim,
+                               fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q40')
+        
+        plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q62')
+        
     # format asset and liability returns values
     worksheet.conditional_format(row, col, ret_row_dim, col, {
                                  'type': 'no_blanks', 'format': date_fmt})

@@ -247,17 +247,35 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
     #set x axis
     returns_chart.set_x_axis({'label_position' : 'low',
                         'date_axis': True,
-                       'num_format' : 'mm-yy',})
+                       'num_format' : 'mm-yy',
+                       'num_font':{'name': 'Arial','color':'#616161 '},
+                      # 'minor_unit':1,
+                       #'minor_unit_type': 'days',
+                       #'major_unit':      1,
+                       #'major_unit_type': 'months',
+                       'line':{'color':'#D3D3D3'}
+                       })
     
     #set y axis format
-    returns_chart.set_y_axis({'num_format':'0.00%'})
+    returns_chart.set_y_axis({'num_format':'0.00%',
+                              'num_font':  {'name': 'Arial', 'color':'#616161 '},
+                              'line':{'none':True},
+                             'major_gridlines': {
+                                 'visible' : 1,
+                                 'line' : { 'color' : '#D3D3D3'}
+                                 },
+                             'major_unit':0.02
+                             })
     
     #set chart title
-    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve"})
+    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve",
+                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
     
     #set legend position
-    returns_chart.set_legend({'position':'bottom'})
-    
+    returns_chart.set_legend({'position':'bottom',
+                              'font': {'name': 'Arial','color':'#616161 '}
+                              })
+    returns_chart.set_chartarea({'border':{'none':True}})
     #add chart to sheet and scale
     returns_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, returns_chart)   
@@ -278,22 +296,35 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     fs_chart.set_x_axis({
                        'date_axis': True,
                      'num_format' : 'mm/dd/yyyy',
-                     'num_font':{'rotation':-45},
+                     'num_font':{'rotation':-45,'name': 'Arial','color':'#616161 '},
                      'minor_unit':1,
                      'minor_unit_type': 'days',
                      'major_unit':      1,
                      'major_unit_type': 'months',
+                     'line':{'color':'#D3D3D3'}
 
                        })
     
     #set y axis format
-    fs_chart.set_y_axis({'num_format':'0.00%'})
+    fs_chart.set_y_axis({'num_format':'0.00%',
+                         'num_font':  {'name': 'Arial', 'color':'#616161 '},
+                         'line':{'none':True},
+                        'major_gridlines': {
+                            'visible' : 1,
+                            'line' : { 'color' : '#D3D3D3'}
+                            },
+                        'major_unit':0.02
+                        })
     
     #set chart title
-    fs_chart.set_title({'name':"Funded Status - " + sheet_name})
+    fs_chart.set_title({'name':"Funded Status - " + sheet_name,
+                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
     
-    fs_chart.set_legend({'position': 'none'})
-
+    fs_chart.set_legend({'position': 'none',
+                         'font': {'name': 'Arial','color':'#616161 '}
+                         })
+    fs_chart.set_chartarea({'border':{'none':True}})
+    
     #add chart to sheet and scale
     fs_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, fs_chart)  
@@ -328,7 +359,8 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
                             'major_gridlines': {
                                 'visible' : 1,
                                 'line' : { 'color' : '#D3D3D3'}
-                                }
+                                },
+                            'major_unit':0.02
                             })
     
     #set chart title
@@ -371,7 +403,8 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
                           'line':{'none':True},
                          'major_gridlines': {
                              'visible' : 1,
-                             'line' : { 'color' : '#D3D3D3'}},     
+                             'line' : { 'color' : '#D3D3D3'}},
+                         'major_unit':0.05
     })
    
     
