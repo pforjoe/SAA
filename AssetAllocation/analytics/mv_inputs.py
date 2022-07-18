@@ -234,7 +234,7 @@ class mv_inputs():
 
         """
         policy_wgts = self.weights.copy()
-        policy_wgts['FS AdjWeights'] = self.weights['Weights'] * self.weights['Factor Loadings']
+        policy_wgts['FS AdjWeights'] = self.weights['Weights'] * self.weights['FS Loadings']
     
         return policy_wgts
         
