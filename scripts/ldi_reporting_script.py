@@ -10,22 +10,17 @@ from AssetAllocation.analytics import summary
 from AssetAllocation.datamanager import datamanager as dm
 # import time
 
-# start = time.time()
-# liab_data_dict = summary.get_liab_data_dict()
+update_ldi_data = True
+update_asset_ret_data = True
 
-dm.update_ldi_data()
+
+if update_ldi_data:
+    dm.update_ldi_data()
+    
+if update_asset_ret_data:
+    dm.update_asset_ret_data()
 report_dict = summary.get_report_dict()
-
-# end = time.time()
-#print(end - start)
-# temp_dict = {}
-# for key in liab_model_dict:
-#     temp_df = dm.merge_dfs(liab_model_dict[key]['Present Values'], liab_model_dict[key]['IRR'])
-#     temp_dict[key] = temp_df
-
-# report_dict['pv_irr_dict'] = temp_dict
-
-#rp.get_liability_returns_report(report_dict,report_name = "test")
 
 #new ldi report format
 rp.get_ldi_report(report_dict)
+
