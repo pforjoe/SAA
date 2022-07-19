@@ -247,8 +247,8 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
     #set x axis
     returns_chart.set_x_axis({'label_position' : 'low',
                         'date_axis': True,
-                       'num_format' : 'mm-yy',
-                       'num_font':{'name': 'Arial','color':'#616161 '},
+                       'num_format' : 'mmm-yy',
+                       'num_font':{'name': 'Arial','color':'#616161 ','rotation': -45},
                       # 'minor_unit':1,
                        #'minor_unit_type': 'days',
                        #'major_unit':      1,
@@ -269,7 +269,7 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
     
     #set chart title
     returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve",
-                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
+                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}})
     
     #set legend position
     returns_chart.set_legend({'position':'bottom',
@@ -318,7 +318,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     
     #set chart title
     fs_chart.set_title({'name':"Funded Status - " + sheet_name,
-                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
+                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}})
     
     fs_chart.set_legend({'position': 'none',
                          'font': {'name': 'Arial','color':'#616161 '}
@@ -365,7 +365,7 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     
     #set chart title
     fs_vol_chart.set_title({'name':"Realized Funded Status Volatility",
-                            'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}
+                            'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}
                             })
     
     fs_vol_chart.set_legend({'position': 'bottom',
@@ -386,20 +386,20 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
         'categories': [sheet_name, fs_row_dim+19, 17, fs_row_dim+19, 18], 
         'values': [sheet_name, fs_row_dim+20, 17, fs_row_dim+20, 18],
         'name':'YTD',
-        'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Arial','color':'#616161 '},}
+        'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Calibri (Body)','color':'#616161 '},}
         })
 
     #set x axis
     ytd_chart.set_x_axis({'text_axis': True,
                           'label_position' : 'low',
-                          'num_font':  {'name': 'Arial','color':'#616161 '},
+                          'num_font':  {'name': 'Calibri (Body)','color':'#616161 ', 'size': 9},
                           'line':{'color':'#D3D3D3'}
                           })
     
     #set y axis format
     ytd_chart.set_y_axis({'num_format':'0.00%',
                           'max': 0,
-                          'num_font':  {'name': 'Arial', 'color':'#616161 '},
+                          'num_font':  {'name': 'Calibri (Body)', 'color':'#616161 ','size': 9},
                           'line':{'none':True},
                          'major_gridlines': {
                              'visible' : 1,
@@ -410,7 +410,7 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
     
     #set chart title
     ytd_chart.set_title({'name': "YTD Returns",
-                         'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
+                         'name_font':  {'name': 'Calibri (Body)','color':'#616161 ','bold':False, 'size':14}})
 
     ytd_chart.set_chartarea({'border':{'none':True}})
     
