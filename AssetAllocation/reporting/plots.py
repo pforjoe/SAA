@@ -257,7 +257,7 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
                        })
     
     #set y axis format
-    returns_chart.set_y_axis({'num_format':'0.00%',
+    returns_chart.set_y_axis({'num_format':'0%',
                               'num_font':  {'name': 'Arial', 'color':'#616161 '},
                               'line':{'none':True},
                              'major_gridlines': {
@@ -295,7 +295,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     #set x axis
     fs_chart.set_x_axis({
                        'date_axis': True,
-                     'num_format' : 'mm/dd/yyyy',
+                     'num_format' :  'mmm-yy',
                      'num_font':{'rotation':-45,'name': 'Arial','color':'#616161 '},
                      'minor_unit':1,
                      'minor_unit_type': 'days',
@@ -306,7 +306,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
                        })
     
     #set y axis format
-    fs_chart.set_y_axis({'num_format':'0.00%',
+    fs_chart.set_y_axis({'num_format':'0%',
                          'num_font':  {'name': 'Arial', 'color':'#616161 '},
                          'line':{'none':True},
                         'major_gridlines': {
@@ -353,7 +353,7 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
                        })
     
     #set y axis format
-    fs_vol_chart.set_y_axis({'num_format':'0.00%',
+    fs_vol_chart.set_y_axis({'num_format':'0%',
                              'num_font':  {'name': 'Arial', 'color':'#616161 '},
                              'line':{'none':True},
                             'major_gridlines': {
@@ -397,7 +397,7 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
                           })
     
     #set y axis format
-    ytd_chart.set_y_axis({'num_format':'0.00%',
+    ytd_chart.set_y_axis({'num_format':'0%',
                           'max': 0,
                           'num_font':  {'name': 'Calibri (Body)', 'color':'#616161 ','size': 9},
                           'line':{'none':True},
