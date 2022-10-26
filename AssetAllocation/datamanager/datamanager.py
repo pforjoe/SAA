@@ -383,15 +383,20 @@ def generate_liab_curve(df_ftse, cfs):
     return liab_curve
 
 def get_liab_model_data(plan='IBT', contrb_pct=.05):
+    plan_asset_data = get_plan_asset_data()
+    asset_mv = get_plan_asset_mv(plan_asset_data, plan)
+    asset_ret = get_plan_asset_returns(plan_asset_data, plan)
+    #only need total consolidation for asset data
+    if plan == "Total Consolidation":
+        plan = "Total"
     df_pbo_cfs = get_cf_data('PBO')
     df_sc_cfs = get_cf_data('Service Cost')
     df_ftse = get_ftse_data()
-    plan_asset_data = get_plan_asset_data()
     liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])
     plan_mv_cfs_dict = get_plan_mv_cfs_dict()
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
-            'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': get_plan_asset_mv(plan_asset_data, plan),
-            'liab_mv_cfs':offset(plan_mv_cfs_dict[plan]),'asset_ret': get_plan_asset_returns(plan_asset_data, plan)}
+            'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv,
+            'liab_mv_cfs':offset(plan_mv_cfs_dict[plan]),'asset_ret': asset_ret}
 
 def get_n_year_df(liab_plan_data_dict, data='returns', n=3):
     
@@ -457,7 +462,8 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
     plan_data.columns = ["Account Name","Account Id","Return Type","Date", "Market Value","Monthly Return"]
     
     #rename each plan 
-    plan_data["Account Name"].replace({"Total Retirement":"Retirement", "Total Pension":"Pension", "Total UPS/IBT FT Emp Pension":"IBT", "LDI ONLY-TotUSPenMinus401H":"Total"}, inplace = True)
+    plan_data["Account Name"].replace({"Total Retirement":"Retirement", "Total Pension":"Pension", "Total UPS/IBT FT Emp Pension":"IBT", 
+                                       "LDI ONLY-TotUSPenMinus401H":"Total", "UPS GT Total Consolidation" : "Total Consolidation"}, inplace = True)
     
     #pivot table so that plans are in the columns and the rows are the market value/returns for each date
     mv_df = plan_data.pivot_table(values = 'Market Value', index='Date', columns='Account Name')
