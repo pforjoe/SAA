@@ -234,14 +234,14 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
 
     #add asset returns data to bar chart
     returns_chart.add_series({
-        'categories': [sheet_name, ret_row_dim-11, 0, ret_row_dim, 0], 
-        'values': [sheet_name, ret_row_dim-11, 1, ret_row_dim, 1],
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 1, ret_row_dim, 1],
         'name':"Asset"})
     
     #add liability returns data to bar chart
     returns_chart.add_series({
-        'categories': [sheet_name, ret_row_dim-11, 0, ret_row_dim, 0], 
-        'values': [sheet_name, ret_row_dim-11, 2, ret_row_dim, 2],
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 2, ret_row_dim, 2],
         'name': 'Liabilty'})
     
     #set x axis
