@@ -708,7 +708,8 @@ def update_ldi_data(update_plan_market_val = True):
     if update_plan_market_val:
         update_plan_mv()
 
-def transform_asset_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
+def transform_asset_returns(file_name = 'Historical Asset Class Returns.xls',
+                            sheet_name = 'Historical Asset Class Returns'):
     hist_ret = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name)
    
     #rename columns
@@ -735,10 +736,10 @@ def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
     #rename columns
     index_returns.columns = ['15+ STRIPS', 'Long Corps', 'BNP 30Y ULTRA FUT', 'SP500',
                              'MSCI ACWI', 'RUSS2000', 'MSCI EAFE', 'MSCI EM', 'CS LL',
-                             'BOA HY', 'HF MACRO', 'HFRI MACRO', 'TREND',
+                             'BOA HY', 'HFRX MACRO/CTA', 'HFRI MACRO', 'SG TREND',
                              'ALT RISK', 'DW REIT', 'BXIIU3MC Index', 'USGB090Y Index',
                              'USBMMY3M Index', 'CDLI', 'MSCI ACWI IMI', 'RUSS3000',
-                             'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT']
+                             'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT', 'HFRX AR']
     
     
     return index_returns
@@ -746,7 +747,8 @@ def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
 
 def transform_eq_hedges():
     #read in new hedge data
-    eq_hedge_df = pd.read_excel(TS_FP+'equity_hedge_data.xlsx', sheet_name = 'Monthly Historical Returns', usecols=['Date','Weighted Hedges'], index_col=0)
+    eq_hedge_df = pd.read_excel(TS_FP+'equity_hedge_data.xlsx', sheet_name = 'Monthly Historical Returns', 
+                                usecols=['Date','Weighted Hedges'], index_col=0)
     #rename columns
     eq_hedge_df.columns = ['Equity Hedges']
         
