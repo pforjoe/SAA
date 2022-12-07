@@ -6,7 +6,7 @@ Created on Wed Oct 20 21:26:55 2021
 """
 
 import pandas as pd
-from  ..datamanager import datamanager as dm
+from AssetAllocation.datamanager import datamanager as dm
 
 def highlight_max(s):
     """
@@ -89,7 +89,7 @@ def color_neg_red(val):
     string
 
     """
-    color = 'red' if val < 0 else 'black'
+    color = 'red' if val < 0 else 'green'
     return 'color: %s' % color
 
 def get_plan_styler(df, returns = True):

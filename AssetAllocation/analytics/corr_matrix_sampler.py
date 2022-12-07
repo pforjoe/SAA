@@ -6,7 +6,7 @@ Created on Sun Oct 10 12:27:19 2021
 
 import numpy as np
 import pandas as pd
-from .import ts_analytics as ts
+import AssetAllocation.analytics.ts_analytics as ts
 
 # Summary: Samples correlation matrices.
 class CorrelationMatrixSampler:

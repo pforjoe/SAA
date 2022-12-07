@@ -40,7 +40,7 @@ def npv(irr, cfs, yrs):
     return np.sum(cfs / (1. + irr) ** yrs)
 
 def irr(cfs, yrs, x0, **kwargs):
-    return np.asscalar(fsolve(npv, x0=x0,args=(cfs,yrs), **kwargs))
+    return np.ndarray.item(fsolve(npv, x0=x0,args=(cfs,yrs), **kwargs))
 
 def compute_irr(present_values,pbo_cashflows, disc_factors):
     irr_array = np.zeros(len(present_values))

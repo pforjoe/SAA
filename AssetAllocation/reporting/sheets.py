@@ -9,8 +9,8 @@ Created on Sat Oct  9 21:41:41 2021
 import pandas as pd
 from AssetAllocation.reporting import formats
 from AssetAllocation.analytics import util
-from .import formats
-from .import plots
+import AssetAllocation.reporting.formats as formats
+import AssetAllocation.reporting.plots as plots
 
 # TODO: add comments in it
 

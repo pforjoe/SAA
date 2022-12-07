@@ -1,6 +1,6 @@
 import math
 from AssetAllocation.analytics import plan_params as pp
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 import CorrelationMatrixSampler as cs
 import numpy as np
 import pandas as pd
