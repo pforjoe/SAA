@@ -8,8 +8,8 @@ Created on Mon Sep 20 22:05:54 2021
 import numpy as np
 #import pandas as pd
 from numpy.linalg import multi_dot
-from .import util
-from ..datamanager import datamanager as dm
+import AssetAllocation.analytics.util as util
+from AssetAllocation.datamanager import datamanager as dm
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')

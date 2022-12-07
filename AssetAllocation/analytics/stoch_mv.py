@@ -4,9 +4,9 @@ Created on Sun Oct 10 12:27:19 2021
 
 @author: Antoine Tan, Powis Forjoe
 """
-from .plan_params import planParams
-from ..datamanager import datamanager as dm
-from .corr_matrix_sampler import CorrelationMatrixSampler
+from AssetAllocation.analytics.plan_params import planParams
+from AssetAllocation.datamanager import datamanager as dm
+from AssetAllocation.analytics.corr_matrix_sampler import CorrelationMatrixSampler
 import numpy as np
 import pandas as pd
 

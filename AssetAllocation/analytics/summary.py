@@ -4,21 +4,21 @@ Created on Sun Oct 10 12:27:19 2021
 
 @authors: Powis Forjoe, Maddie Choi
 """
-from .mv_inputs import mv_inputs
-from .plan_params import planParams
-from .liability_model import liabilityModel
-from ..datamanager import datamanager as dm
-from .import ts_analytics as ts
-from .import util
+import AssetAllocation.analytics.mv_inputs as mv_inputs
+from AssetAllocation.analytics.plan_params import planParams
+from AssetAllocation.analytics.liability_model import liabilityModel
+from AssetAllocation.datamanager import datamanager as dm
+import AssetAllocation.analytics.ts_analytics as ts
+import AssetAllocation.analytics.util as util
 
 def get_mv_inputs(mv_inputs_dict, liab_model):
     weights_df = add_fs_load_col(mv_inputs_dict['weights'],
                                  liab_model.funded_status['Funded Status'][-1])
     weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
-    return mv_inputs(mv_inputs_dict['ret_assump'],mv_inputs_dict['mkt_factor_prem'],
-                     mv_inputs_dict['fi_data'],mv_inputs_dict['rsa_data'], 
-                     mv_inputs_dict['rv_data'],mv_inputs_dict['vol_defs'], 
-                     mv_inputs_dict['corr_data'],weights_df)
+    return mv_inputs.mv_inputs(mv_inputs_dict['ret_assump'], mv_inputs_dict['mkt_factor_prem'],
+                               mv_inputs_dict['fi_data'], mv_inputs_dict['rsa_data'],
+                               mv_inputs_dict['rv_data'], mv_inputs_dict['vol_defs'],
+                               mv_inputs_dict['corr_data'], weights_df)
 
 def get_mv_output(mv_inputs, mkt='Equity'):
     output_dict = mv_inputs.get_output(mkt)

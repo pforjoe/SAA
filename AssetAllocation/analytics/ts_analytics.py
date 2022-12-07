@@ -7,8 +7,8 @@ Created on Fri Oct  1 17:05:16 2021
 
 import pandas as pd
 import numpy as np
-from ..datamanager import datamanager as dm
-from .util import add_sharpe_col
+
+from AssetAllocation.analytics.util import add_sharpe_col
 
 
 def compute_ewcov(returns_df, x, y, decay_factor=.98,t=1):
@@ -34,6 +34,7 @@ def compute_ewcov(returns_df, x, y, decay_factor=.98,t=1):
         exponential-weighted covariance.
 
     """
+
     if t <= 0:
         return decay_factor * (returns_df.cov()[x][y]) + (1 - decay_factor) * (returns_df[x][-1:][0]*returns_df[y][-1:][0])
     else:

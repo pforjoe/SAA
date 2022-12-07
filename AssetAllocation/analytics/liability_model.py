@@ -7,14 +7,14 @@ Created on Mon Nov  8 21:32:09 2021
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
-from .ts_analytics import get_ann_vol
+from AssetAllocation.analytics.ts_analytics import get_ann_vol
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
 
 
 class liabilityModel():
-    
+
     #TODO: take out disc_rates option
     def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct, asset_mv, liab_mv_cfs, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
         """
@@ -190,7 +190,7 @@ class liabilityModel():
             IRR.
 
         """
-        return np.asscalar(fsolve(self.npv, x0=x0,args=(cfs,yrs), **kwargs))
+        return np.ndarray.item(fsolve(self.npv, x0=x0,args=(cfs,yrs), **kwargs))
     
     def compute_irr(self):
         """
@@ -205,7 +205,7 @@ class liabilityModel():
         return pd.DataFrame(irr_array, columns=['IRR'], index=self.present_values.index)
     
     def compute_fulfill_ret(self, yrs_to_ff, ff_ratio,x0=.01):
-        self.fulfill_irr = np.asscalar(fsolve(self.fulfill_solve, x0=x0,
+        self.fulfill_irr = np.ndarray.item(fsolve(self.fulfill_solve, x0=x0,
                                   args=(yrs_to_ff, ff_ratio)))
         self.excess_return = self.fulfill_irr - self.ret
 
