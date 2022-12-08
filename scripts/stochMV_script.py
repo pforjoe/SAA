@@ -10,7 +10,7 @@ Created on Sat Oct 30 11:38:48 2021
 ###############################################################################
 import os
 os.chdir("..")
-import AssetAllocation.datamanager
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics import summary
 from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import plots, reports as rp
@@ -58,7 +58,7 @@ plots.get_sim_return_fig(s)
 ###############################################################################
 # DEFINE BOUNDS                                                               #
 ###############################################################################
-bnds = AssetAllocation.datamanager.datamanager.get_bounds(plan.funded_status, plan=PLAN)
+bnds = dm.get_bounds(plan.funded_status, plan=PLAN)
 
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
