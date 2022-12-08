@@ -11,9 +11,7 @@ import os
 import pandas as pd
 
 from AssetAllocation.datamanager import datamanager as dm
-from AssetAllocation.reporting.sheets import set_return_sheet, set_plan_ldi_sheet, set_fs_data_sheet, set_asset_liability_sheet, \
-    set_dollar_values_sheet, set_ff_ratio_matrix_sheet, set_ret_vol_sheet, set_liab_mv_cf_sheet, set_ef_port_sheet, \
-    set_corr_sheet, set_resamp_corr_sheet, set_wgts_sheet, set_ftse_data_sheet
+from AssetAllocation.reporting import sheets
 
 
 def get_reportpath(reportname):
@@ -98,11 +96,11 @@ def get_output_report(reportname, output_dict):
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
     
-    set_ret_vol_sheet(writer, output_dict['ret_vol'])
-    set_corr_sheet(writer, output_dict['corr'])
-    set_wgts_sheet(writer, output_dict['weights'])
+    sheets.set_ret_vol_sheet(writer, output_dict['ret_vol'])
+    sheets.set_corr_sheet(writer, output_dict['corr'])
+    sheets.set_wgts_sheet(writer, output_dict['weights'])
     try:
-        set_return_sheet(writer, output_dict['returns'])
+        sheets.set_return_sheet(writer, output_dict['returns'])
     except KeyError:
         pass
     #save file
@@ -131,20 +129,20 @@ def get_ef_portfolios_report(reportname, plan, bnds=pd.DataFrame):
     
     pp_dict = plan.get_pp_dict()
     
-    set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
-    set_corr_sheet(writer, pp_dict['Corr'])
+    sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
+    sheets.set_corr_sheet(writer, pp_dict['Corr'])
     if not(bnds.empty):
-        set_ret_vol_sheet(writer, bnds, 'bounds')
+        sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
         ports_df = plan.ports_df
-        set_ef_port_sheet(writer, ports_df)
+        sheets.set_ef_port_sheet(writer, ports_df)
         
     except TypeError:
         print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')
         pass
     
     try:
-        set_return_sheet(writer, pp_dict['Historical Returns'])
+        sheets.set_return_sheet(writer, pp_dict['Historical Returns'])
     except AttributeError:
         pass
     
@@ -174,26 +172,26 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     
     pp_dict = stochmv.init_plan.get_pp_dict()
     
-    set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
-    set_corr_sheet(writer, pp_dict['Corr'])
+    sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
+    sheets.set_corr_sheet(writer, pp_dict['Corr'])
     if not(bnds.empty):
-        set_ret_vol_sheet(writer, bnds, 'bounds')
+        sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
         ports_df = stochmv.opt_ports_df
-        set_ef_port_sheet(writer, ports_df)
+        sheets.set_ef_port_sheet(writer, ports_df)
         
     except TypeError:
         print('efficient frontier sheet not added\nRun plan.compute_eff_frontier(bnd, cons, num_ports) function')
         pass
     
     try:
-        set_return_sheet(writer, pp_dict['Historical Returns'])
+        sheets.set_return_sheet(writer, pp_dict['Historical Returns'])
     except AttributeError:
         pass
-    set_return_sheet(writer, stochmv.returns_df, sheet_name='Simulated Returns', sample_ret=True)
+    sheets.set_return_sheet(writer, stochmv.returns_df, sheet_name='Simulated Returns', sample_ret=True)
     
     for key in stochmv.resamp_corr_dict:
-        set_resamp_corr_sheet(writer, stochmv.resamp_corr_dict[key], sheet_name=key + ' Resamp Corr')
+        sheets.set_resamp_corr_sheet(writer, stochmv.resamp_corr_dict[key], sheet_name=key + ' Resamp Corr')
         
     #save file
     print_report_info(reportname, filepath)
@@ -205,9 +203,11 @@ def get_ff_report(reportname, fulfill_ret_dict,plan_list):
     filepath = get_reportpath(reportname)
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     for plan in plan_list:
-        set_ff_ratio_matrix_sheet(writer, plan, fulfill_ret_dict)
-    writer.save()  
-
+        sheets.set_ff_ratio_matrix_sheet(writer, plan, fulfill_ret_dict)
+    #save file
+    print_report_info(reportname, filepath)
+    writer.save()
+    
 def print_report_info(reportname, filepath):
     """
     Print name of report and location
@@ -249,15 +249,15 @@ def get_liability_returns_report(report_dict,report_name = "liability_returns"):
     writer = pd.ExcelWriter(filepath, engine='xlsxwriter')
     
     #set up sheets for report
-    set_return_sheet(writer, report_dict["Liability Returns"], sheet_name ="Liability Returns")
-    set_dollar_values_sheet(writer, report_dict["Liability Market Values"], sheet_name ="Liability Market Values")
-    set_return_sheet(writer, report_dict["Asset Returns"], sheet_name ="Asset Returns")
-    set_dollar_values_sheet(writer, report_dict["Asset Market Values"], sheet_name ="Asset Market Values")
-    set_dollar_values_sheet(writer, report_dict["Present Values"], sheet_name ="Present Values")
-    set_return_sheet(writer, report_dict["IRR"], sheet_name ="IRR")
-    set_asset_liability_sheet(writer, report_dict["asset_liab_ret_dict"])
-    set_asset_liability_sheet(writer, report_dict["asset_liab_mkt_val_dict"], sheet_name ="Asset-Liability Mkt Values", num_values = True)
-    set_fs_data_sheet(writer, report_dict["fs_data"])
+    sheets.set_return_sheet(writer, report_dict["Liability Returns"], sheet_name ="Liability Returns")
+    sheets.set_dollar_values_sheet(writer, report_dict["Liability Market Values"], sheet_name ="Liability Market Values")
+    sheets.set_return_sheet(writer, report_dict["Asset Returns"], sheet_name ="Asset Returns")
+    sheets.set_dollar_values_sheet(writer, report_dict["Asset Market Values"], sheet_name ="Asset Market Values")
+    sheets.set_dollar_values_sheet(writer, report_dict["Present Values"], sheet_name ="Present Values")
+    sheets.set_return_sheet(writer, report_dict["IRR"], sheet_name ="IRR")
+    sheets.set_asset_liability_sheet(writer, report_dict["asset_liab_ret_dict"])
+    sheets.set_asset_liability_sheet(writer, report_dict["asset_liab_mkt_val_dict"], sheet_name ="Asset-Liability Mkt Values", num_values = True)
+    sheets.set_fs_data_sheet(writer, report_dict["fs_data"])
 
     #save file
     print_report_info(report_name, filepath)
@@ -282,8 +282,8 @@ def get_plan_data_report(plan_data_dict, report_name = "plan_data"):
     #creates excel report with updated plan market vallues and returns
     filepath = get_ts_path(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
-    set_dollar_values_sheet(writer, plan_data_dict['mkt_value'], sheet_name='mkt_value')
-    set_return_sheet(writer, plan_data_dict["return"], sheet_name='return', set_neg_value_format= True)
+    sheets.set_dollar_values_sheet(writer, plan_data_dict['mkt_value'], sheet_name='mkt_value')
+    sheets.set_return_sheet(writer, plan_data_dict["return"], sheet_name='return', set_neg_value_format= True)
 
     #save file
     print_report_info(report_name, filepath)
@@ -310,8 +310,8 @@ def get_ftse_data_report(ftse_dict, report_name = "ftse_data"):
     
     
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
-    set_ftse_data_sheet(writer, ftse_dict['new_data'], sheet_name='new_data')
-    set_ftse_data_sheet(writer, ftse_dict['old_data'], sheet_name='old_data')
+    sheets.set_ftse_data_sheet(writer, ftse_dict['new_data'], sheet_name='new_data')
+    sheets.set_ftse_data_sheet(writer, ftse_dict['old_data'], sheet_name='old_data')
 
     #save file
     print_report_info(report_name, filepath)
@@ -324,7 +324,7 @@ def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = T
   
     for key in report_dict:
         temp_mv_fs_df = dm.merge_dfs(report_dict[key]['market_values'], report_dict[key]['fs_data'], dropna = False)
-        set_plan_ldi_sheet(writer, report_dict[key]['returns'],
+        sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'],
                            report_dict[key]['pv_irr'],
                            temp_mv_fs_df,
                            sheet_name = key, dashboard_graphs = dashboard_graphs)
@@ -355,7 +355,7 @@ def get_liab_mv_cf_report(plan_mv_cfs_dict, report_name = "liab_mv_cfs"):
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     
     for plan in plan_mv_cfs_dict:
-        set_liab_mv_cf_sheet(writer, plan_mv_cfs_dict[plan], plan)
+        sheets.set_liab_mv_cf_sheet(writer, plan_mv_cfs_dict[plan], plan)
     
     #save file
     print_report_info(report_name, filepath)
@@ -377,7 +377,7 @@ def get_monthly_returns_report(returns_df, report_name, sheet_name='Monthly Hist
     filepath = get_ts_path(report_name)
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
     
-    set_return_sheet(writer, returns_df, sheet_name)
+    sheets.set_return_sheet(writer, returns_df, sheet_name)
     
     #save file
     print_report_info(report_name, filepath)
