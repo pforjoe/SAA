@@ -8,11 +8,12 @@ Created on Wed Nov  3 21:05:08 2021
 ############################################################################################################################################################
 # IMPORT LIBRARIES                                                            
 ############################################################################################################################################################
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics.liability_model import liabilityModel
 from AssetAllocation.reporting import reports as rp
 import numpy as np
 import pandas as pd
+import os
 PLAN = 'IBT'
 ############################################################################################################################################################
 # IMPORT CASHFLOW AND DISC RATE DATA                                                             
@@ -51,7 +52,7 @@ for plan in plan_list:
         ff_ratio_df.index.names = ['Years to Fully Funded']
         for contrb_pct in contrb_pct_list:
             print('Contrib Pct: {}'.format(contrb_pct))
-            liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows, 
+            liab_model = liabilityModel(pbo_cashflows, disc_factors, sc_cashflows,
                                               liab_curve,disc_rates,contrb_pct, asset_mv)
             for yrs_to_ff in yrs_to_ff_list:
                 print('Year to ff: {}'.format(yrs_to_ff))

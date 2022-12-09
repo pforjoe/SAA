@@ -6,7 +6,7 @@ Created on Thu Mar 17 12:57:51 2022
 """
 
 import pandas as pd
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics.liability_model import liabilityModel
 import pandas as pd
 import numpy as np
