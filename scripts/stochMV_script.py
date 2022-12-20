@@ -10,7 +10,7 @@ Created on Sat Oct 30 11:38:48 2021
 ###############################################################################
 import os
 os.chdir("..")
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics import summary
 from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import plots, reports as rp
