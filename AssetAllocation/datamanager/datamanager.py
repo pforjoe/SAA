@@ -382,9 +382,13 @@ def generate_liab_curve(df_ftse, cfs):
     liab_curve = liab_curve.iloc[:, ::-1]
     return liab_curve
 
-def get_liab_model_data(plan='IBT', contrb_pct=.05):
+def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True):
     df_pbo_cfs = get_cf_data('PBO')
-    df_sc_cfs = get_cf_data('Service Cost')
+    if ldi_report:
+        df_sc_cfs = get_cf_data('Service Cost')
+    else:
+        df_pvfb_cfs = get_cf_data('PVFB')
+        df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
     df_ftse = get_ftse_data()
     plan_asset_data = get_plan_asset_data()
     liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])

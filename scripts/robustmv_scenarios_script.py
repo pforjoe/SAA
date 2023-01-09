@@ -23,7 +23,7 @@ for pension_plan in plan_list:
     ###############################################################################
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
-    liab_model = summary.get_liab_model(pension_plan)
+    liab_model = summary.get_liab_model(pension_plan, .05, False)
     
     ###############################################################################
     # COMPUTE PLAN INPUTS                                                         #

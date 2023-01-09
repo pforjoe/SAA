@@ -5,7 +5,7 @@ Created on Fri Nov  5 14:08:59 2021
 @author: Powis Forjoe
 """
 
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics import summary
 from AssetAllocation.reporting import reports as rp, plots
 import numpy as np
@@ -22,7 +22,7 @@ for pension_plan in plan_list:
     ###############################################################################
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
-    liab_model = summary.get_liab_model(pension_plan)
+    liab_model = summary.get_liab_model(pension_plan, .05, False)
     
     ###############################################################################
     # COMPUTE PLAN INPUTS                                                         #
