@@ -32,7 +32,7 @@ UPDATE_FP = DATA_FP + 'update_files\\'
 
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
-SHEET_LIST = ['2019','2020','2021','2021_1', '2022']
+SHEET_LIST = ['2019','2020','2021','2021_1','2022','2023']
 PLAN_LIST = ['IBT','Pension', 'Retirement']
 
 def get_fi_data(filename):
@@ -515,7 +515,7 @@ def update_ftse_data(file_name = "ftse_data.xlsx"):
     #export report
     rp.get_ftse_data_report(ftse_dict, "ftse_data")
     
-    # return ftse_dict
+    return ftse_dict
 
 def group_asset_liab_data(liab_data_dict, data='returns'):
     
@@ -708,12 +708,12 @@ def update_plan_mv():
     #export report
     rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
 
-def update_ldi_data(update_plan_market_val = True):
+def update_ldi_data(update_plan_market_val = False):
     update_plan_data()
-    update_ftse_data()
     if update_plan_market_val:
         update_plan_mv()
-
+    update_ftse_data()
+   
 def transform_asset_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
     hist_ret = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name)
    

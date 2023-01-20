@@ -36,7 +36,7 @@ def get_max_sharpe_weights(sim_ports_df):
 def ceil(number, bound=5):
     return bound *np.ceil(number/bound)
 
-def calculate_ytd_returns(month_ret_df, year = datetime.now().year):
+def calculate_ytd_returns(month_ret_df, year = 2022):
     
     #make index a column
     month_ret_df = month_ret_df.reset_index()
