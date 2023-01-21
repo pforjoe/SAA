@@ -651,7 +651,9 @@ def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', pas
             temp_cfs_df = merge_dfs(temp_pbo_df, temp_sc_df)
             temp_cfs_df.columns = ['PBO', 'SC']
             if year == SHEET_LIST[-1]:
-                no_of_cols = len(get_liab_mv_cf_cols(ftse_filename))%12 
+                no_of_cols = len(get_liab_mv_cf_cols(ftse_filename))%12
+                if no_of_cols == 0:
+                    no_of_cols = 12
             else:
                 no_of_cols = switch_int(year, n)
             liab_cfs = pd.DataFrame(columns=list(range(1,no_of_cols+1)), index=temp_cfs_df.index)
@@ -667,6 +669,7 @@ def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', pas
             year_dict[year] = liab_cfs
         liab_mv_dict[key] = year_dict
     return liab_mv_dict
+
 
 def get_plan_mv_cfs_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx',
                          ftse_filename='ftse_data.xlsx'):
