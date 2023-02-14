@@ -32,7 +32,7 @@ UPDATE_FP = DATA_FP + 'update_files\\'
 
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
-SHEET_LIST = ['2019','2020','2021','2021_1', '2022']
+SHEET_LIST = ['2019','2020','2021','2021_1', '2022','2023']
 PLAN_LIST = ['IBT','Pension', 'Retirement']
 
 def get_fi_data(filename):
