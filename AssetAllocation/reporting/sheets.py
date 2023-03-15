@@ -557,7 +557,7 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_g
                      startcol=col + ret_col_dim + liab_col_dim + 4)
     if dashboard_graphs:
         # ytd = util.calculate_ytd_returns(returns)
-        ytd = util.calculate_ytd_returns(returns, 2022)
+        ytd = util.calculate_ytd_returns(returns)
         ytd.to_excel(writer, sheet_name=sheet_name, startrow=fs_row_dim + 19,
                          startcol = 16)
         
