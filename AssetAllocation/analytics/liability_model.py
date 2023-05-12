@@ -190,7 +190,7 @@ class liabilityModel():
             IRR.
 
         """
-        return np.asscalar(fsolve(self.npv, x0=x0,args=(cfs,yrs), **kwargs))
+        return np.ndarray.item(fsolve(self.npv, x0=x0,args=(cfs,yrs), **kwargs))
     
     def compute_irr(self):
         """
