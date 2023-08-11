@@ -10,14 +10,11 @@ from AssetAllocation.analytics import summary
 from AssetAllocation.datamanager import datamanager as dm
 # import time
 
-# start = time.time()
-# liab_data_dict = summary.get_liab_data_dict()
-
+#update ldi data
 dm.update_ldi_data()
-report_dict = summary.get_report_dict()
 
-# end = time.time()
-#print(end - start)
+#compute ldi stats
+report_dict = summary.get_report_dict(n=3)
 
-#new ldi report format
-rp.get_ldi_report(report_dict)
+#generate ldi report
+rp.get_ldi_report(report_dict, dashboard_graphs=True)

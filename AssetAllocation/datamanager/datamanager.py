@@ -32,7 +32,7 @@ UPDATE_FP = DATA_FP + 'update_files\\'
 
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
-SHEET_LIST = ['2019','2020','2021','2021_1', '2022','2023']
+SHEET_LIST = ['2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2021_1', '2022','2023']
 PLAN_LIST = ['IBT','Pension', 'Retirement']
 
 def get_fi_data(filename):
@@ -522,14 +522,14 @@ def update_ftse_data(file_name = "ftse_data.xlsx"):
     
     # return ftse_dict
 
-def group_asset_liab_data(liab_data_dict, data='returns'):
+def group_asset_liab_data(liab_data_dict, data='returns', n=3):
     
     #create asset_liab_dict
     asset_liab_data_dict = {}
     
     #loop through each plan and get asset/liability table
     for key in liab_data_dict:
-        asset_liab_data_dict[key] = get_n_year_df(liab_data_dict[key], data)
+        asset_liab_data_dict[key] = get_n_year_df(liab_data_dict[key], data, n)
         
     return asset_liab_data_dict
 
@@ -552,6 +552,7 @@ def transform_report_dict(report_dict, plan_list):
         for key in report_dict:
             temp_dict[key] = report_dict[key][plan]
         report_dict_tx[plan] = temp_dict
+    print('report_dict complete')
     return report_dict_tx
     
 def switch_int(arg,n):
@@ -572,7 +573,7 @@ def get_liab_mv_cf_cols(ftse_filename='ftse_data.xlsx'):
     df_ftse = get_ftse_data(False,ftse_filename)
     dates = df_ftse.transpose().iloc[1:,]
     dates.sort_index(inplace=True)
-    return list(dates.index[109:])
+    return list(dates.index[13:])
 
 def transform_pbo_df(pbo_df):
     temp_df_list = [pbo_df.iloc[0:12* len(SHEET_LIST)],pbo_df.iloc[12*len(SHEET_LIST):,]]
@@ -580,7 +581,22 @@ def transform_pbo_df(pbo_df):
     temp_df = temp_df_list[0].append(temp_df_list[1])
     return temp_df
         
+#TODO: Comment
 def get_past_pbo_data(filename = 'past_pbo_cashflow_data.xlsx'):
+    """
+    
+
+    Parameters
+    ----------
+    filename : TYPE, optional
+        DESCRIPTION. The default is 'past_pbo_cashflow_data.xlsx'.
+
+    Returns
+    -------
+    past_pbo_dict : TYPE
+        DESCRIPTION.
+
+    """
     past_pbo_dict = {}
     for sheet in SHEET_LIST[:-1]:
         df_pbo_cfs = pd.read_excel(TS_FP+'past_pbo_cashflow_data.xlsx', 
@@ -597,7 +613,22 @@ def get_past_pbo_data(filename = 'past_pbo_cashflow_data.xlsx'):
         past_pbo_dict[sheet] = df_pbo_cfs
     return past_pbo_dict
 
+#TODO: Comment
 def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
+    """
+    
+
+    Parameters
+    ----------
+    filename : TYPE, optional
+        DESCRIPTION. The default is 'past_pbo_cashflow_data.xlsx'.
+
+    Returns
+    -------
+    plan_pbo_dict : TYPE
+        DESCRIPTION.
+
+    """
     past_pbo_dict = get_past_pbo_data(filename)
     plan_pbo_dict = {}
     for plan in PLAN_LIST:
@@ -614,12 +645,29 @@ def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
         plan_pbo_dict[plan] = temp_pbo_df
     return plan_pbo_dict
 
+#TODO: Comment
 def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
+    """
+    
+
+    Parameters
+    ----------
+    plan_pbo_dict : TYPE
+        DESCRIPTION.
+    filename : TYPE, optional
+        DESCRIPTION. The default is 'past_sc_cashflow_data.xlsx'.
+
+    Returns
+    -------
+    plan_sc_dict : TYPE
+        DESCRIPTION.
+
+    """
     plan_sc_dict = {}
     for plan in PLAN_LIST:
         n = 9 if plan == 'IBT' else 8
         sc_df = plan_pbo_dict[plan].copy()
-        # sc_df.fillna(0, inplace=True)
+        # Compute service cost for past years by subtracting year_x pbo from year_x-1
         for x in range(1,len(SHEET_LIST)):
             temp_df_list = [sc_df.iloc[0:12*x],sc_df.iloc[12*x:,]]
             temp_df_list[1].fillna(0, inplace=True)
@@ -628,8 +676,10 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
                                       df[SHEET_LIST[x-1]])/switch_int(SHEET_LIST[x-1],n)
             temp_df = temp_df_list[0].append(temp_df_list[1])
             sc_df[SHEET_LIST[x-1]] = temp_df[SHEET_LIST[x-1]]
+        # get service cost for current year
         sc_df[SHEET_LIST[x]] = get_cf_data('Service Cost')[plan]/12
-        # sc_df[SHEET_LIST[x]] = 0
+        
+        # Replace service cost data for 2021 for IBT plan
         if plan == 'IBT':
             sc_df.drop(['2021'], axis=1, inplace=True)
             df_sc_cfs = pd.read_excel(TS_FP+filename, 
@@ -640,8 +690,27 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
         plan_sc_dict[plan] = sc_df[SHEET_LIST]
     return plan_sc_dict
     
+#TODO: Comment
 def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx',
                           ftse_filename = 'ftse_data.xlsx'):
+    """
+    
+
+    Parameters
+    ----------
+    past_pbo_filename : TYPE, optional
+        DESCRIPTION. The default is 'past_pbo_cashflow_data.xlsx'.
+    past_sc_filename : TYPE, optional
+        DESCRIPTION. The default is 'past_sc_cashflow_data.xlsx'.
+    ftse_filename : TYPE, optional
+        DESCRIPTION. The default is 'ftse_data.xlsx'.
+
+    Returns
+    -------
+    liab_mv_dict : TYPE
+        DESCRIPTION.
+
+    """
     plan_pbo_dict = get_plan_pbo_dict(past_pbo_filename)
     plan_sc_dict = get_plan_sc_dict(plan_pbo_dict, past_sc_filename)
     
@@ -768,7 +837,6 @@ def transform_eq_hedges():
         
     return eq_hedge_df
 
-
 def get_new_asset_returns():
     hist_ret_df = transform_asset_returns()
     index_returns = transform_index_data()
@@ -791,7 +859,6 @@ def update_asset_ret_data(file_name='asset_return_data.xlsx',sheet_name='Monthly
     except KeyError:
         pass
     rp.get_monthly_returns_report(asset_ret_data, 'asset_return_data')
-    
 
 def update_ret_data_dates(ret_df, new_ret_df):
     #reset both data frames index
@@ -811,11 +878,4 @@ def update_ret_data_dates(ret_df, new_ret_df):
     ret_df.set_index('Date', inplace = True)
     
     return new_ret_df
-
-    
-    
-    
-    
-    
-    
-    
+ 

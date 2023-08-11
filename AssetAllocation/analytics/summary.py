@@ -130,10 +130,11 @@ def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], co
         liab_model = get_liab_model(plan, contrb_pct)
         del liab_model.data_dict['Cashflows']
         liab_data_dict[plan] = liab_model.data_dict
+        print('{} plan liability model complete'.format(plan))
 
     return liab_data_dict
 
-def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"], n=3):
     
     #get_liability model dictionary
     liab_data_dict = get_liab_data_dict(plan_list)
@@ -143,6 +144,6 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     for data in data_list:
         print("Formatting " + data + "...")
-        report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data)
+        report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data, n)
     
     return dm.transform_report_dict(report_dict, plan_list)
