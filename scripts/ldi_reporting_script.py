@@ -14,7 +14,7 @@ from AssetAllocation.datamanager import datamanager as dm
 dm.update_ldi_data()
 
 #compute ldi stats
-report_dict = summary.get_report_dict(n=3)
+report_dict = summary.get_report_dict(n=3, filename='plan_data.xlsx')
 
 #generate ldi report
-rp.get_ldi_report(report_dict, dashboard_graphs=True)
+rp.get_ldi_report(report_dict,report_name='ldi_report', dashboard_graphs=True)

@@ -383,8 +383,8 @@ def generate_liab_curve(df_ftse, cfs):
     return liab_curve
 
 
-def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True):
-    plan_asset_data = get_plan_asset_data()
+def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True, filename='plan_data.xlsx'):
+    plan_asset_data = get_plan_asset_data(filename)
     asset_mv = get_plan_asset_mv(plan_asset_data, plan)
     asset_ret = get_plan_asset_returns(plan_asset_data, plan)
     #only need total consolidation for asset data
@@ -442,16 +442,16 @@ def offset(pbo_cfs):
         data.iloc[:,i] = cfs
     return(data)
 
-def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_name = 'Plan level Historical Returns'):
+def update_plan_data(filename = 'Plan level Historical Returns.xls', report_name = 'plan_data'):
     '''
     
 
     Parameters
     ----------
+    filename: String
+        Name of nexen xls file located in update_data folder. The default is 'Plan level Historical Returns.xls'.
     report_name : String
-        DESCRIPTION. The default is 'monthly_plan_data.xlsx'.
-    sheet_name : String
-        DESCRIPTION. The default is 'data'.
+        DESCRIPTION. The default is 'plan_data'.
 
     Returns
     -------
@@ -459,22 +459,29 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
             Updated plan market values and returns 
 
     '''
-    print('updating plan_data.xlsx')
+    print('updating {}.xlsx'.format(report_name))
     #read in monthly plan data
-    plan_data = pd.read_excel(UPDATE_FP + report_name, sheet_name = sheet_name)
+    plan_data = pd.read_excel(UPDATE_FP + filename)
     
     #rename columns
     plan_data.columns = ["Account Name","Account Id","Return Type","Date", "Market Value","Monthly Return"]
     
-    #rename each plan 
-    plan_data["Account Name"].replace({"Total Retirement":"Retirement", "Total Pension":"Pension", "Total UPS/IBT FT Emp Pension":"IBT", 
+    
+    try:
+        #rename each plan 
+        plan_data["Account Name"].replace({"Total Retirement":"Retirement", "Total Pension":"Pension", "Total UPS/IBT FT Emp Pension":"IBT", 
                                        "LDI ONLY-TotUSPenMinus401H":"Total", "UPS GT Total Consolidation" : "Total Consolidation"}, inplace = True)
+    except KeyError:
+        pass
     
     #pivot table so that plans are in the columns and the rows are the market value/returns for each date
     mv_df = plan_data.pivot_table(values = 'Market Value', index='Date', columns='Account Name')
     
-    #add back misc recievables
-    add_misc_receiv(mv_df)
+    try:
+        #add back misc recievables
+        add_misc_receiv(mv_df)
+    except KeyError:
+        pass
     
     ret_df = plan_data.pivot_table(values = 'Monthly Return', index='Date', columns='Account Name')
     #divide returns by 100
@@ -482,7 +489,7 @@ def update_plan_data(report_name = 'Plan level Historical Returns.xls', sheet_na
     
     plan_data_dict = {"mkt_value" : mv_df, "return":ret_df}
     
-    rp.get_plan_data_report(plan_data_dict)
+    rp.get_plan_data_report(plan_data_dict, report_name)
 
     # return(plan_data_dict)
 

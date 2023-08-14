@@ -41,8 +41,8 @@ def get_ts_output(ts_dict,liab_model,decay_factor=0.98, t=1):
             'returns':returns_df, 
             }
 
-def get_liab_model(plan='IBT', contrb_pct=.05, ldi_report=True):
-    liab_input_dict = dm.get_liab_model_data(plan, contrb_pct, ldi_report)
+def get_liab_model(plan='IBT', contrb_pct=.05, ldi_report=True, filename='plan_data.xlsx'):
+    liab_input_dict = dm.get_liab_model_data(plan, contrb_pct, ldi_report, filename)
     return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
@@ -122,22 +122,22 @@ def add_fs_load_col(weights_df, funded_status):
             weights_df['FS Loadings'][ind] = funded_status
     return weights_df
 
-def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
+def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0, filename = 'plan_data.xlsx'):
     liab_data_dict={}
     print("Getting data from Liability Model...")
     #does not include liab/ret table anymore
     for plan in plan_list:
-        liab_model = get_liab_model(plan, contrb_pct)
+        liab_model = get_liab_model(plan, contrb_pct, filename=filename)
         del liab_model.data_dict['Cashflows']
         liab_data_dict[plan] = liab_model.data_dict
         print('{} plan liability model complete'.format(plan))
 
     return liab_data_dict
 
-def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"], n=3):
+def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"], n=3, filename='plan_data.xlsx'):
     
     #get_liability model dictionary
-    liab_data_dict = get_liab_data_dict(plan_list)
+    liab_data_dict = get_liab_data_dict(plan_list, filename=filename)
     
     report_dict = {}
     data_list = ['returns', 'market_values', 'pv_irr', 'fs_data']
