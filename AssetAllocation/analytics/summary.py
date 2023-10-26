@@ -122,7 +122,9 @@ def add_fs_load_col(weights_df, funded_status):
             weights_df['FS Loadings'][ind] = funded_status
     return weights_df
 
-def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0):
+
+def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 1.0, filename = 'plan_data.xlsx'):
+
     liab_data_dict={}
     print("Getting data from Liability Model...")
     #does not include liab/ret table anymore
