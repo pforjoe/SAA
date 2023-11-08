@@ -167,7 +167,8 @@ for sheet in ['2021']:
     df_sc_cfs = dm.reindex_to_monthly_data(df_sc_cfs)
     
     sc_dict[sheet] = df_sc_cfs
-        
+sc_dict['2021']['Total'] =  sc_dict['2021'].sum(axis = 1)  
+
 contrb_pct = 1
 no_of_cols = 12
 
