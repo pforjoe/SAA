@@ -19,7 +19,7 @@ if update_ldi_data:
     
 if update_asset_ret_data:
     dm.update_asset_ret_data()
-report_dict = summary.get_report_dict()
+report_dict = summary.get_ldi_report_dict()
 
 #new ldi report format
 rp.get_ldi_report(report_dict)
