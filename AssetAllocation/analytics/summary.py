@@ -4,6 +4,7 @@ Created on Sun Oct 10 12:27:19 2021
 
 @authors: Powis Forjoe, Maddie Choi
 """
+import pandas as pd
 from .mv_inputs import mv_inputs
 from .plan_params import planParams
 from .liability_model import liabilityModel
@@ -148,3 +149,37 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
         report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data)
     
     return dm.transform_report_dict(report_dict, plan_list)
+
+
+def get_ldi_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']):
+    ldi_data_dict =  dm.get_ldi_data()
+    
+    liab_data_dict={}
+    #does not include liab/ret table anymore
+    for plan in plan_list:
+        liab_data_dict[plan] = dm.get_plan_liability_data(ldi_data_dict, plan = plan)
+        liab_data_dict[plan]['Asset Returns'] = ldi_data_dict['asset_ret'][plan]
+        liab_data_dict[plan]['Asset Market Values'] = ldi_data_dict['asset_mv'][plan]
+        
+    return liab_data_dict
+
+def get_ldi_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
+    
+    #get_liability model dictionary
+    liab_data_dict = get_ldi_data_dict(plan_list)
+    report_dict = {}
+    for plan in plan_list:
+        temp_dict = {}
+        temp_dict['returns'] = pd.merge(liab_data_dict[plan]['Asset Returns'],liab_data_dict[plan]['Liability Returns'], left_index=True,right_index = True)
+        temp_dict['returns'].columns = ['Asset','Liability']
+        
+        temp_dict['pv_irr'] = pd.merge(liab_data_dict[plan]['Present Values'],liab_data_dict[plan]['IRR'], left_index=True,right_index = True)
+        
+        temp_dict['market_values'] = pd.merge(liab_data_dict[plan]['Asset Market Values'],liab_data_dict[plan]['Present Values'], left_index=True,right_index = True)
+        temp_dict['market_values'].columns = ['Asset MV','PV']
+        
+        temp_dict['fs_data'] = liab_data_dict[plan]['Funded Status']
+        
+        report_dict[plan] = temp_dict
+        
+    return report_dict
