@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 from AssetAllocation.datamanager import datamanager as dm
 from datetime import datetime
+
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -36,7 +37,7 @@ def get_max_sharpe_weights(sim_ports_df):
 def ceil(number, bound=5):
     return bound *np.ceil(number/bound)
 
-def calculate_ytd_returns(month_ret_df, year = 2022):
+def calculate_ytd_returns(month_ret_df, year = 2023):
     
     #make index a column
     month_ret_df = month_ret_df.reset_index()
@@ -60,6 +61,4 @@ def calculate_ytd_returns(month_ret_df, year = 2022):
     ytd = ytd.transpose()
     
     return ytd
-    
-
     
