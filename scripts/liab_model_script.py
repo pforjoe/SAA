@@ -8,7 +8,7 @@ Created on Sat Oct 30 23:46:51 2021
 ############################################################################################################################################################
 # IMPORT LIBRARIES                                                            
 ############################################################################################################################################################
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 # from itertools import count, takewhile
 
 import scipy as sp
@@ -36,7 +36,7 @@ warnings.filterwarnings('ignore')
 # IBT or Pension or Retirement
 PLAN = 'Pension'
 
-UPS_Contr_Pctg = 0
+UPS_Contr_Pctg = 1
 
 ############################################################################################################################################################
 # IMPORT CASHFLOWS                                                            
@@ -53,7 +53,7 @@ df_CF  = df_CF_add.append(df_CF)
 from itertools import count, takewhile
 def frange(start, stop, step):
         return takewhile(lambda x: x< stop, count(start, step))
-t = list(frange((1/12), 79.41666666666, (1/12)))
+t = list(frange((1/12), 80.25, (1/12)))
 # df_t=pd.DataFrame(t, columns=['Time'])
 df_CF['Time'] = t
 CF = np.array(df_CF[PLAN])

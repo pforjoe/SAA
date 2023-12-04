@@ -36,13 +36,12 @@ plan_sc_cfs_dict = liab_inputs_data_dict['sc_cfs_dict']
 
 plan_list = ['IBT', 'Pension', 'Retirement']
 # contrb_pct_list = [0.0,0.05,0.1,0.5,1.0]
-contrb_pct_list = [0.0,1.0]
-yrs_to_ff_list = list(range(10,35,10))
+contrb_pct_list = [0.0,0.5,1.0]
+# yrs_to_ff_list = list(range(10,35,10))
+yrs_to_ff_list = [10,20]
 # ff_ratio_list = [1.0, 1.05, 1.1]
-ff_ratio_list = [1.1]
+ff_ratio_list = [1.0,1.1]
 
-(self, plan, pbo_cashflows, disc_factors, sc_cashflows, contrb_pct,
-             plan_pbo_cfs,plan_sc_cfs,asset_mv, asset_returns,liab_curve)
 ############################################################################################################################################################
 # LOOP THROUGH VARIABLES TO CREATE FULFILLMEMT RETURN MATRIX                                                           
 ############################################################################################################################################################
@@ -76,9 +75,12 @@ for plan in plan_list:
         ff_ratio_dict[str(np.around(ff_ratio*100,0))+'%'] = ff_ratio_df
     fulfill_ret_dict[plan] = ff_ratio_dict
             
-############################################################################################################################################################
+##################################################################
+
+
+##########################################################################################
 # GENERATE FULLFILLMENT RETURN MATRIX REPORT                                                           
 ############################################################################################################################################################
-rp.get_ff_report('fulfill_matrix', fulfill_ret_dict, plan_list)             
+rp.get_ff_report('fulfill_matrix-2', fulfill_ret_dict, plan_list)             
 
 

@@ -15,7 +15,7 @@ Created on Wed Nov  3 21:05:08 2021
 ############################################################################################################################################################
 # IMPORT LIBRARIES                                                            
 ############################################################################################################################################################
-from AssetAllocation.datamanger import datamanger as dm
+from AssetAllocation.datamanager import datamanager as dm
 from AssetAllocation.analytics.liability_model import liabilityModel
 import AssetAllocation.reporting.sheets as sheets
 import AssetAllocation.reporting.reports as rp
@@ -79,7 +79,7 @@ df_pvfb_cfs = dm.get_cf_data('PVFB')
 df_pvfb_cfs["Total"] =  df_pvfb_cfs["IBT"] + df_pvfb_cfs["Retirement"] + df_pvfb_cfs["Pension"]
 
 df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
-df_ftse = dm.get_ftse_data(False)
+df_ftse = dm.get_ftse_data()
 
 #disc_rates_dict = {}
 #for PLAN in plans:
@@ -97,8 +97,8 @@ for PLAN in plans:
     sc_cashflows = df_sc_cfs[PLAN]
     liab_curve = dm.generate_liab_curve(df_ftse, pbo_cashflows)
     #disc_rates = disc_rates_dict[PLAN] 
-    asset_mv = dm.get_plan_asset_mv(PLAN)
-    contrb_pct = 0.00
+    asset_mv = dm.get_plan_asset_mv(dm.get_plan_asset_data(),PLAN)
+    contrb_pct = 1.00
     
     ############################################################################################################################################################
     # COMPUTE PV, IRR, LIAB RET USING CURVE AND DISC RATES                                                         
