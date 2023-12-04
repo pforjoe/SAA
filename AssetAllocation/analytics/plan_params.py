@@ -286,7 +286,7 @@ class planParams():
         self.ports_df = dm.format_ports_df(self.ports_df,self.ret)
         # for asset in self.symbols[1:]:
         #     self.ports_df[asset] /= self.funded_status
-        return None
+        # return None
 
     def run_mc_simulation(self, num_ports=5000):
         # Initialize the lists
