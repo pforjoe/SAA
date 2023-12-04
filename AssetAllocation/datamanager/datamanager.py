@@ -9,7 +9,7 @@ import os
 import pandas as pd
 import numpy as np
 from AssetAllocation.reporting import reports as rp
-
+from AssetAllocation.datamanager import ldi_dm as ldi
 # import statistics as stat
 
 from itertools import count, takewhile
@@ -32,7 +32,8 @@ UPDATE_FP = DATA_FP + 'update_files\\'
 
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
-SHEET_LIST = ['2011','2012','2013','2014','2015','2016','2017','2018','2019','2020','2021','2021_1', '2022','2023']
+SHEET_LIST = ['2019','2020','2021','2021_1', '2022','2023']
+SHEET_LIST_1 = ['2021','2021_1', '2022','2023']
 PLAN_LIST = ['IBT','Pension', 'Retirement']
 
 def get_fi_data(filename):
@@ -317,9 +318,9 @@ def get_plan_asset_returns(plan_data, plan='IBT'):
     asset_return.columns = ['Return']
     return asset_return
 
-def get_plan_asset_data(filename = 'plan_data.xlsx'):
-    plan_mv_df = pd.read_excel(TS_FP+filename, sheet_name='mkt_value', index_col=0)
-    plan_ret_df = pd.read_excel(TS_FP+filename, sheet_name='return', index_col=0)
+def get_plan_asset_data(plan_filename = 'plan_data.xlsx'):
+    plan_mv_df = pd.read_excel(TS_FP+plan_filename, sheet_name='mkt_value', index_col=0)
+    plan_ret_df = pd.read_excel(TS_FP+plan_filename, sheet_name='return', index_col=0)
     return {'mkt_value': plan_mv_df,
             'return': plan_ret_df}
 
@@ -339,6 +340,9 @@ def frange(start, stop, step):
 def set_cfs_time_col(df_cfs):
     df_cfs['Time'] = list(frange(1/12, (len(df_cfs)+.9)/12, 1/12))
 
+def get_cfs_time_col(df_cfs):
+    return list(frange(1/12, (len(df_cfs)+.9)/12, 1/12))
+
 def get_cf_data(cf_type='PBO',annual_cf_filename ='annual_cashflows_data.xlsx',
                 monthly_cf_filename = 'monthly_cashflows_data.xlsx'):
     df_cfs = monthize_cf_data(cf_type, annual_cf_filename)
@@ -352,7 +356,7 @@ def monthize_cf_data(cf_type = 'PBO',filename = 'annual_cashflows_data.xlsx'):
     df_cfs = reindex_to_monthly_data(df_cfs)
     return df_cfs
 
-def get_ftse_data(include_old = False, filename = 'ftse_data.xlsx'):
+def get_ftse_data(filename = 'ftse_data.xlsx',include_old = False):
     df_ftse = pd.read_excel(TS_FP+filename,sheet_name='new_data', index_col=0)
     
     if include_old:
@@ -383,8 +387,11 @@ def generate_liab_curve(df_ftse, cfs):
     return liab_curve
 
 
-def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True, filename='plan_data.xlsx'):
-    plan_asset_data = get_plan_asset_data(filename)
+def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True,
+                        plan_filename='plan_data.xlsx',ftse_filename='ftse_data.xlsx',
+                        past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx'):
+    
+    plan_asset_data = get_plan_asset_data(plan_filename)
     asset_mv = get_plan_asset_mv(plan_asset_data, plan)
     asset_ret = get_plan_asset_returns(plan_asset_data, plan)
     #only need total consolidation for asset data
@@ -396,12 +403,51 @@ def get_liab_model_data(plan='IBT', contrb_pct=.05, ldi_report = True, filename=
     else:
         df_pvfb_cfs = get_cf_data('PVFB')
         df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
-    df_ftse = get_ftse_data()
+    df_ftse = get_ftse_data(ftse_filename)
     liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])
-    plan_mv_cfs_dict = get_plan_mv_cfs_dict()
+    plan_mv_cfs_dict = get_plan_mv_cfs_dict(past_pbo_filename, past_sc_filename,ftse_filename)
+    
     return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
             'liab_curve': liab_curve, 'contrb_pct':contrb_pct, 'asset_mv': asset_mv,
             'liab_mv_cfs':offset(plan_mv_cfs_dict[plan]),'asset_ret': asset_ret}
+
+def get_liab_data_inputs(plan_filename='plan_data.xlsx',ftse_filename='ftse_data.xlsx',
+                         past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx'):
+    
+    cfs_dict = ldi.generate_liab_cf_dict(past_pbo_filename, past_sc_filename,ftse_filename)
+    plan_pbo_cfs_dict = ldi.get_plan_cfs_dict(cfs_dict['PBO'])
+    plan_sc_cfs_dict = ldi.get_plan_cfs_dict(cfs_dict['SC'])
+    df_pbo_cfs = get_cf_data('PBO')
+    df_sc_cfs = get_cf_data('Service Cost')
+    df_ftse = get_ftse_data(ftse_filename)
+    liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs)
+    plan_asset_data = get_plan_asset_data(plan_filename)
+    # plan_mv_cfs_dict = get_plan_mv_cfs_dict(past_pbo_filename, past_sc_filename,ftse_filename)
+    return {'pbo_cfs_dict':plan_pbo_cfs_dict,'sc_cfs_dict':plan_sc_cfs_dict,
+            'df_pbo_cfs':df_pbo_cfs,'df_sc_cfs':df_sc_cfs,'liab_curve':liab_curve, 'asset_data':plan_asset_data
+            # , 'plan_mv_cfs_dict':plan_mv_cfs_dict
+            }
+
+def get_liab_model_data_new(liab_data_inputs_dict,plan='IBT', contrb_pct=.05, ldi_report = True):
+    
+    plan_asset_data = liab_data_inputs_dict['asset_data']
+    asset_mv = get_plan_asset_mv(plan_asset_data, plan)
+    asset_ret = get_plan_asset_returns(plan_asset_data, plan)
+    #only need total consolidation for asset data
+    if plan == "Total Consolidation":
+        plan = "Total"
+    df_pbo_cfs = liab_data_inputs_dict['df_pbo_cfs']
+    if ldi_report:
+        df_sc_cfs = liab_data_inputs_dict['df_pbo_cfs']
+    else:
+        df_pvfb_cfs = get_cf_data('PVFB')
+        df_sc_cfs = df_pvfb_cfs - df_pbo_cfs
+    # liab_curve = generate_liab_curve(df_ftse, df_pbo_cfs[plan])
+    # plan_mv_cfs_dict = get_plan_mv_cfs_dict(past_pbo_filename, past_sc_filename,ftse_filename)
+    
+    return {'pbo_cashflows': df_pbo_cfs[plan], 'disc_factors':df_pbo_cfs['Time'], 'sc_cashflows': df_sc_cfs[plan],
+            'liab_curve': liab_data_inputs_dict['liab_curve'], 'contrb_pct':contrb_pct, 'asset_mv': asset_mv,
+            'pbo_cfs':liab_data_inputs_dict['pbo_cfs_dict'][plan],'sc_cfs':liab_data_inputs_dict['sc_cfs_dict'][plan],'asset_ret': asset_ret}
 
 def get_n_year_df(liab_plan_data_dict, data='returns', n=3):
     
@@ -498,9 +544,9 @@ def add_misc_receiv(mv_df, filename='misc_receivables_data.xlsx'):
     mv_df['Total'] += misc_receiv_df['Misc Receivable']
     mv_df['Retirement'] += misc_receiv_df['Misc Receivable']
 
-def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
+def get_new_ftse_data(ftse_file = 'ftse-pension-discount-curve.xlsx'):
     #read in new ftse data
-    new_ftse = pd.read_excel(UPDATE_FP + file_name , sheet_name = 'Data - Current', skiprows= 25,header = 1)
+    new_ftse = pd.read_excel(UPDATE_FP + ftse_file , sheet_name = 'Data - Current', skiprows= 25,header = 1)
     
     #get list of the rows needed to drop
     drop_rows = list(range(61, len(new_ftse))) + [0]
@@ -513,21 +559,19 @@ def get_new_ftse_data(file_name = 'ftse-pension-discount-curve.xlsx'):
     
     return(new_ftse)
 
-def update_ftse_data(file_name = "ftse_data.xlsx"):
+def update_ftse_data(file_name = "ftse_data.xlsx", ftse_file='ftse-pension-discount-curve.xlsx'):
     print('updating {}'.format(file_name))
     #read in current ftse data
     prev_ftse = pd.read_excel(TS_FP + file_name, sheet_name = ['new_data','old_data'],index_col=0)
 
     #get new ftse data
-    new_ftse = get_new_ftse_data()
+    new_ftse = get_new_ftse_data(ftse_file)
 
     #create ftse dict for report
     ftse_dict = {'new_data' : new_ftse, 'old_data' :  prev_ftse['old_data']}
     
     #export report
-    rp.get_ftse_data_report(ftse_dict, "ftse_data")
-    
-    # return ftse_dict
+    rp.get_ftse_data_report(ftse_dict, file_name.split('.')[0])
 
 def group_asset_liab_data(liab_data_dict, data='returns', n=3):
     
@@ -575,12 +619,15 @@ def fill_dict_df_na(dict_df, value=0):
     for key in dict_df:
         dict_df[key].fillna(value, inplace=True)
 
-def get_liab_mv_cf_cols(ftse_filename='ftse_data.xlsx'):
+def get_liab_mv_cf_cols(ftse_filename='ftse_data.xlsx', col_len=0):
     #create empty liab_mv_cf df
-    df_ftse = get_ftse_data(False,ftse_filename)
+    df_ftse = get_ftse_data(ftse_filename, False)
     dates = df_ftse.transpose().iloc[1:,]
     dates.sort_index(inplace=True)
-    return list(dates.index[13:])
+    if col_len==0:
+        return list(dates.index)
+    else:
+        return list(dates.index[len(dates)-col_len:])
 
 def transform_pbo_df(pbo_df):
     temp_df_list = [pbo_df.iloc[0:12* len(SHEET_LIST)],pbo_df.iloc[12*len(SHEET_LIST):,]]
@@ -620,8 +667,9 @@ def get_past_pbo_data(filename = 'past_pbo_cashflow_data.xlsx'):
         past_pbo_dict[sheet] = df_pbo_cfs
     return past_pbo_dict
 
+
 #TODO: Comment
-def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
+def get_plan_pbo_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx'):
     """
     
 
@@ -636,7 +684,7 @@ def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
         DESCRIPTION.
 
     """
-    past_pbo_dict = get_past_pbo_data(filename)
+    past_pbo_dict = get_past_pbo_data(past_pbo_filename)
     plan_pbo_dict = {}
     for plan in PLAN_LIST:
         temp_pbo_df = pd.DataFrame()
@@ -645,7 +693,14 @@ def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
             temp_pbo_df = merge_dfs(temp_pbo_df, past_pbo_dict[key][plan],dropna = False)
         
         #merge current years pbos
-        temp_pbo_df = merge_dfs(temp_pbo_df, get_cf_data()[plan], dropna = False)
+        df_pbo_cfs = get_cf_data()[[plan]]
+        # df_pbo_cfs_1 = df_pbo_cfs.iloc[0:12]
+        # df_pbo_cfs_2 = df_pbo_cfs.iloc[12:,]
+        # n = 5
+        # for col in df_pbo_cfs_1.columns:
+        #     df_pbo_cfs_1[col] = df_pbo_cfs_1[col]*(12/n)
+        # df_pbo_cfs = df_pbo_cfs_1.append(df_pbo_cfs_2)
+        temp_pbo_df = merge_dfs(temp_pbo_df, df_pbo_cfs, dropna = False)
         
         #rename dataframe
         temp_pbo_df.columns = SHEET_LIST
@@ -685,7 +740,6 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
             sc_df[SHEET_LIST[x-1]] = temp_df[SHEET_LIST[x-1]]
         # get service cost for current year
         sc_df[SHEET_LIST[x]] = get_cf_data('Service Cost')[plan]/12
-        
         # Replace service cost data for 2021 for IBT plan
         if plan == 'IBT':
             sc_df.drop(['2021'], axis=1, inplace=True)
@@ -763,7 +817,7 @@ def get_plan_mv_cfs_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past
         #merge past years pbos
         for year in liab_mv_dict[plan]:
             mv_cfs_df = merge_dfs(mv_cfs_df, liab_mv_dict[plan][year],dropna = False)
-        mv_cfs_df.columns = get_liab_mv_cf_cols(ftse_filename)
+        mv_cfs_df.columns = get_liab_mv_cf_cols(ftse_filename, len(mv_cfs_df.columns))
         mv_cfs_df.fillna(0, inplace=True)
         plan_mv_cfs_dict[plan] = mv_cfs_df
     plan_mv_cfs_dict['Total'] = aggregate_mv_cfs(plan_mv_cfs_dict)
@@ -784,13 +838,14 @@ def aggregate_mv_cfs(plan_mv_cfs_dict):
     return agg_df
 
 
-def update_plan_mv():
-    print('updating liab_mv_cfs.xlsx')
+def update_plan_mv(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx',
+                         ftse_filename='ftse_data.xlsx',report_name = "liab_mv_cfs"):
+    print('updating {}.xlsx'.format(report_name))
     #update plan liability market values
-    plan_mv_cfs_dict = get_plan_mv_cfs_dict()
+    plan_mv_cfs_dict = get_plan_mv_cfs_dict(past_pbo_filename, past_sc_filename,ftse_filename)
     
     #export report
-    rp.get_liab_mv_cf_report(plan_mv_cfs_dict)
+    rp.get_liab_mv_cf_report(plan_mv_cfs_dict,report_name)
 
 def update_ldi_data(update_plan_market_val = True):
     update_plan_data()
