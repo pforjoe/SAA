@@ -25,6 +25,7 @@ def set_return_sheet(writer, df_returns, sheet_name='Monthly Historical Returns'
     sheet_name -- string
     """
 
+    print(f'{sheet_name} sheet')
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -33,7 +34,7 @@ def set_return_sheet(writer, df_returns, sheet_name='Monthly Historical Returns'
     worksheet.set_column(0, 1000, 21, cell_format)
     row = 0
     col = 0
-
+    worksheet.freeze_panes(1, 1)
     # date format
     date_fmt = formats.set_number_format(workbook, num_format='mm/dd/yyyy')
     # num format
@@ -78,6 +79,7 @@ def set_corr_sheet(writer, corr_df, sheet_name='Correlations', color=True):
     sheet_name -- string
     """
 
+    print(f'{sheet_name} sheet')
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -112,6 +114,8 @@ def set_ret_vol_sheet(writer, ret_vol_df, sheet_name='Return Statistics'):
     sheet_name -- string
     """
 
+    print(f'{sheet_name} sheet')
+    
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -187,6 +191,7 @@ def set_ef_port_sheet(writer, ports_df, sheet_name='Efficient Frontier Data'):
     sheet_name -- string
     """
 
+    print(f'{sheet_name} sheet')
     workbook = writer.book
     cell_format = formats.set_worksheet_format(workbook)
     df_empty = pd.DataFrame()
@@ -195,7 +200,7 @@ def set_ef_port_sheet(writer, ports_df, sheet_name='Efficient Frontier Data'):
     worksheet.set_column(0, 1000, 21, cell_format)
     row = 0
     col = 0
-
+    worksheet.freeze_panes(1, 1)
     # percent format
     pct_fmt = formats.set_number_format(workbook, num_format='0.00%')
     # digits format
@@ -226,13 +231,13 @@ def set_ef_port_sheet(writer, ports_df, sheet_name='Efficient Frontier Data'):
                                                                   'format': neg_value_fmt})
 
     # get asset alloc and eff front images
-    aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df))
-    ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
+    # aa_image_data = plots.get_image_data(plots.get_aa_fig(ports_df))
+    # ef_image_data = plots.get_image_data(plots.get_ef_fig(ports_df))
 
-    worksheet.insert_image(2, col_dim+2, 'plotly.png',
-                           {'image_data': aa_image_data})
-    worksheet.insert_image(30, col_dim+2, 'plotly.png',
-                           {'image_data': ef_image_data})
+    # worksheet.insert_image(2, col_dim+2, 'plotly.png',
+    #                        {'image_data': aa_image_data})
+    # worksheet.insert_image(30, col_dim+2, 'plotly.png',
+    #                        {'image_data': ef_image_data})
 
     return 0
 
