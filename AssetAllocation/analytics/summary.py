@@ -8,6 +8,8 @@ import pandas as pd
 from .mv_inputs import mv_inputs
 from .plan_params import planParams
 from .liability_model import liabilityModel
+from .liability_model_new import liabilityModelNew
+
 from ..datamanager import datamanager as dm
 from .import ts_analytics as ts
 from .import util
@@ -48,6 +50,18 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
                           liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
                           liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
+
+def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05):
+    return liabilityModelNew(liab_input_dict['pbo_cfs_dict'][plan][dm.SHEET_LIST[-1]], 
+                          liab_input_dict['disc_factors'], 
+                          liab_input_dict['sc_cfs_dict'][plan][dm.SHEET_LIST[-1]],
+                          liab_input_dict['pbo_cfs_dict'][plan],
+                          liab_input_dict['sc_cfs_dict'][plan],
+                          contrb_pct, 
+                          liab_input_dict['asset_mv'][plan], 
+                          dm.offset(liab_input_dict['liab_mv_cfs_dict'][plan]),
+                          liab_input_dict['asset_ret'][plan],
+                          liab_input_dict['liab_curve'])
 
 def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
     #get return
@@ -183,3 +197,10 @@ def get_ldi_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
         report_dict[plan] = temp_dict
         
     return report_dict
+
+def get_liab_model(plan='IBT', contrb_pct=.05):
+    liab_input_dict = dm.get_liab_model_data(plan, contrb_pct)
+    return liabilityModel(liab_input_dict['pbo_cashflows'], liab_input_dict['disc_factors'], 
+                          liab_input_dict['sc_cashflows'], liab_input_dict['contrb_pct'], 
+                          liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
+                          liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
