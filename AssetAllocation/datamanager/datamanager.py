@@ -725,7 +725,8 @@ def update_ldi_data(update_plan_market_val = False):
         update_plan_mv()
     update_ftse_data()
    
-def transform_asset_returns(file_name = 'Historical Returns.xls', sheet_name = 'Historical Returns'):
+def transform_asset_returns(file_name = 'Historical Asset Class Returns.xls',
+                            sheet_name = 'Historical Asset Class Returns'):
     hist_ret = pd.read_excel(DATA_FP + file_name, sheet_name = sheet_name)
    
     #rename columns
@@ -813,37 +814,37 @@ def update_ret_data_dates(ret_df, new_ret_df):
     
     return new_ret_df
 
-def get_disc_factor(pbo_cf_data):
+def get_disc_factors(pbo_cf_data):
     disc_factor = [1/12]
     for i in list(range(1,len(pbo_cf_data.index))):
         disc_factor += [disc_factor[i-1]+1/12]
     return disc_factor
 
 
+def get_cf_dict_by_plan(filename = 'past_pbo_cashflow_data_for_ldi.xlsx' ):
+    temp_data_dict = {}
+    for year in SHEET_LIST_LDI:
+        temp_data_dict[year] = monthize_cf_data(cf_type = year ,filename = filename)
+        
+    cf_data_dict = {}
+    for plan in PLAN_LIST:
+        temp_df = {}
+        for year in SHEET_LIST_LDI:
+            temp_df[year] = ( temp_data_dict[year][plan])
+
+        cf_data_dict[plan] = temp_df
+        
+    return cf_data_dict
+    
 #TODO: fix/ split into multiple methods
 def get_ldi_data(contrb_pct = 1):
     plan_asset_data = get_plan_asset_data()
     #only need total consolidation for asset data
-    temp_pbo_data_dict = {}
-    temp_sc_data_dict = {}
-    for year in SHEET_LIST_LDI:
-        temp_pbo_data_dict[year] = monthize_cf_data(cf_type = year ,filename = 'past_pbo_cashflow_data_for_ldi.xlsx')
-        temp_sc_data_dict[year] = monthize_cf_data(cf_type = year ,filename = 'past_sc_cashflow_data_for_ldi.xlsx')
-        
-    pbo_data_dict = {}
-    sc_data_dict = {}
     
-    for plan in PLAN_LIST:
-        temp_pbo = {}
-        temp_sc = {}
-        for year in SHEET_LIST_LDI:
-            temp_pbo[year] = ( temp_pbo_data_dict[year][plan])
-            temp_sc[year] = ( temp_sc_data_dict[year][plan])
-
-        pbo_data_dict[plan] = temp_pbo
-        sc_data_dict[plan] = temp_sc
-        
-    disc_factors = get_disc_factor(pbo_data_dict['IBT']['2021'])
+    pbo_data_dict = get_cf_dict_by_plan(filename = 'past_pbo_cashflow_data_for_ldi.xlsx' )
+    sc_data_dict= get_cf_dict_by_plan(filename = 'past_sc_cashflow_data_for_ldi.xlsx' )
+    
+    disc_factors = get_disc_factors(pbo_data_dict['IBT']['2021'])
     df_ftse = get_ftse_data()
     liab_curve = generate_liab_curve(df_ftse, pbo_data_dict['IBT'][SHEET_LIST_LDI[-1]])
     plan_mv_cfs_dict = get_plan_mv_cfs_dict()

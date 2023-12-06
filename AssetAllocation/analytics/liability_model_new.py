@@ -67,13 +67,14 @@ class liabilityModelNew():
   
         self.new_pvs = dm.get_plan_liability_data_new(self.pbo_cfs_dict, self.sc_cfs_dict, self.disc_factors.tolist(), self.liab_curve)
         self.present_values = self.concat_data(self.compute_pvs(),self.new_pvs['Present Value'])
-
+        self.pv_new = self.new_pvs['Present Value']
         self.irr_df = self.concat_data(self.compute_irr(), self.new_pvs['IRR'])
         self.returns_ts = self.concat_data(self.compute_liab_ret(),self.new_pvs['Liability'])
         
         self.liab_mv_cfs = pd.DataFrame(liab_mv_cfs)
         self.liab_mv = self.get_plan_liab_mv()
-        self.funded_status = self.compute_funded_status()
+        self.funded_status = self.concat_fs_data(self.compute_funded_status(), self.compute_funded_status_new())
+        self.funded_status_new = self.compute_funded_status_new()
         self.fulfill_irr = None
         self.excess_return = None
         self.ret = self.get_return()
@@ -85,6 +86,14 @@ class liabilityModelNew():
         pd.concat([temp_df, ldi_df])
         return pd.concat([temp_df, ldi_df])
     
+    def concat_fs_data(self, old_df, ldi_df):
+        new_fs_df = pd.DataFrame()
+        for col in old_df.columns:
+            temp_ldi_df = ldi_df[col].dropna()
+            temp_old_df = old_df[col].iloc[:-len(temp_ldi_df)]
+            new_fs_df[col] = pd.concat([temp_old_df, temp_ldi_df])
+            
+        return new_fs_df 
     
     def get_liab_data_dict(self,pbo_cashflows, sc_cashflows):
         """
@@ -270,7 +279,32 @@ class liabilityModelNew():
         fs_df['6mo FSV'] = gap_diff_percent.rolling(window = 6).apply(get_ann_vol)
           
         return fs_df
-
+    
+    def compute_funded_status_new(self):
+        #compute funded status: asset/liability
+        df_temp = dm.merge_dfs(self.pv_new, self.asset_mv)
+        
+        fs_df = df_temp['Market Value']/ df_temp['Present Value']
+        fs_df = pd.DataFrame(fs_df)
+        fs_df.columns = ['Funded Status']
+        
+        #compute funded status gap: liability(i.e PBO) - asset
+        fs_df['Funded Status Gap'] = df_temp['Present Value'] - df_temp['Market Value'] 
+        fs_df.dropna(inplace=True)
+        
+        #compute funded status difference between each date
+        gap_diff = fs_df['Funded Status Gap'].diff()
+           
+        #compute funded status gap difference percent: funded status gap/liability
+        gap_diff_percent = gap_diff/df_temp['Present Value']
+           
+        #compute fs vol 
+        gap_diff_percent.dropna(inplace=True)
+        fs_df['1Y FSV'] = gap_diff_percent.rolling(window = 12).apply(get_ann_vol)
+        fs_df['6mo FSV'] = gap_diff_percent.rolling(window = 6).apply(get_ann_vol)
+          
+        return fs_df
+    
     #TODOD: revisit this method
     def get_return(self):
         return self.irr_df['IRR'][-1]
