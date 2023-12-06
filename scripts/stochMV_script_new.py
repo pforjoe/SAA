@@ -18,7 +18,7 @@ from AssetAllocation.reporting import plots, reports as rp
 import numpy as np
 ldi_input_dict = dm.get_ldi_data()
 
-PLAN = 'IBT'
+PLAN = 'Retirement'
 
 ###############################################################################
 # COMPUTE LIABILITY DATA                                                      #
@@ -101,4 +101,4 @@ ef_fig.show()
 # EXPORT DATA TO EXCEL                                                        #
 ###############################################################################
 #Export Efficient Frontier portfoio data to excel
-rp.get_stochmv_ef_portfolios_report(PLAN+' stochmv_ef_report', s)
+rp.get_stochmv_ef_portfolios_report(PLAN+' stochmv_ef_report_unconstrained', s)
