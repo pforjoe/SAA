@@ -16,10 +16,11 @@ from AssetAllocation.analytics import summary
 from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import plots, reports as rp
 import numpy as np
+import pandas as pd
 ldi_input_dict = dm.get_ldi_data()
 
 PLAN = 'Retirement'
-
+unbounded = True
 ###############################################################################
 # COMPUTE LIABILITY DATA                                                      #
 ###############################################################################
@@ -60,7 +61,7 @@ plots.get_sim_return_fig(s)
 ###############################################################################
 # DEFINE BOUNDS                                                               #
 ###############################################################################
-bnds = dm.get_bounds(plan.funded_status,plan=PLAN)
+bnds = dm.get_bounds(plan.funded_status,plan=PLAN, unbounded = unbounded)
 
 ###############################################################################
 # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
@@ -98,7 +99,27 @@ ef_fig = plots.get_ef_fig(s.opt_ports_df)
 ef_fig.show()
 
 ###############################################################################
+# Find max sharpe and adjusted weights                                                       #
+###############################################################################
+#Export Efficient Frontier portfoio data to excel
+ef_df = s.opt_ports_df.copy()
+ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] +ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
+
+new_ef_df = pd.DataFrame()
+
+for col in ef_df.columns:
+    new_ef_df[col] = ef_df[col] / ef_df['Total']
+    
+max_sharpe_weights = new_ef_df.loc[new_ef_df['Sharpe'].idxmax()]
+
+
+###############################################################################
 # EXPORT DATA TO EXCEL                                                        #
 ###############################################################################
 #Export Efficient Frontier portfoio data to excel
-rp.get_stochmv_ef_portfolios_report(PLAN+' stochmv_ef_report_unconstrained', s)
+filename = ' stochmv_ef_report'
+if unbounded: 
+    filename = ' stochmv_ef_report_unconstrained'
+rp.get_stochmv_ef_portfolios_report(PLAN + filename, s, new_ef_df, max_sharpe_weights)
+
+

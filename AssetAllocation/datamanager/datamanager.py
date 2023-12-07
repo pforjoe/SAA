@@ -213,8 +213,10 @@ def get_ts_data(plan='IBT'):
     return {'returns': returns_df,
             'weights': weights_df}
 
-def get_bounds(funded_status, filename='bounds.xlsx', plan='IBT'):
+def get_bounds(funded_status, filename='bounds.xlsx', plan='IBT', unbounded = False):
     filepath=PLAN_INPUTS_FP+filename
+    if unbounded:
+        plan = 'Unbounded'
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
     update_bnds_with_fs(bnds,funded_status)
     return bnds
