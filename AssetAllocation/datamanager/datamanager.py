@@ -230,12 +230,12 @@ def update_bnds_with_fs(bnds, funded_status):
     bnds['Lower']['Liability'] /= funded_status
     return None
 
-def get_ports_df(rets, vols, asset_vols,weights, symbols, raw=True):
+def get_ports_df(rets, vols, weights, symbols, raw=True):
     if raw:
-        return pd.DataFrame(np.column_stack([rets, vols, rets/vols,weights, asset_vols]),columns=['Return', 'Volatility', 'Sharpe', 'Asset Vols'] + symbols).rename_axis('Portfolio')
+        return pd.DataFrame(np.column_stack([rets, vols, rets/vols,weights]),columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
     else:
-        return pd.DataFrame(np.column_stack([100*np.around(rets,6), 100*np.around(vols,6), np.around(rets/vols,6),100*np.around(weights,6),100*np.around(asset_vols,6)]),
-                        columns=['Return', 'Volatility', 'Sharpe','Asset Vol'] + symbols).rename_axis('Portfolio')
+        return pd.DataFrame(np.column_stack([100*np.around(rets,6), 100*np.around(vols,6), np.around(rets/vols,6),100*np.around(weights,6)]),
+                        columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
     
 def format_ports_df(ports_df, ret_df):
     #rename Return & Volatility column to Excess Return & Surplus Volatility

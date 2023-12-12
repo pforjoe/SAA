@@ -69,7 +69,7 @@ class stochMV():
             plan.compute_eff_frontier(bnds, cons,num_ports)
             avg_weights = avg_weights + plan.eff_frontier_tweights
             self.ef_portfolio_dict[sample] = dm.format_ports_df(dm.get_ports_df(plan.eff_frontier_trets, plan.eff_frontier_tvols, 
-                                                             plan.eff_frontier_tweights, plan.eff_frontier_asset_vols,plan.symbols), plan.ret)
+                                                             plan.eff_frontier_tweights,plan.symbols), plan.ret)
             sample += 1
         #Average of the weights across the simulated plans
         self.avg_weights = avg_weights/self.iter
@@ -83,7 +83,7 @@ class stochMV():
             vol = np.append(vol, self.init_plan.portfolio_stats(self.avg_weights[i, :])[1])
             i = i+1
 
-        self.opt_ports_df = dm.get_ports_df(ret, vol, vol,self.avg_weights,self.init_plan.symbols)
+        self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,self.init_plan.symbols)
         self.opt_ports_df = dm.format_ports_df(self.opt_ports_df,self.init_plan.ret)
         
     def generate_resamp_corr_dict(self):
