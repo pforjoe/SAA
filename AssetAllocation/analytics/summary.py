@@ -171,7 +171,9 @@ def get_ldi_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']):
     liab_data_dict={}
     #does not include liab/ret table anymore
     for plan in plan_list:
-        liab_data_dict[plan] = dm.get_plan_liability_data(ldi_data_dict, plan = plan)
+        liab_data_dict[plan] = dm.get_plan_liability_data_new(ldi_data_dict['pbo_cfs_dict'][plan], ldi_data_dict['sc_cfs_dict'][plan],
+                                                              ldi_data_dict['disc_factors'], ldi_data_dict['liab_curve'], ldi_data_dict['asset_mv'][plan], ldi_report=True)
+        liab_data_dict[plan]['Liability Returns'] = liab_data_dict[plan]['Present Values']
         liab_data_dict[plan]['Asset Returns'] = ldi_data_dict['asset_ret'][plan]
         liab_data_dict[plan]['Asset Market Values'] = ldi_data_dict['asset_mv'][plan]
         
@@ -194,6 +196,7 @@ def get_ldi_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
         
         temp_dict['fs_data'] = liab_data_dict[plan]['Funded Status']
         
+
         report_dict[plan] = temp_dict
         
     return report_dict

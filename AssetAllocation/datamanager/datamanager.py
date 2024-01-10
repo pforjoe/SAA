@@ -230,12 +230,12 @@ def update_bnds_with_fs(bnds, funded_status):
     bnds['Lower']['Liability'] /= funded_status
     return None
 
-def get_ports_df(rets, vols, weights, symbols, raw=True):
+def get_ports_df(rets, vols, asset_vols, weights, symbols, raw=True):
     if raw:
-        return pd.DataFrame(np.column_stack([rets, vols, rets/vols,weights]),columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
+        return pd.DataFrame(np.column_stack([rets, vols, rets/vols, asset_vols, weights]),columns=['Return', 'Volatility', 'Sharpe', 'Asset Vol'] + symbols).rename_axis('Portfolio')
     else:
         return pd.DataFrame(np.column_stack([100*np.around(rets,6), 100*np.around(vols,6), np.around(rets/vols,6),100*np.around(weights,6)]),
-                        columns=['Return', 'Volatility', 'Sharpe'] + symbols).rename_axis('Portfolio')
+                        columns=['Return', 'Volatility', 'Sharpe', 'Asset Vol'] + symbols).rename_axis('Portfolio')
     
 def format_ports_df(ports_df, ret_df):
     #rename Return & Volatility column to Excess Return & Surplus Volatility
@@ -822,14 +822,14 @@ def get_disc_factors(pbo_cf_data):
         disc_factor += [disc_factor[i-1]+1/12]
     return disc_factor
 
-
+#consolidate 
 def get_cf_dict_by_plan(filename = 'past_pbo_cashflow_data_for_ldi.xlsx' ):
     temp_data_dict = {}
     for year in SHEET_LIST_LDI:
         temp_data_dict[year] = monthize_cf_data(cf_type = year ,filename = filename)
         
     cf_data_dict = {}
-    for plan in PLAN_LIST:
+    for plan in PLAN_LIST + ['Total']:
         temp_df = {}
         for year in SHEET_LIST_LDI:
             temp_df[year] = ( temp_data_dict[year][plan])
@@ -843,8 +843,8 @@ def get_ldi_data(contrb_pct = 1):
     plan_asset_data = get_plan_asset_data()
     #only need total consolidation for asset data
     
-    pbo_data_dict = get_cf_dict_by_plan(filename = 'past_pbo_cashflow_data_for_ldi.xlsx' )
-    sc_data_dict= get_cf_dict_by_plan(filename = 'past_sc_cashflow_data_for_ldi.xlsx' )
+    pbo_data_dict = get_cf_dict_by_plan(filename = 'pbo_cashflow_data_for_ldi.xlsx' )
+    sc_data_dict= get_cf_dict_by_plan(filename = 'sc_cashflow_data_for_ldi.xlsx' )
     
     disc_factors = get_disc_factors(pbo_data_dict['IBT']['2021'])
     df_ftse = get_ftse_data()
@@ -872,42 +872,29 @@ def offset_df(pbo_cfs):
         data.iloc[:,i] = cfs
     return data
 
-def switch_freq_int(arg):
-    """
-    Return an integer equivalent to frequency in years
-    
-    Parameters:
-    arg -- string ('1D', '1W', '1M')
-    
-    Returns:
-    int of frequency in years
-    """
+
+def get_freq_factor(arg):
+
     switcher = {
-            "1M": 1,
-            "1Q": 3,
-            "1Y": 12,
+            "Q": 3,
+            "Y": 12,
     }
     return switcher.get(arg, 1)
+
+# def get_liab_ret(present_values, plan_sc_cfs, freq='M'):
+#     ret_string =freq+'TD'
+#     plan_sc_cfs[0] = plan_sc_cfs[1]
+#     temp_ret = pd.DataFrame(plan_sc_cfs)
+#     temp_ret.columns = ['SC accruals']
+#     temp_ret = merge_dfs(present_values, temp_ret)
+#     temp_ret[ret_string] = temp_ret['Present Values'].shift()
     
-    
-def get_liab_returns_ldi(pv_df, pbo_series, freq = '1D'):
-    
-    n = switch_freq_int(freq)
-    
-    pv_series = pv_df['Present Value'] 
-    
-    if freq != '1M':
-        pbo_series2 = pbo_series[:n].cumsum().append(pbo_series.rolling(n).sum()[n:])
-        freq_series = np.repeat(pv_series[list(range(0,len(pv_series),n))],n)
-    
-    total_series = pv_series + pbo_series
-    return_series = []
-    for row in list(range(1,len(pv_df))):
-          return_series += [total_series[row]/freq_series[row-1]-1]
-        
-    return_df = pd.DataFrame( return_series, index = pv_df.index[1:], columns=['Liability Returns'])
-        
-    return return_df
+#     for i in range(1, len(temp_ret)):
+#         j = i-1 if freq=='M' else int(i/get_freq_factor(freq))*get_freq_factor(freq)
+#         j = j-get_freq_factor(freq) if j==i else j
+#         temp_ret[ret_string][i] = (temp_ret['Present Values'][i]+temp_ret['SC accruals'].iloc[j:i].sum())/temp_ret['Present Values'][j]-1
+#     temp_ret.dropna(inplace=True)
+#     return temp_ret[[ret_string]]
 
 
 def compute_funded_status(asset_mv_series, pv_series):
@@ -933,63 +920,46 @@ def compute_funded_status(asset_mv_series, pv_series):
       
     return fs_df
 
-def get_plan_liability_data(ldi_data, plan = 'Retirement'):
-    if plan == 'Total Consolidation':
-        plan = 'Total'
+
+def switch_freq_int(arg):
+    """
+    Return an integer equivalent to frequency in years
     
-    pv_df = pd.DataFrame()
-    irr_df = pd.DataFrame()
-    pbo_series = pd.Series()
+    Parameters:
+    arg -- string ('1D', '1W', '1M')
     
+    Returns:
+    int of frequency in years
+    """
 
-        
-    for year in SHEET_LIST_LDI:
-        if year == SHEET_LIST_LDI[-1]:
-            no_of_cols = len(get_liab_mv_cf_cols())%12
-        else: 
-            no_of_cols = 11
-        
-        pbo_series = pbo_series.append(ldi_data['pbo_cfs_dict'][year][plan].iloc[:no_of_cols+1])
-        
-        total_cf = ldi_data['pbo_cfs_dict'][year][plan] + ldi_data['sc_cfs_dict'][year][plan]
-        
-        pbo_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = total_cf.index)
+    switcher = {
+            "1M": 1,
+            "1Q": 3,
+            "1Y": 12,
+            }
+    return switcher.get(arg, 1)
 
-        for col in pbo_table.columns:
-            pbo_table[col] = total_cf
-            pbo_table.loc[:col,col] = 0
-        pbo_offset = offset_df(pbo_table)
-        pbo_offset.columns = list(ldi_data['pbo_cfs_dict'][year].index[0:no_of_cols+1])
-
-        pv = pd.DataFrame()
-        temp_irr =  pd.DataFrame()
-        cf = pd.DataFrame()
-        for col in pbo_offset.columns:
-            temp_pv = pbo_offset[col].values/((1+ldi_data['liab_curve'][col].values/100)**ldi_data['disc_factors'])
-            pv[col] = [temp_pv.sum()]
-
-            #get irr
-            
-            cashflows = np.append(-pv[col], pbo_offset[col])
-            cf[col] = cashflows
-            yrs = [0]+ ldi_data['disc_factors']
-            
-            temp_irr[col] = [ts.irr(cashflows, yrs, 0.03)]
-        
-        pv_df = pv_df.append(pv.transpose())
-        irr_df = irr_df.append(temp_irr.transpose())
+#move pv irr calculation to analytics --> liab model
+def get_liab_returns_ldi(pv_df, pbo_series, freq = '1D'):
     
-    pbo_series = pbo_series.shift(1, fill_value = 0)
-    pv_df.columns = ['Present Values']
-    irr_df.columns = ['IRR']
+    n = switch_freq_int(freq)
     
+    pv_series = pv_df['Present Value'] 
+    
+    if freq != '1M':
+        pbo_series2 = pbo_series[:n].cumsum().append(pbo_series.rolling(n).sum()[n:])
+        freq_series = np.repeat(pv_series[list(range(0,len(pv_series),n))],n)
+    
+    total_series = pv_series + pbo_series
+    return_series = []
+    for row in list(range(1,len(pv_df))):
+          return_series += [total_series[row]/freq_series[row-1]-1]
+        
+    return_df = pd.DataFrame( return_series, index = pv_df.index[1:], columns=['Liability Returns'])
+        
+    return return_df
 
-    return {'Present Values': pv_df, 'IRR': irr_df, 'Liability Returns': get_liab_returns_ldi(pv_df, pbo_series), 
-            'Funded Status': compute_funded_status(ldi_data['asset_mv'][plan],pv_df['Present Values'])}
-
-
-
-def get_plan_liability_data_new(pbo_data_dict, sc_data_dict, disc_factors, liab_curve):
+def get_plan_liability_data_new(pbo_data_dict, sc_data_dict, disc_factors, liab_curve, asset_mv, ldi_report = False):
 
     
     pv_df = pd.DataFrame()
@@ -1038,7 +1008,12 @@ def get_plan_liability_data_new(pbo_data_dict, sc_data_dict, disc_factors, liab_
     liab_df = get_liab_returns_ldi(pv_df, pbo_series)
     liab_df.columns = ['Liability']
     
-    return {'Present Value': pv_df, 'IRR': irr_df, 'Liability': liab_df}
+    if ldi_report:
+        output_dict = {'Present Values': pv_df, 'IRR': irr_df, 'Funded Status': compute_funded_status(asset_mv ,pv_df['Present Value']),'PBO Series': pbo_series}
+    else:
+        output_dict = {'Present Value': pv_df, 'IRR': irr_df, 'Liability': liab_df}
+    
+    return output_dict
 
 
         
