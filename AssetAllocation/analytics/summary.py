@@ -144,7 +144,7 @@ def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], co
     print("Getting data from Liability Model...")
     #does not include liab/ret table anymore
     for plan in plan_list:
-        liab_model = get_liab_model(plan, contrb_pct)
+        liab_model = get_liab_model(plan, contrb_pct = 1)
         del liab_model.data_dict['Cashflows']
         liab_data_dict[plan] = liab_model.data_dict
 
@@ -173,7 +173,7 @@ def get_ldi_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']):
     for plan in plan_list:
         liab_data_dict[plan] = dm.get_plan_liability_data_new(ldi_data_dict['pbo_cfs_dict'][plan], ldi_data_dict['sc_cfs_dict'][plan],
                                                               ldi_data_dict['disc_factors'], ldi_data_dict['liab_curve'], ldi_data_dict['asset_mv'][plan], ldi_report=True)
-        liab_data_dict[plan]['Liability Returns'] = liab_data_dict[plan]['Present Values']
+
         liab_data_dict[plan]['Asset Returns'] = ldi_data_dict['asset_ret'][plan]
         liab_data_dict[plan]['Asset Market Values'] = ldi_data_dict['asset_mv'][plan]
         

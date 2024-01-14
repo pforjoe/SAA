@@ -60,12 +60,13 @@ class liabilityModelNew():
         
         self.liab_curve = liab_curve
         self.disc_rates = disc_rates
+        #todo: dont hard code
         self.asset_mv = pd.DataFrame({'Market Value':asset_mv})
 
         self.asset_returns = pd.DataFrame(asset_returns)
        
   
-        self.new_pvs = dm.get_plan_liability_data_new(self.pbo_cfs_dict, self.sc_cfs_dict, self.disc_factors.tolist(), self.liab_curve)
+        self.new_pvs = dm.get_plan_liability_data_new(self.pbo_cfs_dict, self.sc_cfs_dict, self.disc_factors.tolist(), self.liab_curve, self.asset_mv)
         self.present_values = self.concat_data(self.compute_pvs(),self.new_pvs['Present Value'])
         self.pv_new = self.new_pvs['Present Value']
         self.irr_df = self.concat_data(self.compute_irr(), self.new_pvs['IRR'])
