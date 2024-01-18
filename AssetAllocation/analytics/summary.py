@@ -171,11 +171,18 @@ def get_ldi_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']):
     liab_data_dict={}
     #does not include liab/ret table anymore
     for plan in plan_list:
-        liab_data_dict[plan] = dm.get_plan_liability_data_new(ldi_data_dict['pbo_cfs_dict'][plan], ldi_data_dict['sc_cfs_dict'][plan],
-                                                              ldi_data_dict['disc_factors'], ldi_data_dict['liab_curve'], ldi_data_dict['asset_mv'][plan], ldi_report=True)
+        
+        liability_plan = plan
+        
+        if plan == "Total Consolidation":
+            liability_plan = "Total"
+            
 
+        liab_data_dict[plan] = dm.get_plan_liability_data_new(ldi_data_dict['pbo_cfs_dict'][liability_plan], ldi_data_dict['sc_cfs_dict'][liability_plan],
+                                                              ldi_data_dict['disc_factors'], ldi_data_dict['liab_curve'], ldi_data_dict['asset_mv'][plan], ldi_report=True)
         liab_data_dict[plan]['Asset Returns'] = ldi_data_dict['asset_ret'][plan]
         liab_data_dict[plan]['Asset Market Values'] = ldi_data_dict['asset_mv'][plan]
+        
         
     return liab_data_dict
 
