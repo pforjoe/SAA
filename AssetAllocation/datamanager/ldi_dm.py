@@ -146,36 +146,6 @@ def generate_liab_cf_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', pas
         liab_sc_cf_dict[key] = sc_year_dict
     return {'PBO':liab_pbo_cf_dict, 'SC':liab_sc_cf_dict}
 
-# def get_past_pbo_data(past_pbo_filename = 'past_pbo_cashflow_data.xlsx'):
-#     """
-    
-
-#     Parameters
-#     ----------
-#     filename : TYPE, optional
-#         DESCRIPTION. The default is 'past_pbo_cashflow_data.xlsx'.
-
-#     Returns
-#     -------
-#     past_pbo_dict : TYPE
-#         DESCRIPTION.
-
-#     """
-#     past_pbo_dict = {}
-#     for sheet in SHEET_LIST_1[:-1]:
-#         df_pbo_cfs = pd.read_excel(TS_FP+past_pbo_filename, 
-#                                    sheet_name=sheet, index_col=0)/12
-#         df_pbo_cfs = dm.reindex_to_monthly_data(df_pbo_cfs)
-#         #transform this pbo due to change mid year
-#         if sheet == '2021_1':
-#             df_pbo_cfs_1 = df_pbo_cfs.iloc[0:12]
-#             df_pbo_cfs_2 = df_pbo_cfs.iloc[12:,]
-#             for col in df_pbo_cfs_1.columns:
-#                 n = 9 if col == 'IBT' else 8
-#                 df_pbo_cfs_1[col] = df_pbo_cfs_1[col]*(12/n)
-#             df_pbo_cfs = df_pbo_cfs_1.append(df_pbo_cfs_2)
-#         past_pbo_dict[sheet] = df_pbo_cfs
-#     return past_pbo_dict
 
 # def get_past_sc_data(past_sc_filename = 'past_sc_cashflow_data.xlsx'):
 #     """
