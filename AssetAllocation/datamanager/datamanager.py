@@ -33,9 +33,9 @@ UPDATE_FP = DATA_FP + 'update_files\\'
 
 
 UPPER_BND_LIST = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives']
-SHEET_LIST = ['2019','2020','2021','2021_1','2022','2023']
+SHEET_LIST = ['2019','2020','2021','2021_1','2022','2023','2024']
 PLAN_LIST = ['IBT','Pension', 'Retirement']
-SHEET_LIST_LDI = ['2021','2022','2023']
+SHEET_LIST_LDI = ['2021','2022','2023','2024']
 
 
 def get_fi_data(filename):
@@ -584,7 +584,8 @@ def transform_pbo_df(pbo_df):
     temp_df_list[1].fillna(0, inplace=True)
     temp_df = temp_df_list[0].append(temp_df_list[1])
     return temp_df
-        
+
+#TODO: combine past pbo cashflow for ldi w past pbo cashflow data
 def get_past_pbo_data(filename = 'past_pbo_cashflow_data.xlsx'):
     past_pbo_dict = {}
     for sheet in SHEET_LIST[:-1]:
@@ -663,9 +664,10 @@ def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', pas
             temp_cfs_df = merge_dfs(temp_pbo_df, temp_sc_df)
             temp_cfs_df.columns = ['PBO', 'SC']
             if year == SHEET_LIST[-1]:
+                #make no of cols 12 if using old pbos
                 no_of_cols = len(get_liab_mv_cf_cols(ftse_filename))%12
                 if no_of_cols == 0:
-                    no_of_cols = 12
+                    no_of_cols = 1
             else:
                 no_of_cols = switch_int(year, n)
             liab_cfs = pd.DataFrame(columns=list(range(1,no_of_cols+1)), index=temp_cfs_df.index)
@@ -689,6 +691,8 @@ def get_plan_mv_cfs_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past
     plan_mv_cfs_dict = {}
     for plan in liab_mv_dict:
         mv_cfs_df = pd.DataFrame()
+        #change to 12 if want to use old pbos
+        liab_mv_dict[plan]['2023'] =  liab_mv_dict[plan]['2023'].iloc[:,:11]
         #merge past years pbos
         for year in liab_mv_dict[plan]:
             mv_cfs_df = merge_dfs(mv_cfs_df, liab_mv_dict[plan][year],dropna = False)
@@ -847,6 +851,7 @@ def get_ldi_data(contrb_pct = 1):
     sc_data_dict= get_cf_dict_by_plan(filename = 'sc_cashflow_data_for_ldi.xlsx' )
     
     disc_factors = get_disc_factors(pbo_data_dict['IBT']['2021'])
+
     df_ftse = get_ftse_data()
     liab_curve = generate_liab_curve(df_ftse, pbo_data_dict['IBT'][SHEET_LIST_LDI[-1]])
     plan_mv_cfs_dict = get_plan_mv_cfs_dict()
@@ -965,35 +970,46 @@ def get_plan_liability_data_new(pbo_data_dict, sc_data_dict, disc_factors, liab_
     pv_df = pd.DataFrame()
     irr_df = pd.DataFrame()
     pbo_series = pd.Series()
-         
+    accrual_factors = [0] + disc_factors
+    
     for year in SHEET_LIST_LDI:
         if year == SHEET_LIST_LDI[-1]:
+            #if at december and want to use old PBOS, set no of cols to 12
             no_of_cols = len(get_liab_mv_cf_cols())%12
         else: 
             no_of_cols = 11
         
         pbo_series = pbo_series.append(pbo_data_dict[year].iloc[:no_of_cols+1])
         
-        total_cf = pbo_data_dict[year] + sc_data_dict[year]
-        
-        pbo_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = total_cf.index)
 
+        pbo_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = pbo_data_dict[year].index)
+        
+        sc_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = sc_data_dict[year].index)
+        
+        
         for col in pbo_table.columns:
-            pbo_table[col] = total_cf
+            pbo_table[col] = pbo_data_dict[year]
+            sc_table[col] = sc_data_dict[year] *accrual_factors[col]
+            
             pbo_table.loc[:col,col] = 0
+            sc_table.loc[:col,col] = 0
         pbo_offset = offset_df(pbo_table)
         pbo_offset.columns = list(pbo_data_dict[year].index[0:no_of_cols+1])
-
+        sc_offset = offset_df(sc_table)
+        sc_offset.columns = list(sc_data_dict[year].index[0:no_of_cols+1])
+        
+        total_cf_table = pbo_offset + sc_offset
+        
         pv = pd.DataFrame()
         temp_irr =  pd.DataFrame()
         cf = pd.DataFrame()
-        for col in pbo_offset.columns:
-            temp_pv = pbo_offset[col].values/((1+liab_curve[col].values/100)**disc_factors)
+        for col in total_cf_table.columns:
+            temp_pv = total_cf_table[col].values/((1+liab_curve[col].values/100)**disc_factors)
             pv[col] = [temp_pv.sum()]
 
             #get irr
             
-            cashflows = np.append(-pv[col], pbo_offset[col])
+            cashflows = np.append(-pv[col], total_cf_table[col])
             cf[col] = cashflows
             yrs = [0]+ disc_factors
             
@@ -1009,7 +1025,7 @@ def get_plan_liability_data_new(pbo_data_dict, sc_data_dict, disc_factors, liab_
     liab_df.columns = ['Liability']
     
     if ldi_report:
-        output_dict = {'Present Values': pv_df, 'IRR': irr_df, 'Funded Status': compute_funded_status(asset_mv ,pv_df['Present Value']),'PBO Series': pbo_series}
+        output_dict = {'Present Values': pv_df, 'IRR': irr_df, 'Funded Status': compute_funded_status(asset_mv ,pv_df['Present Value']),'PBO Series': pbo_series, 'Liability Returns': liab_df}
     else:
         output_dict = {'Present Value': pv_df, 'IRR': irr_df, 'Liability': liab_df}
     
