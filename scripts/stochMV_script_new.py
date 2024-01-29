@@ -28,7 +28,10 @@ for p in ['Retirement','Pension','IBT']:
         
     
     PLAN = p
-    unbounded = True
+    #unconstrained True when all assets except cash has no bounds
+    unconstrained = True
+    #corp True --> STRIPS constrained to 10% lower than corporates
+    corp = False
     ###############################################################################
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
@@ -39,6 +42,12 @@ for p in ['Retirement','Pension','IBT']:
     ###############################################################################
     pp_inputs = summary.get_pp_inputs(liab_model,PLAN)
     
+    #multiplier on private asset class vols
+    multiplier = 1
+    pp_inputs['ret_vol']['Volatility'].loc['Private Equity'] = pp_inputs['ret_vol']['Volatility'].loc['Private Equity']*multiplier
+    pp_inputs['ret_vol']['Volatility'].loc['Credit'] =  pp_inputs['ret_vol']['Volatility'].loc['Credit']*multiplier
+    pp_inputs['ret_vol']['Volatility'].loc['Real Estate'] = pp_inputs['ret_vol']['Volatility'].loc['Real Estate']*multiplier
+
     ###############################################################################
     # INITIALIZE PLAN                                                             #
     ###############################################################################
@@ -69,12 +78,12 @@ for p in ['Retirement','Pension','IBT']:
     ###############################################################################
     # DEFINE BOUNDS                                                               #
     ###############################################################################
-    bnds = dm.get_bounds(plan.funded_status,plan=PLAN, unbounded = unbounded)
+    bnds = dm.get_bounds(plan.funded_status,plan=PLAN, unbounded = unconstrained)
     
     ###############################################################################
     # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
     ###############################################################################
-    corp = False
+
     if p == "Retirement":
         lb = 0.50
         ub = 0.8999999999999999
