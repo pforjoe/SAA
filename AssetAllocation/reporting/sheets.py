@@ -493,7 +493,7 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 # TODO: Add market value table and edit fs_data table
 
 
-def set_plan_ldi_sheet(writer, returns,  pv_irr, fs_data, sheet_name, dashboard_graphs=True):
+def set_plan_ldi_sheet(writer, returns,  pv_irr, fs_data, ytd_returns, qtd_returns, sheet_name, dashboard_graphs=True):
     '''
 
 
@@ -556,10 +556,11 @@ def set_plan_ldi_sheet(writer, returns,  pv_irr, fs_data, sheet_name, dashboard_
     fs_data.to_excel(writer, sheet_name=sheet_name, startrow=row,
                      startcol=col + ret_col_dim + liab_col_dim + 4)
     if dashboard_graphs:
-        ytd = util.calculate_ytd_returns(returns['Asset'])
-        ytd.to_excel(writer, sheet_name=sheet_name, startrow=fs_row_dim + 19,
+
+        ytd_returns.to_excel(writer, sheet_name=sheet_name, startrow=fs_row_dim + 19,
                          startcol = 16)
-        
+        qtd_returns.to_excel(writer, sheet_name=sheet_name, startrow=fs_row_dim + 41,
+                         startcol = 16)
         
         plots.get_asset_liab_ret_bar_plot(
             workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
@@ -570,6 +571,8 @@ def set_plan_ldi_sheet(writer, returns,  pv_irr, fs_data, sheet_name, dashboard_
         
         plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q62')
         
+        plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q85')
+
     # format asset and liability returns values
     worksheet.conditional_format(row, col, ret_row_dim, col, {
                                  'type': 'no_blanks', 'format': date_fmt})

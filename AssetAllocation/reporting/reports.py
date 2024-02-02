@@ -329,7 +329,9 @@ def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = T
         temp_mv_fs_df = dm.merge_dfs(report_dict[key]['market_values'], report_dict[key]['fs_data'], dropna = False)
         sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'], 
                                   report_dict[key]['pv_irr'], 
-                                  temp_mv_fs_df,
+                                  temp_mv_fs_df,report_dict[key]['ytd_returns'],
+                                  report_dict[key]['qtd_returns'],
+                                  
                                   sheet_name = key, dashboard_graphs = dashboard_graphs)
 
        
