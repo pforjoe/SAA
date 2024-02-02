@@ -6,10 +6,13 @@ Created on Mon Dec  4 20:47:00 2023
 """
 
 from AssetAllocation.datamanager import datamanager as dm
+from AssetAllocation.analytics import ts_analytics as ts
+
 from scipy.optimize import fsolve
 import pandas as pd
 import numpy as np
 from .ts_analytics import get_ann_vol
+from .util import offset_df
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -43,6 +46,7 @@ class liabilityModelNew():
         disc_rates : Dataframe, optional
             DESCRIPTION. The default is pd.DataFrame.
 
+
         Returns
         -------
         liability model.
@@ -60,27 +64,35 @@ class liabilityModelNew():
         
         self.liab_curve = liab_curve
         self.disc_rates = disc_rates
+        self.accrual_factors = [0] + self.disc_factors.tolist()
         #todo: dont hard code
         self.asset_mv = pd.DataFrame({'Market Value':asset_mv})
 
         self.asset_returns = pd.DataFrame(asset_returns)
-       
-  
-        self.new_pvs = dm.get_plan_liability_data_new(self.pbo_cfs_dict, self.sc_cfs_dict, self.disc_factors.tolist(), self.liab_curve, self.asset_mv)
-        self.present_values = self.concat_data(self.compute_pvs(),self.new_pvs['Present Value'])
-        self.pv_new = self.new_pvs['Present Value']
-        self.irr_df = self.concat_data(self.compute_irr(), self.new_pvs['IRR'])
-        self.returns_ts = self.concat_data(self.compute_liab_ret(),self.new_pvs['Liability'])
+        self.qtd_asset_returns = self.compute_asset_ret(freq = '1Q').iloc[-1]      
+        self.ytd_asset_returns = self.compute_asset_ret(freq = '1Y').iloc[-1]      
+
+        self.new_pv_irr = self.get_pv_irr()
+        self.pv_new = self.new_pv_irr['Present Value']
+        self.present_values = self.concat_data(self.compute_pvs(),self.pv_new)
         
+        
+        self.irr_df = self.concat_data(self.compute_irr(), self.new_pv_irr['IRR'])
+        
+        self.returns_ts = self.concat_data(self.compute_liab_ret(),self.compute_liab_ret_new(freq = '1M'))
+        self.qtd_liab_returns = self.compute_liab_ret_new(freq = '1Q').iloc[-1]  
+        self.ytd_liab_returns = self.compute_liab_ret_new(freq = '1Y').iloc[-1]  
+
         self.liab_mv_cfs = pd.DataFrame(liab_mv_cfs)
         self.liab_mv = self.get_plan_liab_mv()
         self.funded_status = self.concat_fs_data(self.compute_funded_status(), self.compute_funded_status_new())
+        
         self.funded_status_new = self.compute_funded_status_new()
         self.fulfill_irr = None
         self.excess_return = None
         self.ret = self.get_return()
         self.data_dict = self.get_liab_data_dict(pbo_cashflows, sc_cashflows)
-              
+             
         
     def concat_data(self, old_df, ldi_df):
         temp_df = old_df.iloc[:-len(ldi_df)]
@@ -123,12 +135,16 @@ class liabilityModelNew():
         #liability returns
         ret_df = self.returns_ts.copy()
         ret_df.columns = ['Return']
-        
-        return {'Cashflows': cf_df, 'Present Values': self.present_values, 'Liability Returns': ret_df,
-                'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
-                'Asset Market Values': self.asset_mv, 'Funded Status': self.funded_status}
-   
 
+        return {'Present Values': self.present_values, 'Liability Returns': self.returns_ts,
+                'Liability YTD Returns': pd.DataFrame(self.ytd_liab_returns).transpose(),'Liability QTD Returns': pd.DataFrame(self.qtd_liab_returns).transpose(),
+                
+                'Liability Market Values':self.liab_mv, 'IRR': self.irr_df, 'Asset Returns': self.asset_returns, 
+                'Asset YTD Returns': pd.DataFrame(self.ytd_asset_returns).transpose(),'Asset QTD Returns': pd.DataFrame(self.qtd_asset_returns).transpose(),
+                'Asset Market Values': self.asset_mv, 'Funded Status': self.funded_status, 
+                               
+                }
+   
 
     #TODO: Take out disc rates option
     def compute_pvs(self):
@@ -222,7 +238,7 @@ class liabilityModelNew():
 
         """
         return np.asscalar(fsolve(self.npv, x0=x0,args=(cfs,yrs), **kwargs))
-    
+          
     def compute_irr(self):
         """
         Returns a dataframe containing IRR data for a give time period
@@ -319,3 +335,105 @@ class liabilityModelNew():
             cfs = list(self.liab_mv_cfs.iloc[:,i])
             pbo.append(self.npv( self.irr_df['IRR'][self.liab_mv_cfs.columns[i]]/12, cfs, yrs))
         return pd.DataFrame(pbo, index = self.liab_mv_cfs.columns, columns = self.asset_mv.columns)
+
+
+        
+    def get_total_cf_table(self, pbo_df, sc_df, no_of_cols):
+        #initiate data frames
+        pbo_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = pbo_df.index)
+        sc_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = sc_df.index) 
+        
+        #loop through year and set pbo cashflows in dataframe
+        for col in pbo_table.columns:
+            pbo_table[col] = pbo_df
+            sc_table[col] = sc_df * self.accrual_factors[col]
+            
+            #fill zeros for unfiled rows
+            pbo_table.loc[:col,col] = 0
+            sc_table.loc[:col,col] = 0
+            
+        pbo_offset = offset_df(pbo_table)
+        pbo_offset.columns = list( pbo_df.index[0:no_of_cols+1])
+      
+        sc_offset = offset_df(sc_table)
+        sc_offset.columns = list(sc_df.index[0:no_of_cols+1])
+            
+        return pbo_offset + sc_offset
+    
+    def get_pv_irr(self):
+        pv_df = pd.DataFrame()
+        irr_df = pd.DataFrame()
+        pbo_series = pd.Series()
+       
+        #loop through ech year
+        for year in dm.SHEET_LIST_LDI:
+            #get number of cols
+            no_of_cols = dm.get_no_cols(year)
+           
+            #get first 12 pbo cf for each year
+            pbo_series = pbo_series.append(self.pbo_cfs_dict[year].iloc[:no_of_cols+1])
+            
+            #get total cashflow table
+            total_cf_table = self.get_total_cf_table(self.pbo_cfs_dict[year],self.sc_cfs_dict[year],no_of_cols)
+        
+            pv = pd.DataFrame()
+            temp_irr =  pd.DataFrame()
+            cf = pd.DataFrame()
+            
+            #loop through each column and discount cashdlows
+            for col in total_cf_table.columns:
+                temp_pv = total_cf_table[col].values/((1+self.liab_curve[col].values/100)**self.disc_factors)
+                pv[col] = [temp_pv.sum()]
+       
+                #get irr
+                cf[col] = np.append(-pv[col], total_cf_table[col])
+                temp_irr[col] = [self.irr( cf[col], self.accrual_factors, 0.03)]
+            
+            pv_df = pv_df.append(pv.transpose())
+            irr_df = irr_df.append(temp_irr.transpose())
+    
+        pv_df.columns = ['Present Value']
+        irr_df.columns = ['IRR']
+        
+        return{'Present Value': pv_df, 'IRR': irr_df,'PBO Series': pbo_series}
+        
+
+    def compute_liab_ret_new(self,freq = '1M'):
+        
+        lookback_window = dm.get_lookback_windows(self.pv_new, freq)
+        liability_returns = []
+        pv_series = self.pv_new['Present Value']
+        
+        for row in list(range(0,len(self.pv_new))):
+            #get roll window for month
+            roll = lookback_window[row]
+            #get sum of pbos that need to come off
+            pbo = sum(self.new_pv_irr['PBO Series'][row-roll:row])
+            
+            #dont compute return for pv if no value before it
+            if row - roll>=0:    
+                liability_returns += [(pv_series[row]+pbo)/ pv_series[row-roll]-1]
+            else:
+                continue
+                
+        return_df = pd.DataFrame( liability_returns, index = self.pv_new.index[-len(liability_returns):], columns=['Liability'])
+            
+        return return_df
+    
+    def compute_asset_ret(self,freq = '1Q'):
+        
+        lookback_window = dm.get_lookback_windows(self.asset_returns, freq)
+       
+        price_df = dm.get_prices_df(self.asset_returns)
+        price_series = price_df.stack()
+        asset_returns = []
+        
+        for row in list(range(0,len(price_series))):
+            #get roll window for month
+            roll = lookback_window[row]
+            asset_returns += [(price_series[row])/price_series[row-roll]-1]
+                
+        return_df = pd.DataFrame( asset_returns, index = price_df.index, columns=['Asset'])
+                        
+        return return_df
+    
