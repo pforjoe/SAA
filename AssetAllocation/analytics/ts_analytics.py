@@ -159,47 +159,4 @@ def get_ret_vol_df(returns_df):
     ret_vol_df = pd.DataFrame(ret_vol_dict, index = ['Return', 'Volatility']).transpose()
     return add_sharpe_col(ret_vol_df)
 
-def npv(irr, cfs, yrs):
-    """
-    Returns net present value of cashflows given an irr
 
-    Parameters
-    ----------
-    irr : double
-        IRR.
-    cfs : array
-        cashflows.
-    yrs : array
-        periods.
-
-    Returns
-    -------
-    double
-
-    """
-    return np.sum(cfs / (1. + irr) ** yrs)
-
-   
-def irr(cfs, yrs, x0, **kwargs):
-    """
-    Compute internal rate of return(IRR)
-
-    Parameters
-    ----------
-    cfs : array
-        cashflows.
-    yrs : array
-        periods.
-    x0 : double
-        guess.
-    
-    Returns
-    -------
-    double
-        IRR.
-
-    """
-    return np.ndarray.item(fsolve(npv, x0=x0,args=(cfs,yrs), **kwargs))
-
-
-    
