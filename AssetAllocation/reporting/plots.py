@@ -377,7 +377,7 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     fs_vol_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, fs_vol_chart)  
     
-def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position, plot_title = 'YTD Returns'):
     #specify what type of chart
     ytd_chart = workbook.add_chart({'type':'column'})
 
@@ -386,31 +386,30 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
         'categories': [sheet_name, fs_row_dim+19, 17, fs_row_dim+19, 18], 
         'values': [sheet_name, fs_row_dim+20, 17, fs_row_dim+20, 18],
         'name':'YTD',
-        'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Calibri (Body)','color':'#616161 '},}
+        'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Arial','color':'#616161 '},}
         })
 
     #set x axis
     ytd_chart.set_x_axis({'text_axis': True,
                           'label_position' : 'low',
-                          'num_font':  {'name': 'Calibri (Body)','color':'#616161 ', 'size': 9},
+                          'num_font':  {'name': 'Arial','color':'#616161 ', 'size': 9},
                           'line':{'color':'#D3D3D3'}
                           })
     
     #set y axis format
     ytd_chart.set_y_axis({'num_format':'0%',
-                          'max': 0,
-                          'num_font':  {'name': 'Calibri (Body)', 'color':'#616161 ','size': 9},
+                          'num_font':  {'name': 'Arial', 'color':'#616161 ','size': 9},
                           'line':{'none':True},
                          'major_gridlines': {
                              'visible' : 1,
                              'line' : { 'color' : '#D3D3D3'}},
-                         'major_unit':0.05
+                         'major_unit':0.02
     })
    
     
     #set chart title
-    ytd_chart.set_title({'name': "YTD Returns",
-                         'name_font':  {'name': 'Calibri (Body)','color':'#616161 ','bold':False, 'size':14}})
+    ytd_chart.set_title({'name': plot_title,
+                         'name_font':  {'name': 'Arial','color':'#616161 ','bold':False, 'size':12}})
 
     ytd_chart.set_chartarea({'border':{'none':True}})
     

@@ -571,7 +571,7 @@ def set_plan_ldi_sheet(writer, returns,  pv_irr, fs_data, ytd_returns, qtd_retur
         
         plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q62')
         
-        plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q85')
+        plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim+22, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q85',plot_title = 'QTD Returns')
 
     # format asset and liability returns values
     worksheet.conditional_format(row, col, ret_row_dim, col, {
