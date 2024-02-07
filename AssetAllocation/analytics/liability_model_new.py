@@ -336,30 +336,45 @@ class liabilityModelNew():
             pbo.append(self.npv( self.irr_df['IRR'][self.liab_mv_cfs.columns[i]]/12, cfs, yrs))
         return pd.DataFrame(pbo, index = self.liab_mv_cfs.columns, columns = self.asset_mv.columns)
 
+    def get_cf_table(self, cf_df, no_of_cols, accrual = False):
+        '''
+        
 
-        
-    def get_total_cf_table(self, pbo_df, sc_df, no_of_cols):
+        Parameters
+        ----------
+        cf_df : Data Frame
+            DESCRIPTION.
+        no_of_cols : Float
+            DESCRIPTION.
+        accrual : TYPE, optional
+             The default is False.
+
+        Returns
+        -------
+        cf_offset : TYPE
+            DESCRIPTION.
+
+        '''
         #initiate data frames
-        pbo_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = pbo_df.index)
-        sc_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = sc_df.index) 
-        
+        cf_table = pd.DataFrame(columns=list(range(0,no_of_cols+1)), index = cf_df.index)
+
         #loop through year and set pbo cashflows in dataframe
-        for col in pbo_table.columns:
-            pbo_table[col] = pbo_df
-            sc_table[col] = sc_df * self.accrual_factors[col]
-            
-            #fill zeros for unfiled rows
-            pbo_table.loc[:col,col] = 0
-            sc_table.loc[:col,col] = 0
-            
-        pbo_offset = offset_df(pbo_table)
-        pbo_offset.columns = list( pbo_df.index[0:no_of_cols+1])
-      
-        sc_offset = offset_df(sc_table)
-        sc_offset.columns = list(sc_df.index[0:no_of_cols+1])
-            
-        return pbo_offset + sc_offset
+        for col in cf_table.columns:
+            if accrual:
+                cf_table[col] = cf_df * self.accrual_factors[col]
+            else:
+                cf_table[col] = cf_df
+
+            #fill zeros for unfilled rows
+            cf_table.loc[:col,col] = 0
+
+        cf_offset = offset_df(cf_table)
+        cf_offset.columns = list( cf_df.index[0:no_of_cols+1])
+
+        return cf_offset
     
+        
+        
     def get_pv_irr(self):
         pv_df = pd.DataFrame()
         irr_df = pd.DataFrame()
@@ -374,7 +389,9 @@ class liabilityModelNew():
             pbo_series = pbo_series.append(self.pbo_cfs_dict[year].iloc[:no_of_cols+1])
             
             #get total cashflow table
-            total_cf_table = self.get_total_cf_table(self.pbo_cfs_dict[year],self.sc_cfs_dict[year],no_of_cols)
+            pbo_table = self.get_cf_table(self.pbo_cfs_dict[year],no_of_cols)
+            sc_table = self.get_cf_table(self.sc_cfs_dict[year],no_of_cols, accrual=True)
+            total_cf_table = pbo_table + sc_table
         
             pv = pd.DataFrame()
             temp_irr =  pd.DataFrame()
