@@ -928,4 +928,60 @@ def get_lookback_windows(df, freq):
     return date_df['Roll Window']
 
 
+def get_future_sc(sc_data_dict, n_years, contrib_pct = []):
+    #get current service costs
+    sc_dict = sc_data_dict.copy()
+    sc_df = pd.DataFrame()
+    sc_df[SHEET_LIST_LDI[-1]] = sc_dict[SHEET_LIST_LDI[-1]].copy()
+    
 
+    for i in list(range(1, n_years)):
+        #get future year
+        year = str(int(SHEET_LIST_LDI[-1])+i)
+        
+        #get future year sc * assumed contribution pct
+        temp_df = pd.DataFrame()
+        temp_df[year] = sc_df.iloc[:,0].shift(12*i)* contrib_pct[i-1]
+        temp_df.fillna(0, inplace = True)
+        
+        sc_df = sc_df.merge(temp_df, how = "outer", left_index=True, right_index=True)
+        
+    sc_dict[SHEET_LIST_LDI[-1]] = sc_df.sum(axis = 1)
+    
+    return sc_dict
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
