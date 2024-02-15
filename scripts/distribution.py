@@ -1,7 +1,18 @@
 import numpy as np
+import pandas as pd
 import scipy.stats as stats
 import matplotlib.pyplot as plt
 from AssetAllocation.datamanager import datamanager as dm
+from copulas.multivariate.gaussian import GaussianMultivariate
+import itertools
+import seaborn as sns
+from copulas.univariate import (
+    BetaUnivariate,
+    GammaUnivariate,
+    GaussianKDE,
+    GaussianUnivariate,
+    TruncatedGaussian
+)
 
 returns_data = dm.get_asset_returns()
 
@@ -31,31 +42,40 @@ for column in returns_data.columns:
             best_params = params
 
     best_distributions[column] = {
-        'distribution': best_distribution.name,
+        'distribution': best_distribution,
         'params': best_params,
         'bic': best_bic
     }
 
-# Print the results
-for asset_class, result in best_distributions.items():
-    print(f"Asset Class: {asset_class}")
-    print(f"Best Distribution: {result['distribution']}")
-    print(f"Parameters: {result['params']}")
-    print(f"BIC: {result['bic']}")
-    print()
+fitted_data = {}
+for asset, dist_info in best_distributions.items():
+    distribution = dist_info['distribution']
+    params = dist_info['params']
+    fitted_data[asset] = distribution.rvs(*params, size=len(returns_data))
 
+best_copulas = {}
+for asset, data in fitted_data.items():
+    best_copula = None
+    best_bic = np.inf
 
-for asset_class, result in best_distributions.items():
-    plt.figure(figsize=(8, 6))
-    plt.hist(returns_data[asset_class], bins=20, density=True, alpha=0.6, color='g', label='Histogram')
+    copula_classes = [BetaUnivariate, GammaUnivariate, GaussianUnivariate, TruncatedGaussian]
 
-    x = np.linspace(min(returns_data[asset_class]), max(returns_data[asset_class]), 1000)
-    fitted_distribution = getattr(stats, result['distribution'])(*result['params'])
-    plt.plot(x, fitted_distribution.pdf(x), 'r-', lw=2, label= result['distribution'])
+    for copula_class in copula_classes:
+        copula = copula_class()
+        copula.fit(data)
 
-    plt.title(f'Fitted Distribution for {asset_class}')
-    plt.xlabel('Returns')
-    plt.ylabel('Probability Density')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+        neg_log_likelihood = -np.sum(np.log(copula.pdf(data)))
+        k = len(copula._params)
+        n = len(data)
+        bic = 2 * neg_log_likelihood + k * np.log(n)
+
+        if bic < best_bic:
+            best_copula = copula
+            best_bic = bic
+
+    best_copulas[asset] = best_copula
+
+# copula = GaussianMultivariate()
+# copula.fit(pd.DataFrame({asset: best_copula.sample(len(returns_data)) for asset, best_copula in best_copulas.items()}))
+#
+# copula_samples = copula.sample(len(returns_data))
