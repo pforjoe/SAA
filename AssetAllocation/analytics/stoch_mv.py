@@ -22,7 +22,9 @@ class stochMV():
         self.opt_ports_df = None
         self.resamp_corr_dict = {}
         self.ef_portfolio_dict = {}
-        
+        self.adjusted_opt_ports_df = None
+        self.max_sharpe_weights = None
+
     def generate_plans(self, nb_period=5):
 
         #Sample the covariance matrices
@@ -106,3 +108,18 @@ class stochMV():
                     resamp_corr_df[col][ind] = self.simulated_plans[ind].corr[asset_liab][col]
             
             self.resamp_corr_dict[asset_liab] = resamp_corr_df
+
+    def get_adjusted_weights(self):
+        ef_df = self.opt_ports_df.copy()
+        ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] + ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
+        assets = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives', 'Private Equity', 'Credit','Real Estate', 'Cash']
+        for col in assets:
+            ef_df[col] = ef_df[col] / ef_df['Total']
+
+        ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] + ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
+
+        self.adjusted_opt_ports_df = ef_df
+
+    def get_max_sharpe_weights(self):
+        self.max_sharpe_weights = self.adjusted_opt_ports_df.loc[self.adjusted_opt_ports_df['Sharpe'].idxmax()].to_frame()
+
