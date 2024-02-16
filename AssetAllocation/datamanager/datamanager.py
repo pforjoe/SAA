@@ -119,8 +119,8 @@ def get_ret_assump(filename):
     ret_assump = pd.read_excel(filename, sheet_name='ret_assump', index_col=0)
     return ret_assump['Return'].to_dict()
 
-def get_mkt_factor_premiums(filename):
-    mkt_factor_prem = pd.read_excel(filename, sheet_name='mkt_factor_prem', index_col=0)
+def get_mkt_factor_premiums(filename, sheet_name = 'mkt_factor_prem'):
+    mkt_factor_prem = pd.read_excel(filename, sheet_name,  index_col=0)
     mkt_factor_prem.fillna(0,inplace=True)
     # mkt_factor_prem.dropna(inplace=True)
     return mkt_factor_prem['Market Factor Premium'].to_dict()
@@ -213,9 +213,9 @@ def get_ts_data(plan='IBT'):
     return {'returns': returns_df,
             'weights': weights_df}
 
-def get_bounds(funded_status, filename='bounds.xlsx', plan='IBT', unbounded = False):
+def get_bounds(funded_status, filename='bounds.xlsx', plan='IBT', unconstrained = False):
     filepath=PLAN_INPUTS_FP+filename
-    if unbounded:
+    if unconstrained:
         plan = 'Unbounded'
     bnds = pd.read_excel(filepath, sheet_name=plan, index_col=0)
     update_bnds_with_fs(bnds,funded_status)
@@ -928,27 +928,26 @@ def get_lookback_windows(df, freq):
     return date_df['Roll Window']
 
 
-def get_future_sc(sc_data_dict, n_years, contrib_pct = []):
+def get_future_sc(sc, n_years, contrib_pct = [], growth_factor = []):
     #get current service costs
-    sc_dict = sc_data_dict.copy()
-    sc_df = pd.DataFrame()
-    sc_df[SHEET_LIST_LDI[-1]] = sc_dict[SHEET_LIST_LDI[-1]].copy()
-    
+    sc_df = sc.to_frame()
 
-    for i in list(range(1, n_years)):
+    for i in list(range(1, n_years+1)):
         #get future year
         year = str(int(SHEET_LIST_LDI[-1])+i)
         
-        #get future year sc * assumed contribution pct
+        #get future year sc
         temp_df = pd.DataFrame()
-        temp_df[year] = sc_df.iloc[:,0].shift(12*i)* contrib_pct[i-1]
+        #multiply previous years service cost by growth factor
+        temp_df[year] = sc_df.iloc[:,i-1].shift(12)*(1+growth_factor[i-1])
+        #subtract contributions
+        temp_df[year] = temp_df[year]*( 1- contrib_pct[i - 1])
         temp_df.fillna(0, inplace = True)
         
         sc_df = sc_df.merge(temp_df, how = "outer", left_index=True, right_index=True)
-        
-    sc_dict[SHEET_LIST_LDI[-1]] = sc_df.sum(axis = 1)
-    
-    return sc_dict
+
+    return sc_df.sum(axis = 1)
+
 
 
     
