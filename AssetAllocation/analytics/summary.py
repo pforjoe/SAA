@@ -51,7 +51,7 @@ def get_liab_model(plan='IBT', contrb_pct=.05):
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
                           liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
 
-def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05):
+def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05, sc_accrual = True):
     
     #total consolidation is only different for assets
     liability_plan = plan
@@ -60,7 +60,7 @@ def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05):
         liability_plan = "Total"
             
             
-    return liabilityModelNew(liab_input_dict['pbo_cfs_dict'][liability_plan][dm.SHEET_LIST[-1]], 
+    return liabilityModelNew(sc_accrual, liab_input_dict['pbo_cfs_dict'][liability_plan][dm.SHEET_LIST[-1]],
                           liab_input_dict['disc_factors'], 
                           liab_input_dict['sc_cfs_dict'][liability_plan][dm.SHEET_LIST[-1]],
                           liab_input_dict['pbo_cfs_dict'][liability_plan],
@@ -69,13 +69,19 @@ def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05):
                           liab_input_dict['asset_mv'][plan], 
                           dm.offset(liab_input_dict['liab_mv_cfs_dict'][liability_plan]),
                           liab_input_dict['asset_ret'][plan],
-                          liab_input_dict['liab_curve'])
+                          liab_input_dict['liab_curve']
+                             )
 
 
-def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
+def get_pp_inputs(liab_model, plan='IBT', mkt='Equity', priv_mrp0 = False):
     #get return
     mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan), liab_model)
-   
+
+    if priv_mrp0:
+       mv_inputs.mkt_factor_prem['Credit'] = 0
+       mv_inputs.mkt_factor_prem['Private Equity'] = 0
+       mv_inputs.mkt_factor_prem['Real Estate'] = 0
+
     #compute analytics using historical data
     pp_inputs = get_ts_output(dm.get_ts_data(plan=plan), liab_model)
     
@@ -168,7 +174,7 @@ def get_liab_data_dict_new(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']
         
         liab_model_new = get_liab_model_new(liab_input_dict, plan,contrb_pct = contrb_pct) 
         liab_data_dict[plan] = liab_model_new.data_dict
-        
+        print(plan + "data complete")
     return liab_data_dict
 
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
