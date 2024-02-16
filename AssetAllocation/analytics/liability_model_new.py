@@ -21,7 +21,7 @@ warnings.filterwarnings('ignore')
 class liabilityModelNew():
     
     #TODO: take out disc_rates option
-    def __init__(self, pbo_cashflows, disc_factors, sc_cashflows, pbo_cfs_dict, sc_cfs_dict, contrb_pct, asset_mv, liab_mv_cfs, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
+    def __init__(self, sc_accrual, pbo_cashflows, disc_factors, sc_cashflows, pbo_cfs_dict, sc_cfs_dict, contrb_pct, asset_mv, liab_mv_cfs, asset_returns,liab_curve=pd.DataFrame,disc_rates=pd.DataFrame):
         """
         
 
@@ -52,6 +52,7 @@ class liabilityModelNew():
         liability model.
 
         """
+        self.sc_accrual = sc_accrual
         self.pbo_cashflows = np.array(pbo_cashflows)
         self.disc_factors = np.array(disc_factors)
         self.contrb_pct = contrb_pct
@@ -69,10 +70,11 @@ class liabilityModelNew():
         self.asset_mv = pd.DataFrame({'Market Value':asset_mv})
 
         self.asset_returns = pd.DataFrame(asset_returns)
-        self.qtd_asset_returns = self.compute_asset_ret(freq = '1Q').iloc[-1]      
-        self.ytd_asset_returns = self.compute_asset_ret(freq = '1Y').iloc[-1]      
+        self.qtd_asset_returns = self.compute_asset_ret(freq = '1Q').transpose()
+        self.ytd_asset_returns = self.compute_asset_ret(freq = '1Y').transpose()
 
         self.new_pv_irr = self.get_pv_irr()
+
         self.pv_new = self.new_pv_irr['Present Value']
         self.present_values = self.concat_data(self.compute_pvs(),self.pv_new)
         
@@ -80,8 +82,8 @@ class liabilityModelNew():
         self.irr_df = self.concat_data(self.compute_irr(), self.new_pv_irr['IRR'])
         
         self.returns_ts = self.concat_data(self.compute_liab_ret(),self.compute_liab_ret_new(freq = '1M'))
-        self.qtd_liab_returns = self.compute_liab_ret_new(freq = '1Q').iloc[-1]  
-        self.ytd_liab_returns = self.compute_liab_ret_new(freq = '1Y').iloc[-1]  
+        self.qtd_liab_returns = self.compute_liab_ret_new(freq = '1Q').transpose()
+        self.ytd_liab_returns = self.compute_liab_ret_new(freq = '1Y').transpose()
 
         self.liab_mv_cfs = pd.DataFrame(liab_mv_cfs)
         self.liab_mv = self.get_plan_liab_mv()
@@ -387,10 +389,13 @@ class liabilityModelNew():
            
             #get first 12 pbo cf for each year
             pbo_series = pbo_series.append(self.pbo_cfs_dict[year].iloc[:no_of_cols+1])
-            
+
+            #TODO: make cashflow tables outside of liab_model_new and make input into the model
+            #old pvs just take first col of monthize cf
             #get total cashflow table
             pbo_table = self.get_cf_table(self.pbo_cfs_dict[year],no_of_cols)
-            sc_table = self.get_cf_table(self.sc_cfs_dict[year],no_of_cols, accrual=True)
+            pbo_table = self.get_cf_table(self.pbo_cfs_dict[year],no_of_cols)
+            sc_table = self.get_cf_table(self.sc_cfs_dict[year],no_of_cols, accrual= self.sc_accrual)
             total_cf_table = pbo_table + sc_table
         
             pv = pd.DataFrame()
@@ -398,11 +403,15 @@ class liabilityModelNew():
             cf = pd.DataFrame()
             
             #loop through each column and discount cashdlows
+            #TODO: break into two seperate methods
             for col in total_cf_table.columns:
+                #TODO: create own method (get_pv_series)
+
                 temp_pv = total_cf_table[col].values/((1+self.liab_curve[col].values/100)**self.disc_factors)
                 pv[col] = [temp_pv.sum()]
-       
+
                 #get irr
+                #TODO: create IRR into its own method (get_irr_series)
                 cf[col] = np.append(-pv[col], total_cf_table[col])
                 temp_irr[col] = [self.irr( cf[col], self.accrual_factors, 0.03)]
             
@@ -437,10 +446,12 @@ class liabilityModelNew():
             
         return return_df
     
+    #TODO: move asset ret to ts analytics
     def compute_asset_ret(self,freq = '1Q'):
         
         lookback_window = dm.get_lookback_windows(self.asset_returns, freq)
-       
+
+       #TODO: take product instead of re computing
         price_df = dm.get_prices_df(self.asset_returns)
         price_series = price_df.stack()
         asset_returns = []
