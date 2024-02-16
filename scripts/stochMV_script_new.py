@@ -17,48 +17,66 @@ from AssetAllocation.analytics.stoch_mv import stochMV
 from AssetAllocation.reporting import plots, reports as rp
 import numpy as np
 import pandas as pd
+
+###############################################################################
+#                                                                             #
+###############################################################################
+# unconstrained True -->  all assets except cash has no bounds
+unconstrained = False
+# corp True --> STRIPS constrained to 10% lower than corporates
+corp = False
+# priv_mrp0 True --> private markets market risk premium set to 0
+priv_mrp0 = False
+# future_sc True --> account for future service cost assumptions
+future_sc = True
+# priv_vol_multiplier True --> multiply private market vols by x
+priv_vol_multiplier = False
+
+###############################################################################
+#   Get LDI input dict                                                        #
+###############################################################################
+
 ldi_input_dict = dm.get_ldi_data()
 
-max_sharpe_dict = {}
-max_sharpe_dict['Retirement'] = pd.DataFrame()
-max_sharpe_dict['Pension'] = pd.DataFrame()
-max_sharpe_dict['IBT'] = pd.DataFrame()
+for PLAN in ['IBT']:
 
-for p in ['Retirement','Pension','IBT']:
-        
-    
-    PLAN = p
-    #unconstrained True when all assets except cash has no bounds
-    unconstrained = True
-    #corp True --> STRIPS constrained to 10% lower than corporates
-    corp = False
+    if future_sc:
+        n_years = 3
+        contrib_pct = [0]* n_years
+        growth_factor = [0] * n_years
+        ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] = dm.get_future_sc( ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] ,n_years,
+                                                            contrib_pct, growth_factor)
+
     ###############################################################################
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
-    liab_model = summary.get_liab_model_new(ldi_input_dict,PLAN)
+    liab_model = summary.get_liab_model_new(ldi_input_dict,PLAN, sc_accrual=False)
     
     ###############################################################################
     # COMPUTE PLAN INPUTS                                                         #
     ###############################################################################
-    pp_inputs = summary.get_pp_inputs(liab_model,PLAN)
-    
-    #multiplier on private asset class vols
-    multiplier = 1
-    pp_inputs['ret_vol']['Volatility'].loc['Private Equity'] = pp_inputs['ret_vol']['Volatility'].loc['Private Equity']*multiplier
-    pp_inputs['ret_vol']['Volatility'].loc['Credit'] =  pp_inputs['ret_vol']['Volatility'].loc['Credit']*multiplier
-    pp_inputs['ret_vol']['Volatility'].loc['Real Estate'] = pp_inputs['ret_vol']['Volatility'].loc['Real Estate']*multiplier
+    pp_inputs = summary.get_pp_inputs(liab_model,PLAN, priv_mrp0 = priv_mrp0)
+
+    if priv_vol_multiplier:
+        #multiplier on private asset class vols
+        multiplier = 1
+        pp_inputs['ret_vol']['Volatility'].loc['Private Equity'] = pp_inputs['ret_vol']['Volatility'].loc['Private Equity']*multiplier
+        pp_inputs['ret_vol']['Volatility'].loc['Credit'] =  pp_inputs['ret_vol']['Volatility'].loc['Credit']*multiplier
+        pp_inputs['ret_vol']['Volatility'].loc['Real Estate'] = pp_inputs['ret_vol']['Volatility'].loc['Real Estate']*multiplier
 
     ###############################################################################
     # INITIALIZE PLAN                                                             #
     ###############################################################################
     plan = summary.get_plan_params(pp_inputs)
-    pp_dict = plan.get_pp_dict()
+    pp_dict2 = plan.get_pp_dict()
     
     ###############################################################################
     # INITIALIZE STOCHMV                                                          #
     ###############################################################################
     #initialize the stochastic mean variance
-    s = stochMV(plan, 10)
+    s = stochMV(plan, 20)
+
+
     #generate the random returns Aand sample corr
     s.generate_plans()
     s.generate_resamp_corr_dict()
@@ -78,18 +96,18 @@ for p in ['Retirement','Pension','IBT']:
     ###############################################################################
     # DEFINE BOUNDS                                                               #
     ###############################################################################
-    bnds = dm.get_bounds(plan.funded_status,plan=PLAN, unbounded = unconstrained)
+    bnds = dm.get_bounds(plan.funded_status,plan=PLAN, unconstrained = unconstrained)
     
     ###############################################################################
     # DEFINE CONSTRAINTS TO OPTIMIZE FOR MIN AND MAX RETURN                       #
     ###############################################################################
 
-    if p == "Retirement":
-        lb = 0.50
-        ub = 0.8999999999999999
+    if PLAN == "Retirement":
+        lb = 0.49
+        ub = 0.51
     else: 
-        lb = 0.40
-        ub = 0.8999999999999999
+        lb = 0.39
+        ub = 0.41
         
         
     if corp:
@@ -125,8 +143,10 @@ for p in ['Retirement','Pension','IBT']:
     # COMPUTE MV EFFICIENT FRONTIER PORTFOLIOS                                    #
     ###############################################################################
     #Get data for MV efficient frontier portfolios
-    s.generate_efficient_frontiers(bnds, cons,num_ports=20)
-    
+    s.generate_efficient_frontiers(bnds, cons,num_ports=100)
+
+    s.get_adjusted_weights()
+    s.get_max_sharpe_weights()
     ###############################################################################
     # DISPLAY MV ASSET ALLOCATION                                                 #
     ###############################################################################
@@ -144,39 +164,16 @@ for p in ['Retirement','Pension','IBT']:
     ###############################################################################
     # Find max sharpe and adjusted weights                                        #
     ###############################################################################
-    #Export Efficient Frontier portfoio data to excel
-    ef_df = s.opt_ports_df.copy()
-    ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] +ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
-    
-    new_ef_df = ef_df.copy()
-    
-    assets = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives', 'Private Equity', 'Credit', 'Real Estate', 'Cash']
-    for col in assets:
-        new_ef_df[col] = new_ef_df[col] / ef_df['Total']
-    new_ef_df['Total'] =  new_ef_df['15+ STRIPS'] + new_ef_df['Long Corporate'] + new_ef_df['Equity'] + new_ef_df['Liquid Alternatives'] + new_ef_df['Private Equity'] +new_ef_df['Credit'] + new_ef_df['Real Estate'] + new_ef_df['Cash']   
-    max_sharpe_weights = new_ef_df.loc[new_ef_df['Sharpe'].idxmax()]
-    
-    
-   
-        
-   ###############################################################################
-    # EXPORT DATA TO EXCEL                                                        #
-    ###############################################################################
 
-    max_sharpe_weights = max_sharpe_weights.to_frame()
-    max_sharpe_dict[PLAN] = dm.merge_dfs(max_sharpe_dict[PLAN] , max_sharpe_weights)
-    
-    
-   
     
    ###############################################################################
     # EXPORT DATA TO EXCEL                                                        #
     ###############################################################################
     #Export Efficient Frontier portfoio data to excel
-    filename = ' stochmv_ef_report_corp_FI_inf'
-    if unbounded: 
+    filename = ' stochmv_ef_report3y_sc'
+    if unconstrained:
         filename = ' stochmv_ef_report_unconstrained_corp_FI_inf'
         
-    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s, new_ef_df, max_sharpe_weights)
+    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s)
     
     
