@@ -149,7 +149,7 @@ def get_ef_portfolios_report(reportname, plan, bnds=pd.DataFrame):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_stochmv_ef_portfolios_report(reportname, stochmv, adj_weights_df, max_sharpe_weights, bnds=pd.DataFrame):
+def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     """
     Generates output report
 
@@ -173,12 +173,11 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv, adj_weights_df, max_sh
     
     sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
-    
-    sheets.set_ef_port_sheet(writer, adj_weights_df,sheet_name = 'Adjusted EF')
-    
-    max_sharpe_weights.to_excel(writer, sheet_name='Max Sharpe Weights',
-                        startrow=0, startcol=0)
-    
+
+    sheets.set_ef_port_sheet(writer, stochmv.max_sharpe_weights.transpose(), sheet_name = "Max Sharpe Weights")
+
+    sheets.set_ef_port_sheet(writer, stochmv.adjusted_opt_ports_df,sheet_name = 'Adjusted EF Data')
+
     if not(bnds.empty):
         sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
