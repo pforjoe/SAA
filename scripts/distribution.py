@@ -104,6 +104,9 @@ print(f"The best bivariate copula is {best_copula_name} with maximum likelihood:
 
 #Plot
 for asset_pair, (best_copula_name, best_copula) in asset_copulas.items():
+    if best_copula is None:
+        print(f"No copula could be fitted for {asset_pair}. Skipping plotting.")
+        continue
     asset1, asset2 = asset_pair
     asset1_data = transformed_data[asset1]
     asset2_data = transformed_data[asset2]
