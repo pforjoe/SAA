@@ -8,6 +8,7 @@ import itertools
 import seaborn as sns
 from scipy.special import logit, expit
 from copulas.multivariate.tree import Tree
+import time
 
 from copulas.bivariate import Bivariate
 from copulas.bivariate.frank import Frank
@@ -74,7 +75,7 @@ for asset_pair in itertools.combinations(transformed_data.keys(), 2):
 
     samples = np.column_stack([asset1_data, asset2_data])
 
-    # best_likelihood = float('-inf')
+    best_likelihood = float('-inf')
     best_copula = None
 
     for copula_name, copula_class in copula_classes.items():
@@ -123,5 +124,22 @@ for asset_pair, (best_copula_name, best_copula) in asset_copulas.items():
     plt.ylabel('V')
     plt.grid(True)
 
+    # Scatter plot of transformed data points
+    asset1, asset2 = asset_pair
+    asset1_data = transformed_data[asset1]
+    asset2_data = transformed_data[asset2]
+    plt.subplot(1, 2, 1)  # Adjust subplot position if necessary
+    plt.scatter(asset1_data, asset2_data, c=best_copula.pdf(np.column_stack([asset1_data, asset2_data])), cmap='viridis')
+    plt.colorbar(label='Copula Density')
+    plt.title(f'Scatter Plot of Transformed Data ({asset1} vs {asset2})')
+    plt.xlabel(asset1)
+    plt.ylabel(asset2)
+    plt.grid(True)
+
+
     plt.tight_layout()
     plt.show()
+
+    time.sleep(0.3)
+
+
