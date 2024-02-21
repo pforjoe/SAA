@@ -641,3 +641,75 @@ def set_liab_mv_cf_sheet(writer, df, sheet_name):
                                                                   'format': num_fmt})
 
     return 0
+
+
+
+def set_fs_data_sheet_SAA(writer, fs_data_df, sheet_name="Funded Status"):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values
+        False if values should be formatted in percentages
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+
+    title_format = formats.set_title_format(workbook, center=True)
+    # date format
+    date_fmt = formats.set_number_format(
+        workbook, num_format='mm/dd/yyyy', bold=True)
+    # percent format
+    pct_fmt = formats.set_number_format(workbook, num_format='0.00%')
+    # dollar format
+    dollar_fmt = formats.set_number_format(workbook, num_format='"$" #,##0.00')
+    # num format
+    # num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
+
+    # negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+
+
+    row_dim = row + fs_data_df.shape[0]
+    col_dim = col + fs_data_df.shape[1]
+    worksheet.write(row-1, col+1, key, title_format)
+    fs_data_dict[key].to_excel(
+        writer, sheet_name=sheet_name, startrow=row, startcol=col)
+
+    worksheet.conditional_format(row, col, row_dim, col, {'type': 'no_blanks',
+                                                          'format': date_fmt})
+
+    # format asset and liability market values
+    worksheet.conditional_format(
+        row+1, col+1, row_dim, col_dim - 4, {'type': 'no_blanks', 'format': dollar_fmt})
+
+    # funded status format
+    worksheet.conditional_format(
+        row+1, col+2, row_dim, col_dim - 3, {'type': 'no_blanks', 'format': pct_fmt})
+
+    # fs gap format
+    worksheet.conditional_format(
+        row+1, col+3, row_dim, col_dim - 2, {'type': 'no_blanks', 'format': dollar_fmt})
+
+    # 1yr and 6mo format
+    worksheet.conditional_format(
+        row+1, col+1, row_dim, col_dim, {'type': 'no_blanks', 'format': pct_fmt})
+
+    worksheet.conditional_format(row+1, col+1, row_dim, col_dim, {'type': 'cell', 'criteria': 'less than', 'value': 0,
+                                                                  'format': neg_value_fmt})
+    col = col_dim + 2
+
+    return 0
+

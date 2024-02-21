@@ -28,7 +28,7 @@ corp = False
 # priv_mrp0 True --> private markets market risk premium set to 0
 priv_mrp0 = False
 # future_sc True --> account for future service cost assumptions
-future_sc = True
+future_sc = False
 # priv_vol_multiplier True --> multiply private market vols by x
 priv_vol_multiplier = False
 
@@ -51,7 +51,11 @@ for PLAN in ['IBT']:
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
     liab_model = summary.get_liab_model_new(ldi_input_dict,PLAN, sc_accrual=False)
-    
+
+    asset_mv_pv = dm.merge_dfs(liab_model.asset_mv, liab_model.present_values)
+    fs_data = {}
+    fs_data[PLAN] = dm.merge_dfs(asset_mv_pv, liab_model.funded_status)
+    fs_data[PLAN] = fs_data[PLAN].iloc[-37:,]
     ###############################################################################
     # COMPUTE PLAN INPUTS                                                         #
     ###############################################################################
@@ -170,10 +174,10 @@ for PLAN in ['IBT']:
     # EXPORT DATA TO EXCEL                                                        #
     ###############################################################################
     #Export Efficient Frontier portfoio data to excel
-    filename = ' stochmv_ef_report3y_sc'
+    filename = ' stochmv_ef_report'
     if unconstrained:
-        filename = ' stochmv_ef_report_unconstrained_corp_FI_inf'
+        filename = ' stochmv_ef_report_unconstraine'
         
-    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s)
+    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s, fs_data)
     
     
