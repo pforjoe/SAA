@@ -931,6 +931,9 @@ def get_lookback_windows(df, freq):
 def get_future_sc(sc, n_years, contrib_pct = [], growth_factor = []):
     #get current service costs
     sc_df = sc.to_frame()
+    # multiply previous years service cost by growth factor
+    sc_df = sc_df * (1 + growth_factor[0])
+    sc_df = sc_df * (1 - contrib_pct[0])
 
     for i in list(range(1, n_years+1)):
         #get future year
@@ -939,9 +942,9 @@ def get_future_sc(sc, n_years, contrib_pct = [], growth_factor = []):
         #get future year sc
         temp_df = pd.DataFrame()
         #multiply previous years service cost by growth factor
-        temp_df[year] = sc_df.iloc[:,i-1].shift(12)*(1+growth_factor[i-1])
+        temp_df[year] = sc_df.iloc[:,i-1].shift(12)*(1+growth_factor[i])
         #subtract contributions
-        temp_df[year] = temp_df[year]*( 1- contrib_pct[i - 1])
+        temp_df[year] = temp_df[year]*( 1- contrib_pct[i])
         temp_df.fillna(0, inplace = True)
         
         sc_df = sc_df.merge(temp_df, how = "outer", left_index=True, right_index=True)

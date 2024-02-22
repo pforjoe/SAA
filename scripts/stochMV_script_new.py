@@ -42,8 +42,8 @@ for PLAN in ['IBT']:
 
     if future_sc:
         n_years = 3
-        contrib_pct = [0]* n_years
-        growth_factor = [0] * n_years
+        contrib_pct = [0]+[1]*(n_years)
+        growth_factor = [0] * (n_years+1)
         ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] = dm.get_future_sc( ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] ,n_years,
                                                             contrib_pct, growth_factor)
 
@@ -51,7 +51,11 @@ for PLAN in ['IBT']:
     # COMPUTE LIABILITY DATA                                                      #
     ###############################################################################
     liab_model = summary.get_liab_model_new(ldi_input_dict,PLAN, sc_accrual=False)
-    
+
+    asset_mv_pv = dm.merge_dfs(liab_model.asset_mv, liab_model.present_values)
+    fs_data = {}
+    fs_data[PLAN] = dm.merge_dfs(asset_mv_pv, liab_model.funded_status)
+    fs_data[PLAN] = fs_data[PLAN].iloc[-37:,]
     ###############################################################################
     # COMPUTE PLAN INPUTS                                                         #
     ###############################################################################
@@ -170,10 +174,10 @@ for PLAN in ['IBT']:
     # EXPORT DATA TO EXCEL                                                        #
     ###############################################################################
     #Export Efficient Frontier portfoio data to excel
-    filename = ' stochmv_ef_report3y_sc'
+    filename = ' stochmv_ef_report0.1'
     if unconstrained:
-        filename = ' stochmv_ef_report_unconstrained_corp_FI_inf'
+        filename = ' stochmv_ef_report_unconstraine'
         
-    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s)
+    rp.get_stochmv_ef_portfolios_report(PLAN + filename, s, fs_data)
     
     

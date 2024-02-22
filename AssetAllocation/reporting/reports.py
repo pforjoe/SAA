@@ -149,7 +149,7 @@ def get_ef_portfolios_report(reportname, plan, bnds=pd.DataFrame):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
+def get_stochmv_ef_portfolios_report(reportname, stochmv,funded_status_data, bnds=pd.DataFrame):
     """
     Generates output report
 
@@ -177,7 +177,7 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     sheets.set_ef_port_sheet(writer, stochmv.max_sharpe_weights.transpose(), sheet_name = "Max Sharpe Weights")
 
     sheets.set_ef_port_sheet(writer, stochmv.adjusted_opt_ports_df,sheet_name = 'Adjusted EF Data')
-
+    sheets.set_fs_data_sheet(writer, funded_status_data, sheet_name = 'Funded Status')
     if not(bnds.empty):
         sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
