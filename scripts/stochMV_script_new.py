@@ -28,7 +28,7 @@ corp = False
 # priv_mrp0 True --> private markets market risk premium set to 0
 priv_mrp0 = False
 # future_sc True --> account for future service cost assumptions
-future_sc = False
+future_sc = True
 # priv_vol_multiplier True --> multiply private market vols by x
 priv_vol_multiplier = False
 
@@ -42,8 +42,8 @@ for PLAN in ['IBT']:
 
     if future_sc:
         n_years = 3
-        contrib_pct = [0]* n_years
-        growth_factor = [0] * n_years
+        contrib_pct = [0]+[1]*(n_years)
+        growth_factor = [0] * (n_years+1)
         ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] = dm.get_future_sc( ldi_input_dict['sc_cfs_dict'][PLAN][dm.SHEET_LIST_LDI[-1]] ,n_years,
                                                             contrib_pct, growth_factor)
 
@@ -174,7 +174,7 @@ for PLAN in ['IBT']:
     # EXPORT DATA TO EXCEL                                                        #
     ###############################################################################
     #Export Efficient Frontier portfoio data to excel
-    filename = ' stochmv_ef_report'
+    filename = ' stochmv_ef_report0.1'
     if unconstrained:
         filename = ' stochmv_ef_report_unconstraine'
         
