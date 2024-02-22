@@ -6,9 +6,11 @@ from AssetAllocation.datamanager import datamanager as dm
 from copulas.multivariate.gaussian import GaussianMultivariate
 import itertools
 import seaborn as sns
-from scipy.special import logit, expit
 from copulas.multivariate.tree import Tree
 import time
+import pyvinecopulib as vc
+from copulas.multivariate.vine import VineCopula
+from copulas.visualization import compare_1d, compare_2d, compare_3d, dist_1d, scatter_2d, scatter_3d
 
 from copulas.bivariate import Bivariate
 from copulas.bivariate.frank import Frank
@@ -55,6 +57,42 @@ for asset, dist_info in best_distributions.items():
     params = dist_info['params']
     fitted_data[asset] = distribution.rvs(*params, size=len(returns_data))
 
+transformed_data = {}
+for asset, data in fitted_data.items():
+    if asset != 'Cash':
+        transformed_data[asset] = (data - np.min(data)) / (np.max(data) - np.min(data))
+
+transformed_df = pd.DataFrame(transformed_data)
+
+vine_copula = VineCopula(vine_type='center', random_state=42)
+
+vine_copula.fit(transformed_df)
+
+
+synthetic_data = vine_copula.sample(len(transformed_df))
+
+
+
+transformed_df['Type'] = 'Real'
+synthetic_data['Type'] = 'Synthetic'
+combined_data = pd.concat([transformed_df, synthetic_data])
+# Create a pairplot with different colors for real and synthetic data
+sns.pairplot(combined_data, diag_kind='kde', hue='Type', palette={'Real': 'blue', 'Synthetic': 'orange'})
+plt.suptitle('Pairplot of Real and Synthetic Data')
+plt.show()
+
+
+# n_samples = 500
+# synthetic_data = vine_copula.sample(n_samples)
+# synthetic_data = np.array(synthetic_data)
+# plt.figure(figsize=(8, 6))
+# plt.scatter(synthetic_data[:, 0], synthetic_data[:, 1], alpha=0.5)
+# plt.xlabel('Variable 1')
+# plt.ylabel('Variable 2')
+# plt.title('2D Scatter Plot of Synthetic Data')
+# plt.grid(True)
+# plt.show()
+
 copula_classes= {
         'independence': Independence(),
         'clayton': Clayton(),
@@ -62,10 +100,7 @@ copula_classes= {
         'gumbel': Gumbel()
     }
 
-transformed_data = {}
-for asset, data in fitted_data.items():
-    if asset != 'Cash':
-        transformed_data[asset] = (data - np.min(data)) / (np.max(data) - np.min(data))
+
 asset_copulas = {}
 best_likelihood = float('-inf')
 for asset_pair in itertools.combinations(transformed_data.keys(), 2):
@@ -98,15 +133,13 @@ for asset_pair in itertools.combinations(transformed_data.keys(), 2):
 
     asset_copulas[asset_pair] = (best_copula_name, best_copula)
 
-# for asset_pair, (best_copula_name, best_copula) in asset_copulas.items():
-#     print(f"For assets {asset_pair}, the best bivariate copula is {best_copula_name} with maximum likelihood: {best_likelihood}")
 print(f"The best bivariate copula is {best_copula_name} with maximum likelihood: {best_likelihood}")
 
 
 #Plot
 for asset_pair, (best_copula_name, best_copula) in asset_copulas.items():
     if best_copula is None:
-        print(f"No copula could be fitted for {asset_pair}. Skipping plotting.")
+        # print(f"No copula could be fitted for {asset_pair}. Skipping plotting.")
         continue
     asset1, asset2 = asset_pair
     asset1_data = transformed_data[asset1]
@@ -143,3 +176,9 @@ for asset_pair, (best_copula_name, best_copula) in asset_copulas.items():
     time.sleep(0.3)
 
 
+
+# transformed_data = {}
+# for asset, data in fitted_data.items():
+#     u = np.linspace(0, 1, len(data))
+#     uniform_data = np.sort(data)
+#     transformed_data[asset] = u
