@@ -125,6 +125,7 @@ def get_mkt_factor_premiums(filename, sheet_name = 'mkt_factor_prem'):
     # mkt_factor_prem.dropna(inplace=True)
     return mkt_factor_prem['Market Factor Premium'].to_dict()
 
+
 def merge_dfs(main_df, new_df, dropna=True):
     merged_df = pd.merge(main_df, new_df, left_index = True, right_index = True, how = 'outer')
     if dropna:
@@ -414,8 +415,12 @@ def get_n_year_df(liab_plan_data_dict, data='returns', n=3):
         n_year_df = liab_plan_data_dict['Funded Status'].copy()
     else:
         df_data_dict = switch_liab_dict(data)
-        n_year_df = merge_dfs(liab_plan_data_dict[df_data_dict['df1']], liab_plan_data_dict[df_data_dict['df2']])
-        
+
+        n_year_df = pd.DataFrame()
+
+        for i in list(df_data_dict.keys())[0:-1]:
+            n_year_df = merge_dfs(n_year_df,liab_plan_data_dict[df_data_dict[i]])
+
         #rename columns
         n_year_df.columns = df_data_dict['col_names']
 
@@ -426,7 +431,7 @@ def switch_liab_dict(arg):
 
     switcher = {
             "returns": {'df1':'Asset Returns', 'df2':'Liability Returns', 'col_names':['Asset','Liability']},
-            "market_values": {'df1':'Asset Market Values', 'df2':'Present Values', 'col_names':['Asset MV','Present Values']},
+            "mv_pv_irr": {'df1':'Asset Market Values', 'df2':'Present Values', 'df3': 'IRR', 'col_names':['Asset MV','Present Values', 'IRR']},
             "pv_irr": {'df1':'Present Values', 'df2':'IRR', 'col_names':['Present Values','IRR']},
             "ytd_returns": {'df1':'Asset YTD Returns', 'df2':'Liability YTD Returns', 'col_names':['Asset','Liability']},
             "qtd_returns": {'df1':'Asset QTD Returns', 'df2':'Liability QTD Returns', 'col_names':['Asset','Liability']},
@@ -613,10 +618,10 @@ def get_plan_pbo_dict(filename = 'past_pbo_cashflow_data.xlsx'):
         #merge past years pbos
         for key in past_pbo_dict:
             temp_pbo_df = merge_dfs(temp_pbo_df, past_pbo_dict[key][plan],dropna = False)
-        
+
         #merge current years pbos
         temp_pbo_df = merge_dfs(temp_pbo_df, get_cf_data()[plan], dropna = False)
-        
+
         #rename dataframe
         temp_pbo_df.columns = SHEET_LIST
         plan_pbo_dict[plan] = temp_pbo_df
@@ -632,7 +637,7 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
             temp_df_list = [sc_df.iloc[0:12*x],sc_df.iloc[12*x:,]]
             temp_df_list[1].fillna(0, inplace=True)
             for df in temp_df_list:
-                df[SHEET_LIST[x-1]] = (df[SHEET_LIST[x]] - 
+                df[SHEET_LIST[x-1]] = (df[SHEET_LIST[x]] -
                                       df[SHEET_LIST[x-1]])/switch_int(SHEET_LIST[x-1],n)
             temp_df = temp_df_list[0].append(temp_df_list[1])
             sc_df[SHEET_LIST[x-1]] = temp_df[SHEET_LIST[x-1]]
@@ -640,24 +645,24 @@ def get_plan_sc_dict(plan_pbo_dict, filename='past_sc_cashflow_data.xlsx'):
         # sc_df[SHEET_LIST[x]] = 0
         if plan == 'IBT':
             sc_df.drop(['2021'], axis=1, inplace=True)
-            df_sc_cfs = pd.read_excel(TS_FP+filename, 
+            df_sc_cfs = pd.read_excel(TS_FP+filename,
                                       sheet_name='2021', index_col=0)/12
             df_sc_cfs = reindex_to_monthly_data(df_sc_cfs)[[plan]]/12
             df_sc_cfs.columns = ['2021']
             sc_df = merge_dfs(sc_df, df_sc_cfs, dropna= False)
         plan_sc_dict[plan] = sc_df[SHEET_LIST]
     return plan_sc_dict
-    
+
 def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', past_sc_filename='past_sc_cashflow_data.xlsx',
                           ftse_filename = 'ftse_data.xlsx'):
     plan_pbo_dict = get_plan_pbo_dict(past_pbo_filename)
     plan_sc_dict = get_plan_sc_dict(plan_pbo_dict, past_sc_filename)
-    
+
     liab_mv_dict = {}
     for key in plan_pbo_dict:
         year_dict = {}
         n = 9 if key == 'IBT' else 8
-        
+
         for year in plan_pbo_dict[key].columns:
             temp_pbo_df = transform_pbo_df(plan_pbo_dict[key][year])
             #Add below to transform function and make it for temp_cfs
@@ -667,20 +672,19 @@ def generate_liab_mv_dict(past_pbo_filename = 'past_pbo_cashflow_data.xlsx', pas
             temp_cfs_df.columns = ['PBO', 'SC']
             if year == SHEET_LIST[-1]:
                 #make no of cols 12 if using old pbos
-                no_of_cols = len(get_liab_mv_cf_cols(ftse_filename))%12
-                if no_of_cols == 0:
-                    no_of_cols = 1
+                no_of_cols = len(get_liab_mv_cf_cols(ftse_filename))%12+1
+
             else:
                 no_of_cols = switch_int(year, n)
             liab_cfs = pd.DataFrame(columns=list(range(1,no_of_cols+1)), index=temp_cfs_df.index)
-            
+
             for col in liab_cfs.columns:
                 if key == 'IBT' and year == '2021' and col == 3:
                     liab_cfs[col] = transform_pbo_df(plan_pbo_dict[key]['2021_1'])
-                else:    
+                else:
                     liab_cfs[col] = temp_cfs_df['PBO'] + temp_cfs_df['SC']*col
                 jump = 12-no_of_cols if year == '2021_1'else 0
-                
+
                 liab_cfs.loc[:col+jump,col] = 0
             year_dict[year] = liab_cfs
         liab_mv_dict[key] = year_dict
