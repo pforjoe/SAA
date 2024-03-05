@@ -269,7 +269,7 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
     
     #set chart title
     returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve",
-                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}})
+                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':14}})
     
     #set legend position
     returns_chart.set_legend({'position':'bottom',
@@ -289,7 +289,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     #add asset returns data to bar chart
     fs_chart.add_series({
         'categories': [sheet_name, fs_row_dim-12, fs_col_dim, fs_row_dim, fs_col_dim], 
-        'values': [sheet_name, fs_row_dim-12, fs_col_dim+3, fs_row_dim, fs_col_dim+3],
+        'values': [sheet_name, fs_row_dim-12, fs_col_dim+4, fs_row_dim, fs_col_dim+4],
         'name':"Funded Status"})
     
     #set x axis
@@ -318,7 +318,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     
     #set chart title
     fs_chart.set_title({'name':"Funded Status - " + sheet_name,
-                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}})
+                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':14}})
     
     fs_chart.set_legend({'position': 'none',
                          'font': {'name': 'Arial','color':'#616161 '}
@@ -336,7 +336,7 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     #add asset returns data to bar chart
     fs_vol_chart.add_series({
         'categories': [sheet_name, fs_row_dim-24, fs_col_dim, fs_row_dim, fs_col_dim], 
-        'values': [sheet_name, fs_row_dim-24, fs_col_dim+5, fs_row_dim, fs_col_dim+5],
+        'values': [sheet_name, fs_row_dim-24, fs_col_dim+6, fs_row_dim, fs_col_dim+6],
         'name':"1yr FSV"})
     
     #set x axis
@@ -377,14 +377,14 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     fs_vol_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, fs_vol_chart)  
     
-def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position, plot_title = 'YTD Returns'):
+def get_ytd_chart(workbook, worksheet, sheet_name, row_dim, col_dim, position, plot_title = 'YTD Returns'):
     #specify what type of chart
     ytd_chart = workbook.add_chart({'type':'column'})
 
     #add asset returns data to bar chart
     ytd_chart.add_series({
-        'categories': [sheet_name, fs_row_dim+19, 17, fs_row_dim+19, 18], 
-        'values': [sheet_name, fs_row_dim+20, 17, fs_row_dim+20, 18],
+        'categories': [sheet_name, row_dim, col_dim-1, row_dim, col_dim],
+        'values': [sheet_name, row_dim, col_dim-1, row_dim, col_dim],
         'name':'YTD',
         'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Arial','color':'#616161 '},}
         })

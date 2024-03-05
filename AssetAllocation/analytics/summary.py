@@ -174,7 +174,7 @@ def get_liab_data_dict_new(plan_list = ['Retirement', 'Pension', 'IBT', 'Total']
         
         liab_model_new = get_liab_model_new(liab_input_dict, plan,contrb_pct = contrb_pct) 
         liab_data_dict[plan] = liab_model_new.data_dict
-        print(plan + "data complete")
+        print(plan + " data complete")
     return liab_data_dict
 
 def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
@@ -183,11 +183,11 @@ def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     liab_data_dict_new = get_liab_data_dict_new(plan_list)
     
     report_dict = {}
-    data_list = ['returns', 'market_values', 'pv_irr', 'fs_data', 'ytd_returns','qtd_returns']
+    data_list = ['returns', 'mv_pv_irr', 'fs_data', 'ytd_returns','qtd_returns']
     
     for data in data_list:
         print("Formatting " + data + "...")
         report_dict[data] = dm.group_asset_liab_data(liab_data_dict_new, data)
-    
+
     return dm.transform_report_dict(report_dict, plan_list)
 
