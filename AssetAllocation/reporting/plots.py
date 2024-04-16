@@ -383,7 +383,7 @@ def get_ytd_chart(workbook, worksheet, sheet_name, row_dim, col_dim, position, p
 
     #add asset returns data to bar chart
     ytd_chart.add_series({
-        'categories': [sheet_name, row_dim, col_dim-1, row_dim, col_dim],
+        'categories': [sheet_name, 1, col_dim-1, 1, col_dim],
         'values': [sheet_name, row_dim, col_dim-1, row_dim, col_dim],
         'name':'YTD',
         'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Arial','color':'#616161 '},}
