@@ -87,6 +87,8 @@ def get_mv_inputs_data(filename='inputs_test.xlsx', plan='IBT'):
 
     mkt_factor_prem = get_mkt_factor_premiums(filepath)
 
+    illiquidity = get_illiquidity_penalty(filepath, sheet_name= plan + " illiquidity")
+
     # Get FI inputs
     fi_data = get_fi_data(filepath)
 
@@ -107,7 +109,7 @@ def get_mv_inputs_data(filename='inputs_test.xlsx', plan='IBT'):
 
     return {'fi_data': fi_data, 'rsa_data': rsa_data, 'rv_data': rv_data,
             'vol_defs': vol_defs, 'weights': weights, 'corr_data': corr_data,
-            'ret_assump': ret_assump, 'mkt_factor_prem': mkt_factor_prem}
+            'ret_assump': ret_assump, 'mkt_factor_prem': mkt_factor_prem, 'illiquidity_penalty': illiquidity}
 
 def format_weights_index(weights_df, index_list):
     weights_df_t = weights_df.transpose()
@@ -125,6 +127,11 @@ def get_mkt_factor_premiums(filename, sheet_name = 'mkt_factor_prem'):
     # mkt_factor_prem.dropna(inplace=True)
     return mkt_factor_prem['Market Factor Premium'].to_dict()
 
+def get_illiquidity_penalty(filename, sheet_name = 'illiquidity'):
+    mkt_factor_prem = pd.read_excel(filename, sheet_name,  index_col=0)
+    mkt_factor_prem.fillna(0,inplace=True)
+    # mkt_factor_prem.dropna(inplace=True)
+    return mkt_factor_prem['Illiquidity Penalty'].to_dict()
 
 def merge_dfs(main_df, new_df, dropna=True):
     merged_df = pd.merge(main_df, new_df, left_index = True, right_index = True, how = 'outer')
@@ -934,26 +941,29 @@ def get_lookback_windows(df, freq):
 
 def get_future_sc(sc, n_years, contrib_pct = [], growth_factor = []):
     #get current service costs
-    sc_df = sc.to_frame()
+
     # multiply previous years service cost by growth factor
-    sc_df = sc_df * (1 + growth_factor[0])
-    sc_df = sc_df * (1 - contrib_pct[0])
+    sc_new = sc * (1 + growth_factor[0])
+    sc_new = sc * (1 - contrib_pct[0])
+    if n_years > 0:
 
-    for i in list(range(1, n_years+1)):
-        #get future year
-        year = str(int(SHEET_LIST_LDI[-1])+i)
-        
-        #get future year sc
-        temp_df = pd.DataFrame()
-        #multiply previous years service cost by growth factor
-        temp_df[year] = sc_df.iloc[:,i-1].shift(12)*(1+growth_factor[i])
-        #subtract contributions
-        temp_df[year] = temp_df[year]*( 1- contrib_pct[i])
-        temp_df.fillna(0, inplace = True)
-        
-        sc_df = sc_df.merge(temp_df, how = "outer", left_index=True, right_index=True)
+        for i in list(range(1, n_years+1)):
+            sc_df = sc_new.to_frame()
+            #get future year
+            year = str(int(dm.SHEET_LIST_LDI[-1])+i)
 
-    return sc_df.sum(axis = 1)
+            #get future year sc
+            temp_df = pd.DataFrame()
+            #multiply previous years service cost by growth factor
+            temp_df[year] = sc_df.iloc[:,i-1].shift(12)*(1+growth_factor[i])
+            #subtract contributions
+            temp_df[year] = temp_df[year]*( 1- contrib_pct[i])
+            temp_df.fillna(0, inplace = True)
+
+            sc_df = sc_df.merge(temp_df, how = "outer", left_index=True, right_index=True)
+            sc_new = sc_df.sum(axis=1)
+
+    return sc_new
 
 
 

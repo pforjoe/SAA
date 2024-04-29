@@ -21,7 +21,7 @@ def get_mv_inputs(mv_inputs_dict, liab_model):
     return mv_inputs(mv_inputs_dict['ret_assump'],mv_inputs_dict['mkt_factor_prem'],
                      mv_inputs_dict['fi_data'],mv_inputs_dict['rsa_data'], 
                      mv_inputs_dict['rv_data'],mv_inputs_dict['vol_defs'], 
-                     mv_inputs_dict['corr_data'],weights_df)
+                     mv_inputs_dict['corr_data'],weights_df, mv_inputs_dict['illiquidity_penalty'])
 
 def get_mv_output(mv_inputs, mkt='Equity'):
     output_dict = mv_inputs.get_output(mkt)
@@ -73,7 +73,8 @@ def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05, sc_accrual =
                              )
 
 
-def get_pp_inputs(liab_model, plan='IBT', mkt='Equity', priv_mrp0 = False):
+def get_pp_inputs(liab_model, plan='IBT', mkt='Equity', priv_mrp0 = False,
+                  no_illiquidity = False, no_mrp = False):
     #get return
     mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan), liab_model)
 
@@ -81,6 +82,12 @@ def get_pp_inputs(liab_model, plan='IBT', mkt='Equity', priv_mrp0 = False):
        mv_inputs.mkt_factor_prem['Credit'] = 0
        mv_inputs.mkt_factor_prem['Private Equity'] = 0
        mv_inputs.mkt_factor_prem['Real Estate'] = 0
+
+    if no_mrp:
+        mv_inputs.mkt_factor_prem = dict.fromkeys(mv_inputs.mkt_factor_prem, 0)
+
+    if no_illiquidity:
+        mv_inputs.illiquidity = dict.fromkeys(mv_inputs.illiquidity, 0)
 
     #compute analytics using historical data
     pp_inputs = get_ts_output(dm.get_ts_data(plan=plan), liab_model)
