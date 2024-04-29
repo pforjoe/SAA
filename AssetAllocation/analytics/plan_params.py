@@ -6,7 +6,7 @@ Created on Mon Sep 20 22:05:54 2021
 """
 
 import numpy as np
-#import pandas as pd
+import pandas as pd
 from numpy.linalg import multi_dot
 import AssetAllocation.analytics.util as util
 from AssetAllocation.datamanager import datamanager as dm
@@ -55,6 +55,7 @@ class planParams():
         self.eff_frontier_tvols = None
         self.eff_frontier_trets = None
         self.eff_frontier_tweights = None
+        self.eeff_frontier_assetvols = None
         self.ports_df = None
         self.bnds_dict = self.set_bnds_dict()
     
@@ -253,6 +254,15 @@ class planParams():
         bnds = dm.transform_bnds(bnds) if type(bnds) != tuple else bnds
         return sco.minimize(fun, self.policy_wgts, method=method, bounds=bnds, constraints=cons)
 
+    def get_asset_vol(self, weights):
+        asset_vol_weights = pd.Series(weights.copy(), index = self.symbols)
+        #set non asset weights to 0
+        asset_vol_weights.loc['Liability'] = 0
+        asset_vol_weights.loc['Ultra 30Y Futures'] = 0
+        asset_vol_weights.loc['Hedges'] = 0
+        asset_vol_weights_new = asset_vol_weights/ asset_vol_weights.sum()
+        #recompute vols using new weights
+        return asset_vol_weights_new.values
 
     def compute_eff_frontier(self, bnds, cons,num_ports=100):
         bnds = dm.transform_bnds(bnds) if type(bnds) != tuple else bnds
@@ -266,22 +276,27 @@ class planParams():
         self.eff_frontier_trets = np.linspace(min_ret, max_ret, num_ports)
         t_vols = []
         t_weights = []
-
+        asset_vols = []
+        
         for tr in self.eff_frontier_trets:
 
             #adding return constraints to optimizer constraints
             ef_cons = ()
             ef_cons = ef_cons + cons
-            ef_cons = ef_cons + ({'type': 'eq', 'fun': lambda x: self.portfolio_stats(x)[0] - tr},)
+            ef_cons = ef_cons + ({'type': 'eq', 'fun': lambda x: self.portfolio_stats(x)[0] - tr},)           
+            
             #run optimization
             opt_ef = self.optimize(self.min_volatility, bnds, ef_cons)
             #store result
             t_vols.append(opt_ef['fun'])
             t_weights.append(opt_ef['x'])
-
+            asset_vols.append( self.portfolio_stats(self.get_asset_vol(opt_ef['x']))[1])
+            
         self.eff_frontier_tvols = np.array(t_vols)
         self.eff_frontier_tweights = np.array(t_weights)
-        self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_tweights,
+        self.eff_frontier_assetvols = np.array(asset_vols)
+        
+        self.ports_df = dm.get_ports_df(self.eff_frontier_trets, self.eff_frontier_tvols, self.eff_frontier_assetvols,self.eff_frontier_tweights,
                                         self.symbols)
         self.ports_df = dm.format_ports_df(self.ports_df,self.ret)
         # for asset in self.symbols[1:]:

@@ -4,21 +4,25 @@ Created on Sun Oct 10 12:27:19 2021
 
 @authors: Powis Forjoe, Maddie Choi
 """
-import AssetAllocation.analytics.mv_inputs as mv_inputs
-from AssetAllocation.analytics.plan_params import planParams
-from AssetAllocation.analytics.liability_model import liabilityModel
-from AssetAllocation.datamanager import datamanager as dm
-import AssetAllocation.analytics.ts_analytics as ts
-import AssetAllocation.analytics.util as util
+import pandas as pd
+from .mv_inputs import mv_inputs
+from .plan_params import planParams
+from .liability_model import liabilityModel
+from .liability_model_new import liabilityModelNew
+
+from ..datamanager import datamanager as dm
+from .import ts_analytics as ts
+from .import util
 
 def get_mv_inputs(mv_inputs_dict, liab_model):
     weights_df = add_fs_load_col(mv_inputs_dict['weights'],
                                  liab_model.funded_status['Funded Status'][-1])
     weights_df['FS AdjWeights'] = weights_df['Weights'] * weights_df['FS Loadings']
-    return mv_inputs.mv_inputs(mv_inputs_dict['ret_assump'], mv_inputs_dict['mkt_factor_prem'],
-                               mv_inputs_dict['fi_data'], mv_inputs_dict['rsa_data'],
-                               mv_inputs_dict['rv_data'], mv_inputs_dict['vol_defs'],
-                               mv_inputs_dict['corr_data'], weights_df)
+    return mv_inputs(mv_inputs_dict['ret_assump'],mv_inputs_dict['mkt_factor_prem'],
+                     mv_inputs_dict['fi_data'],mv_inputs_dict['rsa_data'], 
+                     mv_inputs_dict['rv_data'],mv_inputs_dict['vol_defs'], 
+                     mv_inputs_dict['corr_data'],weights_df, mv_inputs_dict['illiquidity_penalty'])
+
 
 def get_mv_output(mv_inputs, mkt='Equity'):
     output_dict = mv_inputs.get_output(mkt)
@@ -48,10 +52,44 @@ def get_liab_model(plan='IBT', contrb_pct=.05, ldi_report=True, filename='plan_d
                           liab_input_dict['asset_mv'], liab_input_dict['liab_mv_cfs'],
                           liab_input_dict['asset_ret'],liab_input_dict['liab_curve'])
 
-def get_pp_inputs(liab_model, plan='IBT', mkt='Equity'):
+def get_liab_model_new(liab_input_dict, plan='IBT', contrb_pct=.05, sc_accrual = True):
+    
+    #total consolidation is only different for assets
+    liability_plan = plan
+     
+    if plan == "Total Consolidation":
+        liability_plan = "Total"
+            
+            
+    return liabilityModelNew(sc_accrual, liab_input_dict['pbo_cfs_dict'][liability_plan][dm.SHEET_LIST[-1]],
+                          liab_input_dict['disc_factors'], 
+                          liab_input_dict['sc_cfs_dict'][liability_plan][dm.SHEET_LIST[-1]],
+                          liab_input_dict['pbo_cfs_dict'][liability_plan],
+                          liab_input_dict['sc_cfs_dict'][liability_plan],
+                          contrb_pct, 
+                          liab_input_dict['asset_mv'][plan], 
+                          dm.offset(liab_input_dict['liab_mv_cfs_dict'][liability_plan]),
+                          liab_input_dict['asset_ret'][plan],
+                          liab_input_dict['liab_curve']
+                             )
+
+
+def get_pp_inputs(liab_model, plan='IBT', mkt='Equity', priv_mrp0 = False,
+                  no_illiquidity = False, no_mrp = False):
     #get return
     mv_inputs = get_mv_inputs(dm.get_mv_inputs_data(plan=plan), liab_model)
-   
+
+    if priv_mrp0:
+       mv_inputs.mkt_factor_prem['Credit'] = 0
+       mv_inputs.mkt_factor_prem['Private Equity'] = 0
+       mv_inputs.mkt_factor_prem['Real Estate'] = 0
+
+    if no_mrp:
+        mv_inputs.mkt_factor_prem = dict.fromkeys(mv_inputs.mkt_factor_prem, 0)
+
+    if no_illiquidity:
+        mv_inputs.illiquidity = dict.fromkeys(mv_inputs.illiquidity, 0)
+
     #compute analytics using historical data
     pp_inputs = get_ts_output(dm.get_ts_data(plan=plan), liab_model)
     
@@ -122,28 +160,41 @@ def add_fs_load_col(weights_df, funded_status):
             weights_df['FS Loadings'][ind] = funded_status
     return weights_df
 
-def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 0.0, filename = 'plan_data.xlsx'):
+
+def get_liab_data_dict(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 1.0, filename = 'plan_data.xlsx'):
     liab_data_dict={}
     print("Getting data from Liability Model...")
     #does not include liab/ret table anymore
     for plan in plan_list:
-        liab_model = get_liab_model(plan, contrb_pct, filename=filename)
+        liab_model = get_liab_model(plan, contrb_pct = 1)
         del liab_model.data_dict['Cashflows']
         liab_data_dict[plan] = liab_model.data_dict
         print('{} plan liability model complete'.format(plan))
 
     return liab_data_dict
 
-def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"], n=3, filename='plan_data.xlsx'):
+def get_liab_data_dict_new(plan_list = ['Retirement', 'Pension', 'IBT', 'Total'], contrb_pct = 1.0,):
+    liab_input_dict =  dm.get_ldi_data()
+
+    liab_data_dict={}
+    print("Getting data from Liability Model...")
+    for plan in plan_list:
+        
+        liab_model_new = get_liab_model_new(liab_input_dict, plan,contrb_pct = contrb_pct) 
+        liab_data_dict[plan] = liab_model_new.data_dict
+        print(plan + " data complete")
+    return liab_data_dict
+
+def get_report_dict(plan_list = ['Retirement', 'Pension', 'IBT',"Total"]):
     
     #get_liability model dictionary
-    liab_data_dict = get_liab_data_dict(plan_list, filename=filename)
-    
+    liab_data_dict_new = get_liab_data_dict_new(plan_list)    
     report_dict = {}
-    data_list = ['returns', 'market_values', 'pv_irr', 'fs_data']
+    data_list = ['returns', 'mv_pv_irr', 'fs_data', 'ytd_returns','qtd_returns']
     
     for data in data_list:
         print("Formatting " + data + "...")
-        report_dict[data] = dm.group_asset_liab_data(liab_data_dict, data, n)
-    
+        report_dict[data] = dm.group_asset_liab_data(liab_data_dict_new, data)
+
     return dm.transform_report_dict(report_dict, plan_list)
+

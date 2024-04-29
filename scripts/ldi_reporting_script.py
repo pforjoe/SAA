@@ -10,11 +10,16 @@ from AssetAllocation.analytics import summary
 from AssetAllocation.datamanager import datamanager as dm
 # import time
 
-#update ldi data
-dm.update_ldi_data()
+update_ldi_data = False
+update_asset_ret_data = False
 
-#compute ldi stats
-report_dict = summary.get_report_dict(n=3, filename='plan_data.xlsx')
 
-#generate ldi report
-rp.get_ldi_report(report_dict,report_name='ldi_report', dashboard_graphs=True)
+if update_ldi_data:
+    dm.update_ldi_data()
+    
+if update_asset_ret_data:
+    dm.update_asset_ret_data()
+report_dict = summary.get_report_dict()
+
+#new ldi report format
+rp.get_ldi_report(report_dict, dashboard_graphs=True)

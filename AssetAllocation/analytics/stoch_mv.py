@@ -22,7 +22,9 @@ class stochMV():
         self.opt_ports_df = None
         self.resamp_corr_dict = {}
         self.ef_portfolio_dict = {}
-        
+        self.adjusted_opt_ports_df = None
+        self.max_sharpe_weights = None
+
     def generate_plans(self, nb_period=5):
 
         #Sample the covariance matrices
@@ -69,7 +71,7 @@ class stochMV():
             plan.compute_eff_frontier(bnds, cons,num_ports)
             avg_weights = avg_weights + plan.eff_frontier_tweights
             self.ef_portfolio_dict[sample] = dm.format_ports_df(dm.get_ports_df(plan.eff_frontier_trets, plan.eff_frontier_tvols, 
-                                                             plan.eff_frontier_tweights,plan.symbols), plan.ret)
+                                                                                plan.eff_frontier_assetvols, plan.eff_frontier_tweights,plan.symbols), plan.ret)
             sample += 1
         #Average of the weights across the simulated plans
         self.avg_weights = avg_weights/self.iter
@@ -78,12 +80,14 @@ class stochMV():
         i = 0
         ret = np.array([])
         vol = np.array([])
+        asset_vols = np.array([])
         for wgts in self.avg_weights:
             ret = np.append(ret, self.init_plan.portfolio_stats(self.avg_weights[i, :])[0])
             vol = np.append(vol, self.init_plan.portfolio_stats(self.avg_weights[i, :])[1])
+            asset_vols = np.append(asset_vols, self.init_plan.portfolio_stats(self.init_plan.get_asset_vol(self.avg_weights[i, :]))[1])
             i = i+1
 
-        self.opt_ports_df = dm.get_ports_df(ret, vol, self.avg_weights,self.init_plan.symbols)
+        self.opt_ports_df = dm.get_ports_df(ret, vol, asset_vols,self.avg_weights,self.init_plan.symbols)
         self.opt_ports_df = dm.format_ports_df(self.opt_ports_df,self.init_plan.ret)
         
     def generate_resamp_corr_dict(self):
@@ -104,3 +108,18 @@ class stochMV():
                     resamp_corr_df[col][ind] = self.simulated_plans[ind].corr[asset_liab][col]
             
             self.resamp_corr_dict[asset_liab] = resamp_corr_df
+
+    def get_adjusted_weights(self):
+        ef_df = self.opt_ports_df.copy()
+        ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] + ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
+        assets = ['15+ STRIPS', 'Long Corporate', 'Equity', 'Liquid Alternatives', 'Private Equity', 'Credit','Real Estate', 'Cash']
+        for col in assets:
+            ef_df[col] = ef_df[col] / ef_df['Total']
+
+        ef_df['Total'] = ef_df['15+ STRIPS'] + ef_df['Long Corporate'] + ef_df['Equity'] + ef_df['Liquid Alternatives'] + ef_df['Private Equity'] + ef_df['Credit'] + ef_df['Real Estate'] + ef_df['Cash']
+
+        self.adjusted_opt_ports_df = ef_df
+
+    def get_max_sharpe_weights(self):
+        self.max_sharpe_weights = self.adjusted_opt_ports_df.loc[self.adjusted_opt_ports_df['Sharpe'].idxmax()].to_frame()
+

@@ -11,5 +11,3 @@ from AssetAllocation.reporting import reports as rp
 
 ftse_dict = dm.update_ftse_data()
 
-#generate new ftse report
-rp.get_ftse_data_report(ftse_dict, "ftse_data")

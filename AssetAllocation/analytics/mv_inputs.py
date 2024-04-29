@@ -24,7 +24,7 @@ import scipy.interpolate
 
 class mv_inputs():
     
-    def __init__(self, ret_assump, mkt_factor_prem,fi_data,rsa_data,rv_data,vol_defs,corr,weights):
+    def __init__(self, ret_assump, mkt_factor_prem,fi_data,rsa_data,rv_data,vol_defs,corr,weights,illiquidity):
         """
         
 
@@ -53,6 +53,7 @@ class mv_inputs():
 
         """
         self.ret_assump = ret_assump
+        self.illiquidity = illiquidity
         self.mkt_factor_prem = mkt_factor_prem
         self.fi_data = fi_data
         self.rsa_data = rsa_data
@@ -319,7 +320,7 @@ class mv_inputs():
         ret_df = pd.DataFrame(ret_list, columns=['Return'], index=self.symbols)
         
         for key in self.mkt_factor_prem:
-            ret_df['Return'][key] += self.mkt_factor_prem[key]
+            ret_df['Return'][key] += (self.mkt_factor_prem[key] + self.illiquidity[key])
             
         # new_acwi_ret = 0
         # for key in ACWI_WEIGHTS_DICT:

@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 from AssetAllocation.datamanager import datamanager as dm
 from datetime import datetime
+
 # Ignore warnings
 import warnings
 warnings.filterwarnings('ignore')
@@ -36,7 +37,7 @@ def get_max_sharpe_weights(sim_ports_df):
 def ceil(number, bound=5):
     return bound *np.ceil(number/bound)
 
-def calculate_ytd_returns(month_ret_df, year = datetime.now().year):
+def calculate_ytd_returns(month_ret_df, year = 2023):
     
     #make index a column
     month_ret_df = month_ret_df.reset_index()
@@ -61,5 +62,18 @@ def calculate_ytd_returns(month_ret_df, year = datetime.now().year):
     
     return ytd
     
+def offset_df(cf_table):
+    #make a copy of the data
+    data = cf_table.copy()
 
-    
+    #loop through each period and offset first n rows of 0's to the end
+    for i in range(0,len(data.columns)):
+        #get discount factor for the period
+        disc_rate = i
+        #make a list of the cashflows
+        cfs = list(data.iloc[:,i])
+        #removes top discount amount of rows and adds to the bottom of the list
+        cfs = cfs[disc_rate:] + cfs[:disc_rate] 
+        #replaces column with new offset data
+        data.iloc[:,i] = cfs
+    return data

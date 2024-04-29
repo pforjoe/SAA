@@ -7,8 +7,10 @@ Created on Fri Oct  1 17:05:16 2021
 
 import pandas as pd
 import numpy as np
+from scipy.optimize import fsolve
+from ..datamanager import datamanager as dm
+from .util import add_sharpe_col
 
-from AssetAllocation.analytics.util import add_sharpe_col
 
 
 def compute_ewcov(returns_df, x, y, decay_factor=.98,t=1):
@@ -159,4 +161,4 @@ def get_ret_vol_df(returns_df):
     ret_vol_df = pd.DataFrame(ret_vol_dict, index = ['Return', 'Volatility']).transpose()
     return add_sharpe_col(ret_vol_df)
 
- 
+

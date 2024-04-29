@@ -493,7 +493,7 @@ def set_ftse_data_sheet(writer, df, sheet_name):
 # TODO: Add market value table and edit fs_data table
 
 
-def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_graphs=True):
+def set_plan_ldi_sheet(writer, returns,  qtd_returns, ytd_returns, fs_data, sheet_name, dashboard_graphs=True):
     '''
 
 
@@ -535,42 +535,57 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_g
     ret_row_dim = row + returns.shape[0]
     ret_col_dim = col + returns.shape[1]
 
-    liab_row_dim = row + pv_irr.shape[0]
-    liab_col_dim = col + pv_irr.shape[1]
+    qtd_row_dim = row + qtd_returns.shape[0]
+    qtd_col_dim = col + qtd_returns.shape[1]
+
+    ytd_row_dim = row + ytd_returns.shape[0]
+    ytd_col_dim = col + ytd_returns.shape[1]
 
     fs_row_dim = row + fs_data.shape[0]
 
     # write titles of each table
-    worksheet.write(row-1, col+1, "Returns", title_format)
+    #monthly returns in column B
+    worksheet.write(row-1, col+1, "Monthly Returns", title_format)
 
+    # qtd returns in column f
     worksheet.write(row-1, col + ret_col_dim + 3,
-                    "Present Values & IRR", title_format)
+                    "QTD Returns", title_format)
 
-    worksheet.write(row-1, col + ret_col_dim + liab_col_dim +
-                    5, "Funded Status", title_format)
+    # ytd returns in column J
+    worksheet.write(row - 1, col + ret_col_dim  + qtd_col_dim + 5,
+                    "YTD Returns", title_format)
+
+    # ytd returns in column N
+    worksheet.write(row-1, col + ret_col_dim  + qtd_col_dim + ytd_col_dim  + 7,
+                     "Funded Status", title_format)
 
     # write  dataframes to excel
     returns.to_excel(writer, sheet_name=sheet_name, startrow=row, startcol=col)
-    pv_irr.to_excel(writer, sheet_name=sheet_name,
+
+    qtd_returns.to_excel(writer, sheet_name=sheet_name,
                     startrow=row, startcol=col + ret_col_dim + 2)
+
+    ytd_returns.to_excel(writer, sheet_name=sheet_name,
+                         startrow=row, startcol=col + ret_col_dim + qtd_col_dim + 4)
+
     fs_data.to_excel(writer, sheet_name=sheet_name, startrow=row,
-                     startcol=col + ret_col_dim + liab_col_dim + 4)
+                     startcol=col + ret_col_dim + qtd_col_dim + ytd_col_dim +  6)
+
     if dashboard_graphs:
-        # ytd = util.calculate_ytd_returns(returns)
-        ytd = util.calculate_ytd_returns(returns, 2023)
-        ytd.to_excel(writer, sheet_name=sheet_name, startrow=fs_row_dim + 19,
-                         startcol = 16)
-        
-        
         plots.get_asset_liab_ret_bar_plot(
-            workbook, worksheet, sheet_name, ret_row_dim, position='Q4')
+            workbook, worksheet, sheet_name, ret_row_dim, position='V4')
+
         plots.get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim,
-                           fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q22')
+                           fs_col_dim= col + ret_col_dim + qtd_col_dim + ytd_col_dim + 6, position='V22')
+
         plots.get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim,
-                               fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position='Q40')
+                               fs_col_dim= col + ret_col_dim + qtd_col_dim + ytd_col_dim + 6, position='V40')
         
-        plots.get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim=col + ret_col_dim + liab_col_dim + 4, position = 'Q62')
-    
+        plots.get_ytd_chart(workbook, worksheet, sheet_name, qtd_row_dim, col_dim =  col + ret_col_dim + 4, position = 'V62', plot_title = 'QTD Returns')
+        
+        plots.get_ytd_chart(workbook, worksheet, sheet_name,ytd_row_dim, col_dim = col + ret_col_dim + qtd_col_dim + 6, position = 'V85')
+
+
     # format asset and liability returns values
     worksheet.conditional_format(row, col, ret_row_dim, col, {
                                  'type': 'no_blanks', 'format': date_fmt})
@@ -579,25 +594,47 @@ def set_plan_ldi_sheet(writer, returns, pv_irr, fs_data, sheet_name, dashboard_g
     worksheet.conditional_format(row+1, col+1, ret_row_dim, ret_col_dim, {'type': 'cell', 'criteria': 'less than', 'value': 0,
                                                                           'format': neg_value_fmt})
 
-    # pv and irr format
-    worksheet.conditional_format(row+1, col + ret_col_dim + 2, liab_row_dim,
+    # qtd returns format
+    worksheet.conditional_format(row+1, col + ret_col_dim + 2, qtd_row_dim,
                                  col + ret_col_dim + 2, {'type': 'no_blanks', 'format': date_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + 3, liab_row_dim,
-                                 col + ret_col_dim + 3, {'type': 'no_blanks', 'format': dollar_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + 4, liab_row_dim,
+    worksheet.conditional_format(row+1, col + ret_col_dim + 3, qtd_row_dim,
+                                 col + ret_col_dim + 3, {'type': 'no_blanks', 'format': pct_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + 4, qtd_row_dim,
                                  col + ret_col_dim + 4, {'type': 'no_blanks', 'format': pct_fmt})
 
+    # ytd returns format
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + 4, ytd_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + 4, {'type': 'no_blanks', 'format': date_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + 5,ytd_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + 5, {'type': 'no_blanks', 'format': pct_fmt})
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + 6,ytd_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + 6, {'type': 'no_blanks', 'format': pct_fmt})
+
     # Funded status format
-    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 4, fs_row_dim,
-                                 col + ret_col_dim + liab_col_dim + 4, {'type': 'no_blanks', 'format': date_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 5, liab_row_dim,
-                                 col + ret_col_dim + liab_col_dim + 6, {'type': 'no_blanks', 'format': dollar_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 7, liab_row_dim,
-                                 col + ret_col_dim + liab_col_dim + 7, {'type': 'no_blanks', 'format': pct_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 8, liab_row_dim,
-                                 col + ret_col_dim + liab_col_dim + 8, {'type': 'no_blanks', 'format': dollar_fmt})
-    worksheet.conditional_format(row+1, col + ret_col_dim + liab_col_dim + 9, liab_row_dim,
-                                 col + ret_col_dim + liab_col_dim + 10, {'type': 'no_blanks', 'format': pct_fmt})
+
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 6, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 6, {'type': 'no_blanks', 'format': date_fmt})
+    # asset mv
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 7, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 7, {'type': 'no_blanks', 'format': dollar_fmt})
+    #PV
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 8, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 8, {'type': 'no_blanks', 'format': dollar_fmt})
+    #IRR
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 9, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 9, {'type': 'no_blanks', 'format': pct_fmt})
+    #Funded  Status
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 10, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 10, {'type': 'no_blanks', 'format': pct_fmt})
+    #FS Gap
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 11, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 11, {'type': 'no_blanks', 'format': dollar_fmt})
+    #1y FSV
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 12, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 12, {'type': 'no_blanks', 'format': pct_fmt})
+    #6mo FSV
+    worksheet.conditional_format(row+1, col + ret_col_dim + qtd_col_dim + ytd_col_dim + 13, fs_row_dim,
+                                 col + ret_col_dim + qtd_col_dim + ytd_col_dim + 13, {'type': 'no_blanks', 'format': pct_fmt})
 
     return 0
 
@@ -639,3 +676,75 @@ def set_liab_mv_cf_sheet(writer, df, sheet_name):
                                                                   'format': num_fmt})
 
     return 0
+
+
+
+def set_fs_data_sheet_SAA(writer, fs_data_df, sheet_name="Funded Status"):
+    '''
+    Create excel sheet for asset liability returns or market value tables
+
+    Parameters
+    ----------
+    writer : Excel Writer
+    tables_dict : Dictionary
+    sheet_name : string
+    mkt_values : Boolean
+        True if values should be formatted in dollar values
+        False if values should be formatted in percentages
+
+    '''
+    workbook = writer.book
+    cell_format = formats.set_worksheet_format(workbook)
+    df_empty = pd.DataFrame()
+    df_empty.to_excel(writer, sheet_name=sheet_name, startrow=0, startcol=0)
+    worksheet = writer.sheets[sheet_name]
+    worksheet.set_column(0, 1000, 21, cell_format)
+    row = 1
+    col = 0
+
+    title_format = formats.set_title_format(workbook, center=True)
+    # date format
+    date_fmt = formats.set_number_format(
+        workbook, num_format='mm/dd/yyyy', bold=True)
+    # percent format
+    pct_fmt = formats.set_number_format(workbook, num_format='0.00%')
+    # dollar format
+    dollar_fmt = formats.set_number_format(workbook, num_format='"$" #,##0.00')
+    # num format
+    # num_fmt = formats.set_number_format(workbook,num_format='#,##0.00')
+
+    # negative value format
+    neg_value_fmt = formats.set_neg_value_format(workbook)
+
+
+    row_dim = row + fs_data_df.shape[0]
+    col_dim = col + fs_data_df.shape[1]
+    worksheet.write(row-1, col+1, key, title_format)
+    fs_data_dict[key].to_excel(
+        writer, sheet_name=sheet_name, startrow=row, startcol=col)
+
+    worksheet.conditional_format(row, col, row_dim, col, {'type': 'no_blanks',
+                                                          'format': date_fmt})
+
+    # format asset and liability market values
+    worksheet.conditional_format(
+        row+1, col+1, row_dim, col_dim - 4, {'type': 'no_blanks', 'format': dollar_fmt})
+
+    # funded status format
+    worksheet.conditional_format(
+        row+1, col+2, row_dim, col_dim - 3, {'type': 'no_blanks', 'format': pct_fmt})
+
+    # fs gap format
+    worksheet.conditional_format(
+        row+1, col+3, row_dim, col_dim - 2, {'type': 'no_blanks', 'format': dollar_fmt})
+
+    # 1yr and 6mo format
+    worksheet.conditional_format(
+        row+1, col+1, row_dim, col_dim, {'type': 'no_blanks', 'format': pct_fmt})
+
+    worksheet.conditional_format(row+1, col+1, row_dim, col_dim, {'type': 'cell', 'criteria': 'less than', 'value': 0,
+                                                                  'format': neg_value_fmt})
+    col = col_dim + 2
+
+    return 0
+

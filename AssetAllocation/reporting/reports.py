@@ -150,7 +150,7 @@ def get_ef_portfolios_report(reportname, plan, bnds=pd.DataFrame):
     print_report_info(reportname, filepath)
     writer.save()
 
-def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
+def get_stochmv_ef_portfolios_report(reportname, stochmv,funded_status_data, bnds=pd.DataFrame):
     """
     Generates output report
 
@@ -174,6 +174,11 @@ def get_stochmv_ef_portfolios_report(reportname, stochmv, bnds=pd.DataFrame):
     
     sheets.set_ret_vol_sheet(writer, pp_dict['Asset/Liability Returns/Vol'])
     sheets.set_corr_sheet(writer, pp_dict['Corr'])
+
+    sheets.set_ef_port_sheet(writer, stochmv.max_sharpe_weights.transpose(), sheet_name = "Max Sharpe Weights")
+
+    sheets.set_ef_port_sheet(writer, stochmv.adjusted_opt_ports_df,sheet_name = 'Adjusted EF Data')
+    sheets.set_fs_data_sheet(writer, funded_status_data, sheet_name = 'Funded Status')
     if not(bnds.empty):
         sheets.set_ret_vol_sheet(writer, bnds, 'bounds')
     try:
@@ -323,12 +328,14 @@ def get_ldi_report(report_dict, report_name = "ldi_report", dashboard_graphs = T
     writer = pd.ExcelWriter(filepath, engine = 'xlsxwriter')
   
     for key in report_dict:
-        temp_mv_fs_df = dm.merge_dfs(report_dict[key]['market_values'], report_dict[key]['fs_data'], dropna = False)
-        sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'],
-                           report_dict[key]['pv_irr'],
-                           temp_mv_fs_df,
-                           sheet_name = key, dashboard_graphs = dashboard_graphs)
 
+        temp_mv_fs_df = dm.merge_dfs(report_dict[key]['mv_pv_irr'], report_dict[key]['fs_data'], dropna = False)
+        sheets.set_plan_ldi_sheet(writer, report_dict[key]['returns'],
+                                 report_dict[key]['qtd_returns'],
+                                  report_dict[key]['ytd_returns'],
+                                  temp_mv_fs_df,
+                                  
+                                  sheet_name = key, dashboard_graphs = dashboard_graphs)
        
     #save file
     print_report_info(report_name, filepath)

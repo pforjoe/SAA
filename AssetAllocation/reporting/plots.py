@@ -234,41 +234,48 @@ def get_asset_liab_ret_bar_plot(workbook, worksheet, sheet_name, ret_row_dim, po
 
     #add asset returns data to bar chart
     returns_chart.add_series({
-        'categories': [sheet_name, ret_row_dim-11, 0, ret_row_dim, 0], 
-        'values': [sheet_name, ret_row_dim-11, 1, ret_row_dim, 1],
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 1, ret_row_dim, 1],
         'name':"Asset"})
     
     #add liability returns data to bar chart
     returns_chart.add_series({
-        'categories': [sheet_name, ret_row_dim-11, 0, ret_row_dim, 0], 
-        'values': [sheet_name, ret_row_dim-11, 2, ret_row_dim, 2],
+        'categories': [sheet_name, ret_row_dim-12, 0, ret_row_dim, 0], 
+        'values': [sheet_name, ret_row_dim-12, 2, ret_row_dim, 2],
         'name': 'Liabilty'})
     
     #set x axis
     returns_chart.set_x_axis({'label_position' : 'low',
                         'date_axis': True,
                        'num_format' : 'mmm-yy',
-                       'num_font':{'rotation':-45,'name': 'Arial','color':'#616161 '},})
+                       'num_font':{'name': 'Arial','color':'#616161 ','rotation': -45},
+                      # 'minor_unit':1,
+                       #'minor_unit_type': 'days',
+                       #'major_unit':      1,
+                       #'major_unit_type': 'months',
+                       'line':{'color':'#D3D3D3'}
+                       })
     
     #set y axis format
     returns_chart.set_y_axis({'num_format':'0%',
-                             'num_font':  {'name': 'Arial', 'color':'#616161 '},
-                             'line':{'none':True},
-                            'major_gridlines': {
-                                'visible' : 1,
-                                'line' : { 'color' : '#D3D3D3'}
-                                }
-                            })
+                              'num_font':  {'name': 'Arial', 'color':'#616161 '},
+                              'line':{'none':True},
+                             'major_gridlines': {
+                                 'visible' : 1,
+                                 'line' : { 'color' : '#D3D3D3'}
+                                 },
+                             'major_unit':0.02
+                             })
     
     #set chart title
-    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve" ,
-                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
-    
-    returns_chart.set_chartarea({'border':{'none':True}})
+    returns_chart.set_title({'name':sheet_name + " Plan - FTSE Curve",
+                             'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':14}})
     
     #set legend position
-    returns_chart.set_legend({'position':'bottom'})
-    
+    returns_chart.set_legend({'position':'bottom',
+                              'font': {'name': 'Arial','color':'#616161 '}
+                              })
+    returns_chart.set_chartarea({'border':{'none':True}})
     #add chart to sheet and scale
     returns_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, returns_chart)   
@@ -282,39 +289,45 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     #add asset returns data to bar chart
     fs_chart.add_series({
         'categories': [sheet_name, fs_row_dim-12, fs_col_dim, fs_row_dim, fs_col_dim], 
-        'values': [sheet_name, fs_row_dim-12, fs_col_dim+3, fs_row_dim, fs_col_dim+3],
+        'values': [sheet_name, fs_row_dim-12, fs_col_dim+4, fs_row_dim, fs_col_dim+4],
         'name':"Funded Status"})
     
     #set x axis
     fs_chart.set_x_axis({
                        'date_axis': True,
-                     'num_format' : 'mmm-yy',
+
+                     'num_format' :  'mmm-yy',
                      'num_font':{'rotation':-45,'name': 'Arial','color':'#616161 '},
                      'minor_unit':1,
                      'minor_unit_type': 'days',
                      'major_unit':      1,
                      'major_unit_type': 'months',
+                     'line':{'color':'#D3D3D3'}
 
                        })
     
     #set y axis format
     fs_chart.set_y_axis({'num_format':'0%',
-                             'num_font':  {'name': 'Arial', 'color':'#616161 '},
-                             'line':{'none':True},
-                            'major_gridlines': {
-                                'visible' : 1,
-                                'line' : { 'color' : '#D3D3D3'}
-                                }
-                            })
+
+                         'num_font':  {'name': 'Arial', 'color':'#616161 '},
+                         'line':{'none':True},
+                        'major_gridlines': {
+                            'visible' : 1,
+                            'line' : { 'color' : '#D3D3D3'}
+                            },
+                        'major_unit':0.02
+                        })
     
     #set chart title
     fs_chart.set_title({'name':"Funded Status - " + sheet_name,
-                            'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
+                        'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':14}})
     
+    fs_chart.set_legend({'position': 'none',
+                         'font': {'name': 'Arial','color':'#616161 '}
+                         })
+e
     fs_chart.set_chartarea({'border':{'none':True}})
     
-    fs_chart.set_legend({'position': 'none'})
-
     #add chart to sheet and scale
     fs_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, fs_chart)  
@@ -326,7 +339,7 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     #add asset returns data to bar chart
     fs_vol_chart.add_series({
         'categories': [sheet_name, fs_row_dim-24, fs_col_dim, fs_row_dim, fs_col_dim], 
-        'values': [sheet_name, fs_row_dim-24, fs_col_dim+5, fs_row_dim, fs_col_dim+5],
+        'values': [sheet_name, fs_row_dim-24, fs_col_dim+6, fs_row_dim, fs_col_dim+6],
         'name':"1yr FSV"})
     
     #set x axis
@@ -349,12 +362,13 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
                             'major_gridlines': {
                                 'visible' : 1,
                                 'line' : { 'color' : '#D3D3D3'}
-                                }
+                                },
+                            'major_unit':0.02
                             })
     
     #set chart title
     fs_vol_chart.set_title({'name':"Realized Funded Status Volatility",
-                            'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}
+                            'name_font':  {'name': 'Arial','color':'#616161 ','bold':False,'size':12}
                             })
     fs_vol_chart.set_chartarea({'border':{'none':True}})
     fs_vol_chart.set_legend({'position': 'bottom',
@@ -366,14 +380,14 @@ def get_fs_vol_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, po
     fs_vol_chart.set_size({'x_scale': 1.5, 'y_scale': 1})
     worksheet.insert_chart(position, fs_vol_chart)  
     
-def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, position):
+def get_ytd_chart(workbook, worksheet, sheet_name, row_dim, col_dim, position, plot_title = 'YTD Returns'):
     #specify what type of chart
     ytd_chart = workbook.add_chart({'type':'column'})
 
     #add asset returns data to bar chart
     ytd_chart.add_series({
-        'categories': [sheet_name, fs_row_dim+19, 17, fs_row_dim+19, 18], 
-        'values': [sheet_name, fs_row_dim+20, 17, fs_row_dim+20, 18],
+        'categories': [sheet_name, 1, col_dim-1, 1, col_dim],
+        'values': [sheet_name, row_dim, col_dim-1, row_dim, col_dim],
         'name':'YTD',
         'data_labels':{'value':True,'num_format': '0.00%','font':  {'name': 'Arial','color':'#616161 '},}
         })
@@ -381,24 +395,24 @@ def get_ytd_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, posit
     #set x axis
     ytd_chart.set_x_axis({'text_axis': True,
                           'label_position' : 'low',
-                          'num_font':  {'name': 'Arial','color':'#616161 '},
+                          'num_font':  {'name': 'Arial','color':'#616161 ', 'size': 9},
                           'line':{'color':'#D3D3D3'}
                           })
     
     #set y axis format
-    ytd_chart.set_y_axis({'num_format':'0.00%',
-                          'max': 0,
-                          'num_font':  {'name': 'Arial', 'color':'#616161 '},
+    ytd_chart.set_y_axis({'num_format':'0%',
+                          'num_font':  {'name': 'Arial', 'color':'#616161 ','size': 9},
                           'line':{'none':True},
                          'major_gridlines': {
                              'visible' : 1,
-                             'line' : { 'color' : '#D3D3D3'}},     
+                             'line' : { 'color' : '#D3D3D3'}},
+                         'major_unit':0.02
     })
    
     
     #set chart title
-    ytd_chart.set_title({'name': "YTD Returns",
-                         'name_font':  {'name': 'Arial','color':'#616161 ','bold':False}})
+    ytd_chart.set_title({'name': plot_title,
+                         'name_font':  {'name': 'Arial','color':'#616161 ','bold':False, 'size':12}})
 
     ytd_chart.set_chartarea({'border':{'none':True}})
     
