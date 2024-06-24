@@ -599,7 +599,7 @@ def get_liab_mv_cf_cols(ftse_filename='ftse_data.xlsx'):
     df_ftse = get_ftse_data(False,ftse_filename)
     dates = df_ftse.transpose().iloc[1:,]
     dates.sort_index(inplace=True)
-    return list(dates.index[13:])
+    return list(dates.index[109:])
 
 def transform_pbo_df(pbo_df):
     temp_df_list = [pbo_df.iloc[0:12* len(SHEET_LIST)],pbo_df.iloc[12*len(SHEET_LIST):,]]
@@ -846,12 +846,16 @@ def transform_index_data(file_name = 'index_data.xlsx', sheet_name = 'data'):
     index_returns = format_data(index_data)
     
     #rename columns
-    index_returns.columns = ['15+ STRIPS', 'Long Corps', 'BNP 30Y ULTRA FUT', 'SP500',
-                             'MSCI ACWI', 'RUSS2000', 'MSCI EAFE', 'MSCI EM', 'CS LL',
-                             'BOA HY', 'HFRX MACRO/CTA', 'HFRI MACRO', 'SG TREND',
-                             'ALT RISK', 'DW REIT', 'BXIIU3MC Index', 'USGB090Y Index',
-                             'USBMMY3M Index', 'CDLI', 'MSCI ACWI IMI', 'RUSS3000',
-                             'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT', 'HFRX AR']
+    index_returns.columns = ['15+ STRIPS', 'Long Corps', 'BNP 30Y ULTRA FUT',
+                             'SP500',
+                             'MSCI ACWI', 'RUSS2000', 'MSCI EAFE', 'MSCI EM',
+                             'CS LL',
+                             'BOA HY', 'HF MACRO', 'HFRI MACRO', 'TREND',
+                             'ALT RISK', 'DW REIT', 'BXIIU3MC Index',
+                             'USGB090Y Index',
+                             'USBMMY3M Index', 'CDLI', 'MSCI ACWI IMI',
+                             'RUSS3000',
+                             'WN1 COMB Comdty', 'BARCLAYS ULTRA LONG FUT']
     
     
     return index_returns

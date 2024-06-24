@@ -325,7 +325,7 @@ def get_fs_chart(workbook, worksheet, sheet_name, fs_row_dim, fs_col_dim, positi
     fs_chart.set_legend({'position': 'none',
                          'font': {'name': 'Arial','color':'#616161 '}
                          })
-e
+
     fs_chart.set_chartarea({'border':{'none':True}})
     
     #add chart to sheet and scale
